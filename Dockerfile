@@ -16,16 +16,14 @@ RUN apt-get update \
        curl nodejs npm \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Poetry
-RUN pip install poetry
+# Copy only requirements.txt to leverage Docker cache
+COPY ./requirements.txt /app/requirements.txt
 
-# Copy necessary files
-COPY ./pyproject.toml /app
+# Install Python dependencies from requirements.txt and cache the layer
+RUN pip install --no-cache-dir -r /app/requirements.txt
+
+# Copy the rest of the application code
 ADD . /app
-
-# Install Python dependencies
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi
 
 # Install StarknetKit via npm with legacy-peer-deps flag
 RUN npm install @argent/get-starknet --legacy-peer-deps --save
