@@ -9,7 +9,7 @@ services:
     build: .
     restart: always
     volumes:
-      - ./web_ap/static/:/app/static/
+      - ./web_app/static/:/app/static/
       - ./entrypoint.sh:/app/entrypoint.sh
     env_file:
       - .env
@@ -26,7 +26,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./web_ap/static/:/app/static/
+      - ./web_app/static/:/app/static/
       - ./certs/spotnet.xyz.chain.crt:/etc/nginx/spotnet.xyz.chain.crt:ro
       - ./certs/spotnet.xyz.key:/etc/nginx/spotnet.xyz.key:ro
       - ./spotnet.conf:/etc/nginx/conf.d/spotnet.conf
