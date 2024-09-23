@@ -285,7 +285,6 @@ fn test_loop_base_token_zklend() {
     start_cheat_caller_address(eth_addr.try_into().unwrap(), user);
     token_disp.approve(swapper.contract_address, 385000000000000000);
     stop_cheat_caller_address(eth_addr);
-
     let disp = ICoreDispatcher { contract_address: swapper.contract_address };
     disp
         .loop_liquidity(
@@ -321,7 +320,7 @@ fn test_loop_quote_token_zklend() {
         tick_spacing: 1000,
         extension: 0.try_into().unwrap()
     };
-    let pool_price = 385000000000000;
+    let pool_price = 370000000000000;
     let token_disp = IERC20Dispatcher { contract_address: usdc_addr };
 
     start_cheat_caller_address(usdc_addr.try_into().unwrap(), user);
@@ -382,4 +381,5 @@ fn test_loop_quote_token_zklend() {
 //             user
 //         );
 // }
+
 

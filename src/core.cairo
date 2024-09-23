@@ -1,5 +1,5 @@
 use ekubo::types::keys::PoolKey;
-use spotnet::types::{SwapData, SwapResult, DepositData};
+use spotnet::types::{SwapData, SwapResult, DepositData, DepositsHistory};
 use starknet::{ContractAddress};
 
 #[starknet::interface]
@@ -13,6 +13,8 @@ pub trait ICore<TContractState> {
         pool_price: u256,
         caller: ContractAddress
     );
+
+    fn get_deposits_data(self: @TContractState) -> DepositsHistory;
 }
 
 #[starknet::contract]
@@ -27,10 +29,12 @@ pub mod Core {
     use spotnet::interfaces::{
         IMarketDispatcher, IMarketDispatcherTrait, IERC20Dispatcher, IERC20DispatcherTrait
     };
-    use spotnet::types::{SwapData, SwapResult, DepositData};
+    use spotnet::types::{SwapData, SwapResult, DepositData, DepositsHistory};
+    use starknet::event::EventEmitter;
 
     use starknet::storage::StoragePointerReadAccess;
     use starknet::storage::StoragePointerWriteAccess;
+    use starknet::storage::{Vec, MutableVecTrait, VecTrait};
     use starknet::{ContractAddress};
     use starknet::{get_contract_address};
     use super::{ICore};
@@ -38,7 +42,9 @@ pub mod Core {
     #[storage]
     struct Storage {
         ekubo_core: ICoreDispatcher,
-        zk_market: IMarketDispatcher
+        zk_market: IMarketDispatcher,
+        deposits: Vec<(ContractAddress, u256)>,
+        borrows: Vec<(ContractAddress, u256)>
     }
 
     #[constructor]
@@ -47,6 +53,21 @@ pub mod Core {
     ) {
         self.ekubo_core.write(ekubo_core);
         self.zk_market.write(zk_market);
+    }
+
+    #[derive(starknet::Event, Drop)]
+    struct LiquidityLooped {
+        initial_amount: u256,
+        deposited: u256,
+        token_deposit: ContractAddress,
+        borrowed: u256,
+        token_borrowed: ContractAddress
+    }
+
+    #[event]
+    #[derive(Drop, starknet::Event)]
+    enum Event {
+        LiquidityLooped: LiquidityLooped
     }
 
     fn div(a: u256, b: u256) -> felt252 {
@@ -113,6 +134,26 @@ pub mod Core {
             )
         }
 
+        fn get_deposits_data(
+            self: @ContractState
+        ) -> DepositsHistory { // TODO: Refactor data obtaining
+            let deposits_len = self.deposits.len();
+            let borrows_len = self.borrows.len();
+            let mut i = 0;
+            let mut deposits: Array<(ContractAddress, u256)> = ArrayTrait::new();
+            let mut borrows: Array<(ContractAddress, u256)> = ArrayTrait::new();
+            while i < deposits_len {
+                deposits.append(self.deposits.get(i).unwrap().read());
+                i += 1;
+            };
+            i = 0;
+            while i < borrows_len {
+                borrows.append(self.borrows.get(i).unwrap().read());
+                i += 1;
+            };
+            DepositsHistory { deposited: deposits.span(), borrowed: borrows.span() }
+        }
+
         fn loop_liquidity(
             ref self: ContractState,
             deposit_data: DepositData,
@@ -142,19 +183,20 @@ pub mod Core {
             let deposit_token_decimals = pow(10, token_dispatcher.decimals().try_into().unwrap());
             token_dispatcher.approve(zk_market.contract_address, amount);
             zk_market.deposit(token, amount.try_into().expect('Overflow'));
-            let mut total_deposited = amount;
+            let mut deposited = amount;
             let mut total_borrowed = 0;
             let mut accumulated = 0;
             let mut i = 0;
 
             while (amount + accumulated) / amount < multiplier.into() {
-                let borrow_capacity = div(total_deposited * collateral_factor, ZK_PERCENTS_DECIMALS)
+                let borrow_capacity = div(deposited * collateral_factor, ZK_PERCENTS_DECIMALS)
                     .into();
                 let to_borrow = get_borrow_amount(
                     borrow_capacity, pool_price, deposit_token_decimals, total_borrowed.into()
                 );
                 total_borrowed += to_borrow;
                 zk_market.borrow(borrowing_token, to_borrow);
+
                 let params = SwapParameters {
                     amount: i129 { mag: to_borrow.try_into().unwrap(), sign: false },
                     is_token1,
@@ -173,10 +215,30 @@ pub mod Core {
                 token_dispatcher.approve(zk_market.contract_address, amount_swapped.into());
                 zk_market.deposit(token, amount_swapped);
 
-                total_deposited += amount_swapped.into();
+                deposited += amount_swapped.into();
                 accumulated += amount_swapped.into();
                 i += 1;
             };
+            let total_deposited = IERC20Dispatcher {
+                contract_address: reserve_data.z_token_address
+            }
+                .balanceOf(get_contract_address());
+            let total_borrowed = zk_market
+                .get_user_debt_for_token(curr_contract_address, borrowing_token)
+                .into();
+            self
+                .emit(
+                    LiquidityLooped {
+                        initial_amount: amount,
+                        deposited: total_deposited,
+                        token_deposit: token,
+                        borrowed: total_borrowed,
+                        token_borrowed: borrowing_token
+                    }
+                );
+
+            self.deposits.append().write((token, total_deposited));
+            self.borrows.append().write((borrowing_token, total_borrowed));
         }
     }
 
