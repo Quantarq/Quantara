@@ -1,12 +1,11 @@
 from fastapi.templating import Jinja2Templates
-from web_app.contract_tools.blockchain_call import StarknetClient
-from web_app.contract_tools.constants import TokenParams
 from fastapi import Form, APIRouter
 from fastapi.responses import HTMLResponse, RedirectResponse
 from starlette.requests import Request
+from datetime import datetime
+from web_app.contract_tools.utils import DashboardMixin
 
 # Initialize the client and templates
-CLIENT = StarknetClient()
 templates = Jinja2Templates(directory="web_app/api/templates")
 router = APIRouter()  # Initialize the router
 
@@ -27,15 +26,8 @@ async def get_form(request: Request):
         # Redirect to login if no wallet_id in session
         return RedirectResponse(url="/login", status_code=302)
 
-    wallet_balances = {}
-
     # Fetch the balance for each token in TokenParams
-    for token in TokenParams:
-        token_address, decimals = token.value
-        balance = await CLIENT.get_balance(
-            token_addr=token_address, holder_addr=holder_address, decimals=decimals
-        )
-        wallet_balances[token.name] = balance
+    wallet_balances = await DashboardMixin.get_wallet_balances(holder_address)
 
     # Render the template with the balances
     return templates.TemplateResponse(
@@ -48,15 +40,43 @@ async def get_form(request: Request):
     )
 
 
+multipliers = {}
+start_dates = {}
+
+
 @router.post("/submit")
 async def submit_form(
-    token: str = Form(...), protocol: str = Form(...), multiplier: int = Form(...)
+    token: str = Form(...),
+    multiplier: int = Form(...),
 ):
+    # Save submitted form data
+    multipliers[token] = multiplier
+    start_dates[token] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    # Redirect to the dashboard
+    return RedirectResponse("/dashboard", status_code=303)
+
+
+@router.get("/dashboard")
+async def get_dashboard(request: Request):
     """
-    Submit the form and return the response.
-    :param token: Token address
-    :param protocol: Protocol address
-    :param multiplier: Multiplier
-    :return: dict
+    Get the dashboard with the balances, multipliers, and start dates.
+    :param request: HTTP request
+    :return: template response
     """
-    return {"token": token, "protocol": protocol, "multiplier": multiplier}
+    # Pass balances, multipliers, and start_dates to the template
+    wallet_id = request.session.get("wallet_id")
+    if not wallet_id:
+        return RedirectResponse("/login", status_code=302)
+
+    wallet_balances = await DashboardMixin.get_wallet_balances(wallet_id)
+
+    return templates.TemplateResponse(
+        "dashboard.html",
+        {
+            "request": request,
+            "balances": wallet_balances,
+            "multipliers": multipliers,
+            "start_dates": start_dates,
+        },
+    )
