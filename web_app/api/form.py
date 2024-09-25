@@ -3,7 +3,9 @@ from fastapi import Form, APIRouter
 from fastapi.responses import HTMLResponse, RedirectResponse
 from starlette.requests import Request
 from datetime import datetime
-from web_app.contract_tools.utils import DashboardMixin
+
+from web_app.contract_tools.constants import TokenParams
+from web_app.contract_tools.utils import DashboardMixin, DepositMixin
 
 # Initialize the client and templates
 templates = Jinja2Templates(directory="web_app/api/templates")
@@ -79,4 +81,11 @@ async def get_dashboard(request: Request):
             "multipliers": multipliers,
             "start_dates": start_dates,
         },
+    )
+
+
+@router.get("/transaction-data")
+async def get_transaction_data(request: Request, token: str, multiplier: int, amount: int):
+    return await DepositMixin.get_transaction_data(
+        token, amount, multiplier, request.session["wallet_id"], TokenParams.USDC.value[0]
     )
