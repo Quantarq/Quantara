@@ -15,11 +15,11 @@
             {% endfor %}
         </div>
 
-        <form action="/submit" method="post" onsubmit="return validateAmount()">
+        <form id="lending-form">
             <!-- Token Selection Field -->
             <div class="mb-3">
                 <label for="token" class="form-label">Select Token</label>
-                <select class="form-select" id="token" name="token" onchange="updateMaxBalance()" required>
+                <select class="form-select" id="token" name="token" required>
                     <option selected disabled>Select Token</option>
                     {% for token in balances.keys() %}
                         <option value="{{ token }}">{{ token }}</option>
@@ -47,11 +47,17 @@
             </div>
 
             <!-- Submit Button -->
-            <button type="submit" class="btn-submit">Submit</button>
+           <button type="button" class="btn-submit" id="submit-btn">Submit</button>
         </form>
     </div>
 {% endblock %}
 
 {% block scripts %}
-    <script src="{{ url_for('static', path='js/form.js') }}"></script>
+        <script> const balances = {
+        {% for token, value in balances.items() %}
+            "{{ token }}": {{ value | safe }},
+        {% endfor %}
+    };
+    </script>
 {% endblock %}
+

@@ -35,3 +35,40 @@ async function logout() {
     await fetch("/logout", { method: "POST" });
     window.location.href = "/login";
 }
+
+
+async function sendTransaction(transactionData) {
+    try {
+        const starknet = window.starknet;
+        if (!starknet) {
+            alert("Please connect to the Argent X wallet.");
+            return;
+        }
+
+        // Connect to the wallet if not connected
+        await connectWallet();
+
+        // Extract approve_data and loop_liquidity_data from transactionData
+        const approveData = transactionData[0].approve_data;
+        const loopLiquidityData = transactionData[0].loop_liquidity_data;
+
+        // Construct transaction details based on approve data
+        const transactionDetails = {
+            contractAddress: approveData.to_address,
+            entrypoint: "approve",
+            calldata: [
+                approveData.spender,
+                approveData.amount,
+            ],
+        };
+
+        // Send the transaction via the Starknet provider
+        const response = await starknet.provider.invokeFunction(transactionDetails);
+        console.log("Transaction response:", response);
+
+        alert(`Transaction sent. Hash: ${response.transaction_hash}`);
+    } catch (error) {
+        console.error("Error sending transaction:", error);
+        alert("An error occurred while sending the transaction.");
+    }
+}
