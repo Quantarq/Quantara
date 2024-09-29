@@ -66,7 +66,7 @@ export async function sendTransaction(transactionData) {
         const callData = new CallData(abi);
         const compiled = callData.compile("loop_liquidity", loopLiquidityData);
         const depositTransaction = {
-            contractAddress: "0x04aa8566337bf8dae0ae335e251dd0776702d52d8fb837e0557cd1917cee28a7",
+            contractAddress: "0x0798b587e3da417796a56ffab835ab2a905fa08bab136843ce5749f76c7e45e4",
             entrypoint: "loop_liquidity",
             calldata: compiled
         };

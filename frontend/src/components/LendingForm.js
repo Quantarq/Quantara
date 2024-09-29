@@ -55,6 +55,7 @@ const LendingForm = ({walletId}) => {
             }).toString();
 
             console.log("Query Params:", queryParams);
+            // TODO: Add .env file if possible
             const response = await fetch(`http://0.0.0.0:8000/transaction-data?${queryParams}`, {
                 method: 'GET',
                 headers: {
@@ -65,35 +66,12 @@ const LendingForm = ({walletId}) => {
             console.log("Response:", response);
             if (response.ok) {
                 const data = await response.json();
-                const data1 = { // TODO: Remove, mock for sepolia
-                    approve_data: {
-                        to_address: "2087021424722619777119509474943472645767659996348769578120564519014510906823",
-                        spender: "0x4aa8566337bf8dae0ae335e251dd0776702d52d8fb837e0557cd1917cee28a7",
-                        amount: "1000"
-                    },
-                    loop_liquidity_data: {
-                        caller: "0x06Cb0F3004Be46bcfc3d3030E08ebDDD64f13da663AD715FB4Aabe5423c7b862",
-                        pool_price: 373309738263514,
-                        pool_key: {
-                            token0: "2087021424722619777119509474943472645767659996348769578120564519014510906823",
-                            token1: "0x7ab0b8855a61f480b4423c46c32fa7c553f0aac3531bbddaa282d86244f7a23",
-                            fee: "0x20c49ba5e353f80000000000000000",
-                            tick_spacing: "354892",
-                            extension: "0x73ec792c33b52d5f96940c2860d512b3884f2127d25e023eb9d44a678e4b971"
-                        },
-                        deposit_data: {
-                            token: "2087021424722619777119509474943472645767659996348769578120564519014510906823",
-                            amount: "1000",
-                            multiplier: "2"
-                        }
-                    }
-                }
                 console.log(data);
                 setTransactionData(data);
                 console.log("Transaction data fetched successfully:", data);
 
                 try {
-                    const txResult = await sendTransaction(data1);
+                    const txResult = await sendTransaction(data);
                     console.log("Transaction result:", txResult);
                     setTransactionStatus('Transaction sent successfully!');
                 } catch (txError) {
