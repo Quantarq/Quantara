@@ -31,7 +31,7 @@ const Home = () => {
     ]
 
     const decorationData = [
-        { top: -10, left: -15, size: 50 },
+        { top: -9, left: -16, size: 50 },
         { top: -10, left: -45, size: 90 },
         { top: -35, left: 55, size: 65 },
         { top: -30, left: 50, size: 95 },
