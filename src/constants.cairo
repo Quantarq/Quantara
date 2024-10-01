@@ -1,5 +1,6 @@
 pub const ZK_PERCENTS_DECIMALS: u256 = 1000000000000000000000000000;
-pub const USER_CONTRACT_HASH: felt252 = 0x03d0ef7bdfcf931b2c63f80c6ce92243be0b09334cf1c8de1ebddb551ff1627c;
+pub const USER_CONTRACT_HASH: felt252 =
+    0x03d0ef7bdfcf931b2c63f80c6ce92243be0b09334cf1c8de1ebddb551ff1627c;
 
 // Addresses
 pub const EKUBO_CORE_MAINNET: felt252 =
