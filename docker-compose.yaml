@@ -5,6 +5,20 @@ networks:
     driver: bridge
 
 services:
+  nginx:
+    build: ./frontend
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./certs/spotnet.xyz.chain.crt:/etc/nginx/spotnet.xyz.chain.crt:ro
+      - ./certs/spotnet.xyz.key:/etc/nginx/spotnet.xyz.key:ro
+    depends_on:
+      - backend
+    networks:
+      - app_network
   backend:
     build: .
     restart: always
@@ -14,32 +28,5 @@ services:
       - .env
     expose:
       - "8000"
-    networks:
-      - app_network
-
-  frontend:
-    build: ./frontend
-    restart: always
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-    networks:
-      - app_network
-
-  nginx:
-    restart: unless-stopped
-    image: nginx:latest
-    container_name: nginx
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./certs/spotnet.xyz.chain.crt:/etc/nginx/spotnet.xyz.chain.crt:ro
-      - ./certs/spotnet.xyz.key:/etc/nginx/spotnet.xyz.key:ro
-      - ./spotnet.conf:/etc/nginx/conf.d/spotnet.conf:ro
-      - ./entrypoint.sh:/app/entrypoint.sh:ro
-      - ./frontend:/usr/src/app:ro
-    depends_on:
-      - backend
-      - frontend
     networks:
       - app_network
