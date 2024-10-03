@@ -1,0 +1,58 @@
+.partnership-container{
+    height: 50vh;
+    position: relative;
+}
+
+.partnership-content {
+    position: relative;
+    overflow: hidden;
+    width: 100vw;
+    height: 150px;
+    background:var(--gradient);
+    right: 120px;
+    display: flex;
+    margin-top: 10%;
+}
+
+.partnership-logo {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    animation: scroll 20s linear infinite; /* Infinite scroll */
+    width: calc(150px * 8 * 2); /* Adjust width for duplicated logos */
+}
+
+.partnership-logo > * {
+    flex-shrink: 0;
+    width: 150px;
+    height: 100px;
+    margin: 0 20px;
+}
+
+@keyframes scroll {
+    0% {
+        right: 0;
+    }
+    100% {
+        right: 100%;
+    }
+}
+
+@media (max-width: 2200px) and (min-width: 1850px) {
+    .partnership-content {
+        width: 110vw;
+        height: 150px;
+        background:var(--gradient);
+        right: 460px;
+    }
+}
+
+@media (max-width: 1840px) {
+    .partnership-content {
+        width: 140vw;
+        height: 150px;
+        background:var(--gradient);
+        right: 460px;
+    }
+}

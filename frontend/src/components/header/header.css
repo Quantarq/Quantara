@@ -70,7 +70,7 @@ nav {
     color: var(--blue-color);
 }
 
-.wallet-section button{
+.gradient-button{
     background: transparent;
     border-radius: 8px;
     height: 52px;

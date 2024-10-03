@@ -19,14 +19,14 @@ function Header({ walletId, onConnectWallet, onLogout }) {
                           <div className='wallet-id'>
                               {`${walletId.slice(0, 4)}...${walletId.slice(-4)}`}
                           </div>
-                          <button
+                          <button className='gradient-button'
                               onClick={onLogout}
                           >
                               Log Out
                           </button>
                       </div>
                   ) : (
-                      <button
+                      <button className='gradient-button'
                           onClick={onConnectWallet}
                       >
                           <span>Connect Wallet</span>
