@@ -67,6 +67,15 @@ mod Deposit {
         let amount_quote_token = amount_base_token / decimals_difference;
         div(amount_quote_token - total_borrowed, 100) * borrow_const
     }
+    
+    fn get_withdraw_amount(
+        total_deposited: u256, total_debt: u256, collateral_factor: u256, supply_token_price: u256, debt_token_price: u256, supply_decimals: u256, debt_decimals: u256
+    ) -> u256 {
+        let deposited = total_deposited * supply_token_price / supply_decimals;
+        let free_amount = (deposited * collateral_factor / ZK_PERCENTS_DECIMALS) - total_debt.into();
+        let withdraw_amount = free_amount * debt_token_price / debt_decimals;
+        withdraw_amount
+    }
 
     #[derive(starknet::Event, Drop)]
     struct LiquidityLooped {
@@ -77,10 +86,20 @@ mod Deposit {
         token_borrowed: ContractAddress
     }
 
+    #[derive(starknet::Event, Drop)]
+    struct PositionClosed {
+        deposit_token: ContractAddress,
+        debt_token: ContractAddress,
+        initial_deposit: u256,
+        withdrawn_amount: u256,
+        repaid_amount: u256
+    }
+
     #[event]
     #[derive(Drop, starknet::Event)]
     enum Event {
         LiquidityLooped: LiquidityLooped,
+        PositionClosed: PositionClosed,
         #[flat]
         OwnableEvent: OwnableComponent::Event
     }
@@ -136,6 +155,7 @@ mod Deposit {
             pool_price: u256,
             caller: ContractAddress
         ) {
+            // TODO: Add borrow factor in calculation to support more tokens
             self.ownable.assert_only_owner();
             let DepositData { token, amount, multiplier } = deposit_data;
             assert(multiplier < 5, 'Not supported');
@@ -220,6 +240,83 @@ mod Deposit {
 
             self.deposits.append().write((token, total_deposited));
             self.borrows.append().write((borrowing_token, total_borrowed));
+        }
+
+        fn close_position(ref self: ContractState, supply_token: ContractAddress, debt_token: ContractAddress, pool_key: PoolKey, supply_price: u256, debt_price: u256) {
+            // TODO: Remove prices when Oracle is integrated.
+            // TODO: Add assertions
+            let token_disp = IERC20Dispatcher { contract_address: supply_token };
+            let zk_market = self.zk_market.read();
+            let reserve_data = zk_market.get_reserve_data(supply_token);
+            let z_token_disp = IERC20Dispatcher {contract_address: reserve_data.z_token_address};
+            let contract_address = get_contract_address();
+            let initial_deposit = z_token_disp.balanceOf(contract_address);
+            let mut debt = zk_market.get_user_debt_for_token(
+                contract_address, debt_token
+            );
+
+            let debt_dispatcher = IERC20Dispatcher {contract_address: debt_token};
+            let (supply_decimals, debt_decimals) = (
+                fast_power(10, token_disp.decimals().into()),
+                fast_power(10, debt_dispatcher.decimals().into())
+            );
+            let (SQRT_LIMIT_REPAY, SQRT_LIMIT_WITHDRAW) = if supply_token == pool_key.token0 {
+                (18446748437148339061, 6277100250585753475930931601400621808602321654880405518632)
+            } else {
+                (6277100250585753475930931601400621808602321654880405518632, 18446748437148339061)
+            };
+            let is_token1_repay_swap = supply_token == pool_key.token1;
+            let mut repaid_amount: u256 = 0;
+            while debt != 0 {
+                let withdraw_amount = get_withdraw_amount(
+                    z_token_disp.balanceOf(contract_address),
+                    debt.into(),
+                    reserve_data.collateral_factor.into(),
+                    supply_price,
+                    debt_price,
+                    supply_decimals,
+                    debt_decimals
+                );
+                zk_market.withdraw(supply_token, withdraw_amount.try_into().unwrap());
+
+                let params = SwapParameters {
+                    amount: i129 { mag: withdraw_amount.try_into().unwrap(), sign: false },
+                    is_token1: is_token1_repay_swap,
+                    sqrt_ratio_limit: SQRT_LIMIT_REPAY,
+                    skip_ahead: 0
+                };
+                let delta = self.swap(SwapData {params, pool_key, caller: contract_address}).delta;
+                let amount_swapped: u256 = if is_token1_repay_swap {delta.amount0.mag.into()} else {delta.amount1.mag.into()};
+                
+                if debt.into() > amount_swapped {
+                    repaid_amount += amount_swapped;
+                    debt_dispatcher.approve(zk_market.contract_address, amount_swapped.into());
+                    zk_market.repay(debt_token, amount_swapped.try_into().unwrap());
+                } else {
+                    repaid_amount += debt.into();
+                    debt_dispatcher.approve(zk_market.contract_address, debt.into());
+                    zk_market.repay_all(debt_token);
+                }
+
+                debt = zk_market.get_user_debt_for_token(
+                    contract_address, debt_token
+                );
+            };
+            
+            let left = debt_dispatcher.balanceOf(contract_address);
+            let params = SwapParameters {
+                amount: i129 { mag: left.try_into().unwrap(), sign: false },
+                is_token1: !is_token1_repay_swap,
+                sqrt_ratio_limit: SQRT_LIMIT_WITHDRAW,
+                skip_ahead: 0
+            };
+            self.swap(SwapData {params, pool_key, caller: contract_address});
+            zk_market.withdraw_all(supply_token);
+            zk_market.disable_collateral(supply_token);
+            self.emit(PositionClosed {
+                deposit_token: supply_token, debt_token, initial_deposit, repaid_amount, withdrawn_amount: token_disp.balanceOf(contract_address)
+            });
+            // FIXME: Add aggregation of withdraws.
         }
     }
 

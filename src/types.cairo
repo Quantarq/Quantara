@@ -28,6 +28,18 @@ pub struct DepositsHistory {
     pub borrowed: Span<(ContractAddress, u256)>
 }
 
+#[derive(Copy, Drop, Serde)]
+struct TokenPair {
+    pub supply_token: ContractAddress,
+    pub debt_token: ContractAddress
+}
+
+#[derive(Copy, Drop, Serde)]
+struct PoolData {
+    pool_key: PoolKey,
+    pool_price: u256
+}
+
 #[derive(Drop, Serde, starknet::Store)]
 pub struct MarketReserveData {
     enabled: bool,
