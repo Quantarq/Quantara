@@ -32,10 +32,10 @@ function Home ({ walletId , onConnectWallet , onLogout }){
     ]
 
     const decorationData = [
-        { top: -10, left: -15, size: 50 },
-        { top: -10, left: -45, size: 90 },
-        { top: -35, left: 55, size: 65 },
-        { top: -30, left: 50, size: 95 },
+        { top: -10, left: -10, size: 50 },
+        { top: -10, left: -39, size: 90 },
+        { top: -35, left: 50, size: 65 },
+        { top: -30, left: 45, size: 95 },
     ]
   return (
       <div className='home'>
@@ -69,7 +69,7 @@ function Home ({ walletId , onConnectWallet , onLogout }){
                       height: `${star.size}%`
                   }}/>
               ))}
-              <Starknet style={{position: 'absolute', top: '50px', right: '-10px'}}/>
+              <Starknet style={{position: 'absolute', top: '0', right: '20px'}}/>
           </div>
           <h2 className='center-text'>
               <span className='blue-color'>Earn</span> by leveraging your assets

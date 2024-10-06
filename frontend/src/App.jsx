@@ -5,6 +5,7 @@ import Dashboard from './pages/spotnet/dashboard/Dashboard';
 import Footer from './components/Footer';
 import SpotnetApp from './pages/spotnet/spotnet_app/SpotnetApp';
 import Login from "./pages/Login";
+import Form from "./pages/forms/Form"
 import { connectWallet, logout } from './utils/wallet';
 
 function App() {
@@ -41,13 +42,14 @@ function App() {
     <Router>
       <div className="App">
         <Header walletId={walletId} onConnectWallet={handleConnectWallet} onLogout={handleLogout} />
-        <main className="container" style={{ flex: 1 }}>
+        <main>
           {error && <div className="alert alert-danger">{error}</div>}
           <Routes>
             <Route index element={<SpotnetApp />}/>
             <Route path="/login" element={walletId ? <Navigate to="/" /> : <Login onConnectWallet={handleConnectWallet} />}
             />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/form" element={<Form />} />
             {/* <Route path="/dashboard" element={walletId ? <Dashboard /> : <Navigate to="/login" />}/> */}
           </Routes>
         </main>
