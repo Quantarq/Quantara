@@ -61,8 +61,8 @@ const Form = ({ walletId }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const backendUrl = process.env.BACKEND_URL || 'http://0.0.0.0:8000';
-
+        const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://0.0.0.0:8000';
+        console.log("BACKENDURL", backendUrl)// Replace with your backend URL
         if (!tokenAmount.trim() || !selectedToken || !selectedMultiplier) {
             setError('All fields are required!');
         } else {

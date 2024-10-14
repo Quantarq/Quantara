@@ -54,9 +54,10 @@ const LendingForm = ({walletId}) => {
                 wallet_id: walletId
             }).toString();
 
+            const backendUrl = process.env.BACKEND_URL || 'http://127.0.0.1:8000';
+            console.log("BACKENDURL", backendUrl)// Replace with your backend URL
             console.log("Query Params:", queryParams);
-            // TODO: Add .env file if possible
-            const response = await fetch(`http://0.0.0.0:8000/transaction-data?${queryParams}`, {
+            const response = await fetch(`${backendUrl}/transaction-data?${queryParams}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',

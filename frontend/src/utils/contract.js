@@ -28,7 +28,7 @@ export async function deployContract(walletId) {
 }
 
 export async function checkAndDeployContract(walletId) {
-    const backendUrl = process.env.BACKEND_URL || 'http://127.0.0.1:8000';
+    const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://127.0.0.1:8000';
     try {
         console.log("Checking if contract is deployed for wallet ID:", walletId);
         const response = await axios.get(`${backendUrl}/api/check-user?wallet_id=${walletId}`);
