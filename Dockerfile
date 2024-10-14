@@ -1,5 +1,4 @@
-# Use the Python 3.11 slim base image
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 # Environment settings
 ENV PYTHONUNBUFFERED 1
