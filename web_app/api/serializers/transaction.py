@@ -84,7 +84,7 @@ class DepositTransactionDataResponse(BaseModel):
     """
     Pydantic model for the loop transaction data response.
     """
-    contract_address: int
+    contract_address: str
     approve_data: ApproveData
     loop_liquidity_data: LoopLiquidityData
 
@@ -93,6 +93,7 @@ class RepayTransactionDataResponse(BaseModel):
     """
     Pydantic model for the repay transaction data response.
     """
+    wallet_id: str
     supply_token: str
     debt_token: str
     pool_key: PoolKey
@@ -101,5 +102,8 @@ class RepayTransactionDataResponse(BaseModel):
 
 
 class UpdateUserContractRequest(BaseModel):
+    """
+    Pydantic model for the update user contract request.
+    """
     wallet_id: str
-    transaction_hash: str
+    contract_address: str
