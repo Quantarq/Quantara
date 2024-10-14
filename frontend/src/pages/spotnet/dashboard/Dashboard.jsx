@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { ReactComponent as Star } from "../../../assets/particles/star.svg";
 import { ReactComponent as CollateralIcon } from "../../../assets/icons/collateral.svg";
 import { ReactComponent as EthIcon } from "../../../assets/icons/ethereum.svg";
 import { ReactComponent as UsdIcon } from "../../../assets/icons/usd_coin.svg";
 import { ReactComponent as BorrowIcon } from "../../../assets/icons/borrow.svg";
 import { ReactComponent as StrkIcon } from "../../../assets/icons/strk.svg";
-import './dashboard.css';
 import { closePosition } from "../../../utils/transaction"
-
+import axios from 'axios';
+import './dashboard.css';
 
 const fetchCardData = async () => { 
     try {
@@ -19,8 +18,6 @@ const fetchCardData = async () => {
         return [];
     }
 };
-
-
 
 const Dashboard = () => {
     const closePositionEvent = async () => {
@@ -85,8 +82,17 @@ const Dashboard = () => {
     }
 
     return (
-        <div className="container-fluid position-relative container">
-            <div className="backdround-gradients">
+        <div className="dashboard-container position-relative container">
+            {starData.map((star, index) => (
+                <Star key={index} style={{
+                    position: 'absolute',
+                    top: `${star.top}%`,
+                    left: `${star.left}%`,
+                    width: `${star.size}%`,
+                    height: `${star.size}%`
+                }}/>
+            ))}
+            <div className="backdround-gradients position-relative">
                 <div className="backdround-gradient"></div>
                 <div className="backdround-gradient"></div>
             </div>

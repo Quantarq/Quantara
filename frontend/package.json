@@ -24,6 +24,10 @@
   },
   "proxy": "http://localhost:8000",
   "eslintConfig": {
+    "parserOptions": {
+    "ecmaVersion": 2020,
+    "sourceType": "module"
+  },
     "extends": [
       "react-app",
       "react-app/jest"

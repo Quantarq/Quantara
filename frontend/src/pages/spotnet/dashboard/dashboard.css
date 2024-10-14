@@ -170,9 +170,9 @@ body {
 }
 
 @media (min-width: 992px) and (max-width: 1400px) {
-    /* .dashboard-container {
+    .dashboard-container {
         max-width: 960px !important;
-    } */
+    }
 
     .health-text-size {
         font-size: 18px;
