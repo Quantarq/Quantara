@@ -81,13 +81,18 @@ const Form = ({ walletId }) => {
                 const response = await axios.post(`${backendUrl}/api/create-position`, formData);
                     console.log('Position created successfully:', response.data);
 
-                    // Step 2: Use the transaction data returned by the backend to execute the transaction
-                    const transactionData = response.data;
-                    await sendTransaction(transactionData);
-                    console.log('Transaction executed successfully');
+                // Step 2: Use the transaction data returned by the backend to execute the transaction
+                const transactionData = response.data;
 
-                    // Reset the token amount
-                    setTokenAmount('');
+                const addressResponse = await axios.get(
+                    `${backendUrl}/api/get-user-contract?wallet_id=${walletId}`
+                );
+
+                await sendTransaction(transactionData, addressResponse.data);
+                console.log('Transaction executed successfully');
+
+                // Reset the token amount
+                setTokenAmount('');
             } catch (err) {
                 console.error('Failed to create position:', err);
             }

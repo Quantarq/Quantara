@@ -7,6 +7,15 @@ router = APIRouter()  # Initialize the router
 user_db = UserDBConnector()
 
 
+@router.get("/api/get-user-contract")
+async def get_user_contract(wallet_id: str):
+    user = user_db.get_user_by_wallet_id(wallet_id)
+    if user is None or not user.is_contract_deployed:
+        return 0
+    else:
+        return user.deployed_transaction_hash
+
+
 @router.get("/api/check-user")
 async def check_user(request: Request, wallet_id: str) -> dict:
     """

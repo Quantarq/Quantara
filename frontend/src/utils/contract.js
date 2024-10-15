@@ -15,11 +15,12 @@ export async function deployContract(walletId) {
         const deployContractTransaction = getDeployContractData(walletId)
 
         // Execute the deployment transaction
-        const result = await starknet.account.execute([deployContractTransaction]);
+        // const result = await starknet.account.execute([deployContractTransaction]);
+        const result = await starknet.account.deployContract(deployContractTransaction);
         console.log("Deployment transaction response:", result);
-
+        await starknet.account.waitForTransaction(result.transaction_hash);
         return {
-            transactionHash: result.transaction_hash,
+            transactionHash: result.transaction_hash, contractAddress: result.contract_address
         };
     } catch (error) {
         console.error("Error deploying contract:", error);
@@ -38,13 +39,14 @@ export async function checkAndDeployContract(walletId) {
             console.log("Contract not deployed. Deploying...");
             const result = await deployContract(walletId);
             const transactionHash = result.transactionHash;
+            const contractAddress = result.contractAddress;
 
             console.log("Contract deployed successfully. Transaction hash:", transactionHash);
 
             // Update the backend with transaction hash and wallet ID
             await axios.post(`${backendUrl}/api/update-user-contract`, {
                 wallet_id: walletId,
-                transaction_hash: transactionHash,
+                transaction_hash: contractAddress,
             });
             console.log("Backend updated with deployment information.");
         } else {

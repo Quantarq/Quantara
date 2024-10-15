@@ -1,25 +1,4 @@
-from pydantic import BaseModel, Field, validator
-
-
-class ApproveData(BaseModel):
-    """
-    Pydantic model for the approve data.
-    """
-
-    to_address: str = Field(
-        ..., description="Address of the recipient in string format"
-    )
-    spender: str = Field(..., description="Spender address in string format")
-    amount: str = Field(..., description="Amount of tokens to approve as a string")
-
-    @validator("to_address", "spender", "amount", pre=True, always=True)
-    def convert_int_to_str(cls, value: int) -> str:
-        """
-        Convert the integer values to strings.
-        :param value: value to convert
-        :return: str
-        """
-        return str(value)
+from pydantic import BaseModel, validator
 
 
 class PoolKey(BaseModel):
@@ -78,15 +57,6 @@ class LoopLiquidityData(BaseModel):
         :return: str
         """
         return str(value)
-
-
-class DepositTransactionDataResponse(BaseModel):
-    """
-    Pydantic model for the loop transaction data response.
-    """
-
-    approve_data: ApproveData
-    loop_liquidity_data: LoopLiquidityData
 
 
 class RepayTransactionDataResponse(BaseModel):

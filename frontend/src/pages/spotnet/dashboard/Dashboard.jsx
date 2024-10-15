@@ -8,6 +8,7 @@ import { ReactComponent as StrkIcon } from "../../../assets/icons/strk.svg";
 import { closePosition } from "../../../utils/transaction"
 import axios from 'axios';
 import './dashboard.css';
+import {connect} from "get-starknet";
 
 const fetchCardData = async () => { 
     try {
@@ -21,10 +22,18 @@ const fetchCardData = async () => {
 
 const Dashboard = () => {
     const closePositionEvent = async () => {
+        const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://0.0.0.0:8000';
         try {
-            const response = await axios.get("http://localhost:8000/api/get-repay-data?supply_token=ETH");
+            const response = await axios.get(
+                `${backendUrl}/api/get-repay-data?supply_token=ETH`
+            );
             console.log(response);
-            const transaction_result = await closePosition(response.data, "0x123");
+            const starknet = await connect();
+            const addressResponse = await axios.get(
+                `${backendUrl}/api/get-user-contract?wallet_id=${starknet.selectedAddress}`
+            );
+            console.log(addressResponse)
+            const transaction_result = await closePosition(response.data, addressResponse.data);
         } catch (e) {
             console.log(e);
         }

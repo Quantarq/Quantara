@@ -3,38 +3,30 @@ import {CallData} from "starknet";
 import {erc20abi} from "../abis/erc20";
 import {abi} from "../abis/abi";
 
-export async function sendTransaction(transactionData) {
+export async function sendTransaction(loopLiquidityData, contractAddress) {
     try {
         const starknet = await connect();
         if (!starknet.isConnected) {
             throw new Error("Wallet not connected");
         }
 
-        // Extract approve_data and loop_liquidity_data from transactionData
-        const approveData = transactionData.approve_data;
-        const loopLiquidityData = transactionData.loop_liquidity_data;
-
-        // Ensure all required fields are present and of the correct type
-        if (!approveData.to_address || !approveData.spender || !approveData.amount) {
-            throw new Error("Missing or invalid approve_data fields");
-        }
-
         if (!loopLiquidityData.pool_key || !loopLiquidityData.deposit_data) {
             throw new Error("Missing or invalid loop_liquidity_data fields");
         }
-
+        console.log(loopLiquidityData)
         let approveCalldata = new CallData(erc20abi);
-        approveCalldata.compile("approve", [approveData.spender, approveData.amount]);
         const approveTransaction = {
-            contractAddress: approveData.to_address,
+            contractAddress: loopLiquidityData.deposit_data.token,
             entrypoint: "approve",
-            calldata: approveCalldata.compile("approve", [approveData.spender, approveData.amount])
+            calldata: approveCalldata.compile("approve", [
+                contractAddress, loopLiquidityData.deposit_data.amount
+            ])
         };
 
         const callData = new CallData(abi);
         const compiled = callData.compile("loop_liquidity", loopLiquidityData);
         const depositTransaction = {
-            contractAddress: "0x0798b587e3da417796a56ffab835ab2a905fa08bab136843ce5749f76c7e45e4",
+            contractAddress: contractAddress,
             entrypoint: "loop_liquidity",
             calldata: compiled
         };
@@ -69,6 +61,7 @@ export async function closePosition(transactionData, contractAddress) {
     const compiled = callData.compile("close_position", transactionData);
     console.log(compiled);
     const starknet = await connect();
+    console.log(contractAddress);
     await starknet.account.execute([
         {contractAddress: contractAddress, entrypoint: "close_position", calldata: compiled}]
     );

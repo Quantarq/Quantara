@@ -155,7 +155,7 @@ class StarknetClient:
 
         """
         # Get pool key
-        pool_key = self._build_ekubo_pool_key(deposit_token, borrowing_token, 0, 0)
+        pool_key = self._build_ekubo_pool_key(deposit_token, borrowing_token)
         # Convert addresses
         deposit_token, borrowing_token = self._convert_address(
             deposit_token
@@ -182,7 +182,7 @@ class StarknetClient:
 
     async def get_repay_data(self, deposit_token: str, borrowing_token: str) -> dict:
         """Get data for Spotnet position closing."""
-        pool_key = self._build_ekubo_pool_key(deposit_token, borrowing_token, 0, 0)
+        pool_key = self._build_ekubo_pool_key(deposit_token, borrowing_token)
         decimals_sum = TokenParams.get_token_decimals(
             deposit_token
         ) + TokenParams.get_token_decimals(borrowing_token)
@@ -193,7 +193,6 @@ class StarknetClient:
         pool_key["token0"], pool_key["token1"] = deposit_token, borrowing_token
         is_token1 = deposit_token == pool_key["token1"]
         supply_price = floor(await self._get_pool_price(pool_key, is_token1))
-
         debt_price = floor((1 / supply_price) * 10**decimals_sum)
         return {
             "supply_price": supply_price,

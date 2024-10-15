@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Request
 
 from web_app.api.serializers.transaction import (
-    ApproveData,
     LoopLiquidityData,
-    DepositTransactionDataResponse, RepayTransactionDataResponse,
+    RepayTransactionDataResponse,
 )
 from web_app.api.serializers.form import PositionFormData
 from web_app.contract_tools.constants import TokenParams
@@ -13,10 +12,10 @@ from web_app.db.crud import PositionDBConnector
 router = APIRouter()  # Initialize the router
 position_db_connector = PositionDBConnector()  # Initialize the PositionDBConnector
 
-@router.post("/api/create-position", response_model=DepositTransactionDataResponse)
+@router.post("/api/create-position", response_model=LoopLiquidityData)
 async def create_position_with_transaction_data(
     request: Request, form_data: PositionFormData
-) -> dict:
+) -> LoopLiquidityData:
     """
     Create a new position in the database and return transaction data.
     :param request: Request object
@@ -32,23 +31,14 @@ async def create_position_with_transaction_data(
     )
 
     # Get the transaction data for the deposit
-    transaction_result = await DepositMixin.get_transaction_data(
+    deposit_data = await DepositMixin.get_transaction_data(
         form_data.token_symbol,
         form_data.amount,
         form_data.multiplier,
         form_data.wallet_id,
         TokenParams.USDC.address,
     )
-
-    # Pass the raw result to the models, they will handle the conversion
-    approve_data = ApproveData(**transaction_result[0])
-    loop_liquidity_data = LoopLiquidityData(**transaction_result[1])
-
-    response = DepositTransactionDataResponse(
-        approve_data=approve_data, loop_liquidity_data=loop_liquidity_data
-    )
-
-    return response
+    return LoopLiquidityData(**deposit_data)
 
 
 @router.get("/api/get-repay-data", response_model=RepayTransactionDataResponse)
