@@ -71,6 +71,7 @@ class RepayTransactionDataResponse(BaseModel):
     supply_price: int
     debt_price: int
     contract_address: str
+    position_id: str
 
 
 class UpdateUserContractRequest(BaseModel):

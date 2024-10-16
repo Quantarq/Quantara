@@ -271,6 +271,18 @@ class PositionDBConnector(UserDBConnector):
             position = self.write_to_db(position)
             return position
 
+    def get_position_id_by_wallet_id(self, wallet_id: str) -> str | None:
+        """
+        Retrieves the position ID by the wallet ID.
+        :param wallet_id: wallet ID
+        :return: Position ID
+        """
+        position = self.get_positions_by_wallet_id(wallet_id)
+        if position:
+            return position[0]["id"]
+        return None
+
+
     def update_position(self, position: Position, amount: str, multiplier: int) -> None:
         """
         Updates a position in the database.
