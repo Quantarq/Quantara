@@ -11,6 +11,8 @@ function Home({ walletId }) {
     const navigate = useNavigate();
 
     const handleLaunchApp = async () => {
+        console.log('Wallet ID:', walletId);
+
         if (walletId) {
             navigate('/form')
         } else {

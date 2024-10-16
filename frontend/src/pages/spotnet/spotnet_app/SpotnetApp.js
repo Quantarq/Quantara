@@ -16,7 +16,11 @@ const SpotnetApp = ({ walletId, onConnectWallet, onLogout }) => {
             <About />
             <Partnership />
             <Information />
-            <DontMiss />
+            <DontMiss 
+                walletId={walletId}
+                onConnectWallet={onConnectWallet}
+                onLogout={onLogout}
+            />
         </div>
     );
 }
