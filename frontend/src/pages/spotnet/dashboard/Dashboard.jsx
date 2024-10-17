@@ -10,7 +10,7 @@ import axios from 'axios';
 import './dashboard.css';
 import {ETH_ADDRESS} from "../../../utils/constants";
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL || 'https://spotnet.xyz';
+const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://0.0.0.0:8000';
 
 const fetchCardData = async ({ walletId }) => {
     if (!walletId) {
