@@ -5,7 +5,6 @@ import pytest
 @pytest.fixture(scope="function")
 async def async_client():
     async with httpx.AsyncClient(base_url="http://localhost:8000") as client:
-        print('ggggggg\n\n\n\n\n')
         yield client
 
 
