@@ -15,10 +15,10 @@ async def get_user_contract(wallet_id: str) -> str:
     :return: str
     """
     user = user_db.get_user_by_wallet_id(wallet_id)
-    if user is None or not user.is_contract_deployed:
+    if not user or not user.is_contract_deployed:
         return ""
-    else:
-        return user.contract_address
+
+    return user.contract_address
 
 
 @router.get("/api/check-user")
