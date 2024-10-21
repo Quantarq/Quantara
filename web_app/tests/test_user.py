@@ -19,9 +19,7 @@ client = TestClient(app=app)
         ),
     ],
 )
-async def test_get_user_contract(
-    wallet_id: str, expected_contract_address: str
-):
+async def test_get_user_contract(wallet_id: str, expected_contract_address: str):
     """
     Test get_user_contract endpoint
     :param wallet_id: "" or "0x27994c503bd8c32525fbdaf9d398bdd4e86757988c64581b055a06c5955ea49"
@@ -80,9 +78,7 @@ async def test_check_user(wallet_id: str):
         ),
     ],
 )
-async def test_change_user_contract(
-    wallet_id: str, contract_address: str
-):
+async def test_change_user_contract(wallet_id: str, contract_address: str):
     """
     Test get_user_contract endpoint
     :param wallet_id: "" or "0x27994c503bd8c32525fbdaf9d398bdd4e86757988c64581b055a06c5955ea49"
