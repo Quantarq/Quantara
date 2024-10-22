@@ -9,6 +9,8 @@ import { closePosition } from "../../../utils/transaction"
 import axios from 'axios';
 import './dashboard.css';
 import {ETH_ADDRESS} from "../../../utils/constants";
+import Spinner from '../../../components/spinner/Spinner';
+
 
 const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://0.0.0.0:8000';
 
@@ -47,8 +49,23 @@ const Dashboard = ({ walletId }) => {
         }
     };
 
-    const [cardData, setCardData] = useState([]);
-    const [healthFactor, setHealthFactor] = useState(null);
+    const [cardData, setCardData] = useState([
+        {
+            title: "Collateral & Earnings",
+            icon: CollateralIcon,
+            balance: '0.00',
+            currencyName: 'Ethereum',
+            currencyIcon: EthIcon,
+        },
+        {
+            title: "Borrow",
+            icon: BorrowIcon,
+            balance: '0.00',
+            currencyName: 'USD Coin',
+            currencyIcon: UsdIcon,
+        },]);
+        
+    const [healthFactor, setHealthFactor] = useState('0.00');
     const [loading, setLoading] = useState(true);
     const starData = [
         { top: 1, left: 0, size: 1.5 },
@@ -99,21 +116,6 @@ const Dashboard = ({ walletId }) => {
                 setHealthFactor(healthRatio);
             } else {
                 console.error("Data is missing or incorrectly formatted");
-                setCardData([{
-                    title: "Collateral & Earnings",
-                    icon: CollateralIcon,
-                    balance: '0.00',
-                    currencyName: 'Ethereum',
-                    currencyIcon: EthIcon,
-                },
-                {
-                    title: "Borrow",
-                    icon: BorrowIcon,
-                    balance: '0.00',
-                    currencyName: 'USD Coin',
-                    currencyIcon: UsdIcon,
-                },]);
-                setHealthFactor('0.00');
             }
             setLoading(false);
         };
@@ -122,12 +124,10 @@ const Dashboard = ({ walletId }) => {
 
     }, [walletId]);
 
-    if (loading) {
-        return <div className="d-flex text-white justify-content-center align-items-center min-vh-100">Loading...</div>;
-    }
-
     return (
         <div className="dashboard-container position-relative container">
+            {loading && <Spinner loading={loading} />}
+
             {starData.map((star, index) => (
                 <Star key={index} style={{
                     position: 'absolute',
