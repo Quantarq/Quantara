@@ -1,6 +1,6 @@
 import pytest
 
-from web_app.tests.test_client import client
+from web_app.tests.conftest import client, mock_user_db_connector
 from web_app.api.serializers.transaction import UpdateUserContractRequest
 
 
@@ -16,7 +16,10 @@ from web_app.api.serializers.transaction import UpdateUserContractRequest
     ],
 )
 async def test_get_user_contract(
-    client: client, wallet_id: str, expected_contract_address: str
+    client: client,
+    mock_user_db_connector: mock_user_db_connector,
+    wallet_id: str,
+    expected_contract_address: str,
 ):
     """
     Test get_user_contract endpoint
@@ -51,7 +54,9 @@ async def test_get_user_contract(
         "0x27994c503bd8c32525fbdaf9d398bdd4e86757988c64581b055a06c5955ea49",
     ],
 )
-async def test_check_user(client: client, wallet_id: str):
+async def test_check_user(
+    client: client, mock_user_db_connector: mock_user_db_connector, wallet_id: str
+):
     """
     Test check_user endpoint
     :param wallet_id: "" or "0x27994c503bd8c32525fbdaf9d398bdd4e86757988c64581b055a06c5955ea49"
@@ -82,7 +87,10 @@ async def test_check_user(client: client, wallet_id: str):
     ],
 )
 async def test_change_user_contract(
-    client: client, wallet_id: str, contract_address: str
+    client: client,
+    mock_user_db_connector: mock_user_db_connector,
+    wallet_id: str,
+    contract_address: str,
 ):
     """
     Test get_user_contract endpoint
@@ -118,7 +126,10 @@ async def test_change_user_contract(
     ],
 )
 async def test_get_user_contract_address(
-    client: client, wallet_id: str, expected_contract_address: str
+    client: client,
+    mock_user_db_connector: mock_user_db_connector,
+    wallet_id: str,
+    expected_contract_address: str,
 ):
     """
     Test get_user_contract_address endpoint
