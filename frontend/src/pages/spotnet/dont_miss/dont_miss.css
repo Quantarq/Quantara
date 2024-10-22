@@ -27,6 +27,7 @@
 .miss-description{
     color: var(--secondary);
     font-size: 24px;
+    margin-bottom: 0;
 }
 
 .miss-btn{

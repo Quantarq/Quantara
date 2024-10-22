@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Header from './components/header/Header';
 import Dashboard from './pages/spotnet/dashboard/Dashboard';
-import Footer from './components/Footer';
+import Footer from './components/Footer/Footer';
 import SpotnetApp from './pages/spotnet/spotnet_app/SpotnetApp';
 import Login from "./pages/Login";
 import Form from "./pages/forms/Form";

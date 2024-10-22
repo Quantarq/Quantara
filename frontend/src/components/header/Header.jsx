@@ -8,7 +8,9 @@ function Header({ walletId, onConnectWallet, onLogout }) {
       <nav>
           <div className='list-items'>
               <div className='logo'>
-                  <Logo/>
+                <Link to="/">
+                    <Logo/>
+                </Link>
               </div>
               <div className='nav-items'>
                   <a href="/">Home</a>
