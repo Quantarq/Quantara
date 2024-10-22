@@ -17,7 +17,7 @@ position_db_connector = PositionDBConnector()
     response_model=DashboardResponse,
     response_description="Returns user's balances, multipliers, start dates, and ZkLend positions.",
 )
-async def get_dashboard(wallet_id: str) -> dict:
+async def get_dashboard(wallet_id: str) -> DashboardResponse:
     """
     This endpoint fetches the user's dashboard data, including balances, multipliers, start dates, and ZkLend position.
 
@@ -47,9 +47,9 @@ async def get_dashboard(wallet_id: str) -> dict:
 
     # Fetch balances (assuming you have a method for this)
     wallet_balances = await DashboardMixin.get_wallet_balances(wallet_id)
-    return {
-        "balances": wallet_balances,
-        "multipliers": {"ETH": first_opened_position["multiplier"]},
-        "start_dates": {"ETH": first_opened_position["created_at"]},
-        "zklend_position": zklend_position,
-    }
+    return DashboardResponse(
+        balances=wallet_balances,
+        multipliers={"ETH": first_opened_position["multiplier"]},
+        start_dates={"ETH": first_opened_position["created_at"]},
+        zklend_position=zklend_position,
+    )
