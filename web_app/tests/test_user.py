@@ -25,11 +25,13 @@ async def test_get_user_contract(
     mock_user_db_connector: MagicMock,
     wallet_id: str,
     expected_contract_address: str,
-):
+) -> None:
     """
     Test get_user_contract endpoint
-    :param wallet_id: "" or "0x27994c503bd8c32525fbdaf9d398bdd4e86757988c64581b055a06c5955ea49"
-    :param expected_contract_address: "" or "0x698b63df00be56ba39447c9b9ca576ffd0edba0526d98b3e8e4a902ffcf12f0"
+    :param client: fastapi.testclient.TestClient
+    :param mock_user_db_connector: unittest.mock.MagicMock
+    :param wallet_id: str[wallet_id]
+    :param expected_contract_address: str[expected_contract_address]
     :return: None
     """
     response = client.get(
@@ -65,10 +67,12 @@ async def test_get_user_contract(
 )
 async def test_check_user(
     client: client, mock_user_db_connector: MagicMock, wallet_id: str
-):
+) -> None:
     """
     Test check_user endpoint
-    :param wallet_id: "" or "0x27994c503bd8c32525fbdaf9d398bdd4e86757988c64581b055a06c5955ea49"
+    :param client: fastapi.testclient.TestClient
+    :param mock_user_db_connector: unittest.mock.MagicMock
+    :param wallet_id: str[wallet_id]
     :return: None
     """
     response = client.get(
@@ -106,11 +110,13 @@ async def test_change_user_contract(
     mock_user_db_connector: MagicMock,
     wallet_id: str,
     contract_address: str,
-):
+) -> None:
     """
     Test get_user_contract endpoint
-    :param wallet_id: "" or "0x27994c503bd8c32525fbdaf9d398bdd4e86757988c64581b055a06c5955ea49"
-    :param contract_address: "" or "0x698b63df00be56ba39447c9b9ca576ffd0edba0526d98b3e8e4a902ffcf12f0"
+    :param client: fastapi.testclient.TestClient
+    :param mock_user_db_connector: unittest.mock.MagicMock
+    :param wallet_id: str[wallet_id]
+    :param contract_address: str[contract_address]
     :return: None
     """
     data = UpdateUserContractRequest(
@@ -149,11 +155,13 @@ async def test_get_user_contract_address(
     mock_user_db_connector: MagicMock,
     wallet_id: str,
     expected_contract_address: str,
-):
+) -> None:
     """
     Test get_user_contract_address endpoint
-    :param wallet_id: "" or "0x27994c503bd8c32525fbdaf9d398bdd4e86757988c64581b055a06c5955ea49"
-    :param expected_contract_address: "" or "0x698b63df00be56ba39447c9b9ca576ffd0edba0526d98b3e8e4a902ffcf12f0"
+    :param client: fastapi.testclient.TestClient
+    :param mock_user_db_connector: unittest.mock.MagicMock
+    :param wallet_id: str[wallet_id]
+    :param expected_contract_address: str[expected_contract_address]
     :return: None
     """
     response = client.get(

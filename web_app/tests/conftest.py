@@ -8,7 +8,7 @@ from web_app.db.database import get_database
 
 
 @pytest.fixture(scope="module")
-def client():
+def client() -> None:
     """
     TestClient with setted mock db connection
     :return: None
@@ -24,7 +24,7 @@ def client():
 
 
 @pytest.fixture(scope="module")
-def mock_db_connector():
+def mock_db_connector() -> None:
     """
     Mock DBConnector
     :return: None
@@ -34,7 +34,7 @@ def mock_db_connector():
 
 
 @pytest.fixture(scope="module")
-def mock_user_db_connector():
+def mock_user_db_connector() -> None:
     """
     Mock for UserDBConnector
     :return: None
@@ -44,7 +44,7 @@ def mock_user_db_connector():
 
 
 @pytest.fixture(scope="module")
-def mock_position_db_connector():
+def mock_position_db_connector() -> None:
     """
     Mock for PositionDBConnector
     :return: None
