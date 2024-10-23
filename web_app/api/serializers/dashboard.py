@@ -2,8 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Dict, List, Optional, Any
 
-from pydantic import BaseModel, RootModel, Field, validator
-
+from pydantic import BaseModel, Field, RootModel, validator
 from web_app.contract_tools.constants import TokenParams
 
 

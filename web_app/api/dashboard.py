@@ -1,10 +1,10 @@
 import collections
 
 from fastapi import APIRouter
-
-from web_app.db.crud import PositionDBConnector
-from web_app.contract_tools.mixins.dashboard import DashboardMixin
+from starlette.requests import Request
 from web_app.api.serializers.dashboard import DashboardResponse
+from web_app.contract_tools.mixins.dashboard import DashboardMixin
+from web_app.db.crud import PositionDBConnector
 
 router = APIRouter()
 position_db_connector = PositionDBConnector()
@@ -31,7 +31,6 @@ async def get_dashboard(wallet_id: str) -> DashboardResponse:
     - **start_dates**: Start dates for each asset's position.
     - **zklend_position**: Details of the ZkLend positions.
     """
-
     contract_address = position_db_connector.get_contract_address_by_wallet_id(
         wallet_id
     )

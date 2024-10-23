@@ -47,7 +47,7 @@ async def check_user(wallet_id: str) -> CheckUserResponse:
     else:
         return {"is_contract_deployed": True}
 
-
+      
 @router.post("/api/update-user-contract", tags=["User Operations"], summary="Update the user's contract", response_model=UpdateUserContractResponse, response_description="Returns if the contract is updated and deployed.")
 async def update_user_contract(data: UpdateUserContractRequest) ->  UpdateUserContractResponse:
     """
