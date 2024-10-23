@@ -14,7 +14,7 @@ mod Deposit {
 
     use starknet::event::EventEmitter;
     use starknet::storage::{StoragePointerWriteAccess, StoragePointerReadAccess};
-    use starknet::{ContractAddress, get_contract_address, get_caller_address, get_tx_info};
+    use starknet::{ContractAddress, get_contract_address, get_tx_info};
 
     #[storage]
     struct Storage {
@@ -42,26 +42,26 @@ mod Deposit {
         decimals_difference: felt252,
         total_borrowed: felt252
     ) -> felt252 {
-        let borrow_const = 80;
+        let borrow_const = 60;
         let amount_base_token = token_price * borrow_capacity;
         let amount_quote_token = amount_base_token.into() / decimals_difference.into();
         ((amount_quote_token - total_borrowed.into()) / 100_u256 * borrow_const).try_into().unwrap()
     }
 
     fn get_withdraw_amount(
-        total_deposited: felt252,
-        total_debt: felt252,
+        total_deposited: u256,
+        total_debt: u256,
         collateral_factor: felt252,
-        supply_token_price: felt252,
-        debt_token_price: felt252,
+        supply_token_price: u256,
+        debt_token_price: u256,
         supply_decimals: u256,
         debt_decimals: u256
-    ) -> felt252 {
+    ) -> u256 {
         let deposited = (total_deposited * supply_token_price).into() / supply_decimals;
         let free_amount = (deposited * collateral_factor.into() / ZK_SCALE_DECIMALS)
             - total_debt.into();
         let withdraw_amount = free_amount * debt_token_price.into() / debt_decimals;
-        withdraw_amount.try_into().unwrap()
+        withdraw_amount
     }
 
     #[derive(starknet::Event, Drop)]
@@ -233,10 +233,13 @@ mod Deposit {
             supply_token: ContractAddress,
             debt_token: ContractAddress,
             pool_key: PoolKey,
-            supply_price: felt252,
-            debt_price: felt252
+            supply_price: u256,
+            debt_price: u256
         ) {
-            assert(get_caller_address() == self.owner.read(), 'Caller is not an owner');
+            assert(
+                get_tx_info().unbox().account_contract_address == self.owner.read(),
+                'Caller is not the owner'
+            );
             assert(self.is_position_open.read(), 'Open position not exists');
             assert(supply_price != 0 && debt_price != 0, 'Parameters cannot be zero');
             let token_disp = ERC20ABIDispatcher { contract_address: supply_token };
@@ -246,24 +249,24 @@ mod Deposit {
                 contract_address: reserve_data.z_token_address
             };
             let contract_address = get_contract_address();
-            let mut debt = zk_market.get_user_debt_for_token(contract_address, debt_token);
+            let mut debt = zk_market.get_user_debt_for_token(contract_address, debt_token).into();
 
             let debt_dispatcher = ERC20ABIDispatcher { contract_address: debt_token };
             let (supply_decimals, debt_decimals) = (
                 fast_power(10, token_disp.decimals().into()),
                 fast_power(10, debt_dispatcher.decimals().into())
             );
-            let (SQRT_LIMIT_REPAY, SQRT_LIMIT_WITHDRAW) = if supply_token == pool_key.token0 {
-                (18446748437148339061, 6277100250585753475930931601400621808602321654880405518632)
+            let SQRT_LIMIT_REPAY = if supply_token == pool_key.token0 {
+                18446748437148339061
             } else {
-                (6277100250585753475930931601400621808602321654880405518632, 18446748437148339061)
+                6277100250585753475930931601400621808602321654880405518632
             };
             let is_token1_repay_swap = supply_token == pool_key.token1;
             let mut repaid_amount: u256 = 0;
             while debt != 0 {
                 let withdraw_amount = get_withdraw_amount(
                     z_token_disp.balanceOf(contract_address).try_into().unwrap(),
-                    debt.into(),
+                    debt,
                     reserve_data.collateral_factor.into(),
                     supply_price,
                     debt_price,
@@ -272,12 +275,22 @@ mod Deposit {
                 );
                 zk_market.withdraw(supply_token, withdraw_amount.try_into().unwrap());
 
-                let params = SwapParameters {
-                    amount: i129 { mag: withdraw_amount.try_into().unwrap(), sign: false },
-                    is_token1: is_token1_repay_swap,
-                    sqrt_ratio_limit: SQRT_LIMIT_REPAY,
-                    skip_ahead: 0
+                let params = if (debt > withdraw_amount * supply_price / supply_decimals) {
+                    SwapParameters {
+                        amount: i129 { mag: withdraw_amount.try_into().unwrap(), sign: false },
+                        is_token1: is_token1_repay_swap,
+                        sqrt_ratio_limit: SQRT_LIMIT_REPAY,
+                        skip_ahead: 0
+                    }
+                } else {
+                    SwapParameters {
+                        amount: i129 { mag: debt.try_into().unwrap(), sign: true },
+                        is_token1: !is_token1_repay_swap,
+                        sqrt_ratio_limit: SQRT_LIMIT_REPAY,
+                        skip_ahead: 0
+                    }
                 };
+
                 let delta = self
                     .swap(SwapData { params, pool_key, caller: contract_address })
                     .delta;
@@ -286,28 +299,18 @@ mod Deposit {
                 } else {
                     delta.amount1.mag.into()
                 };
-
-                if debt.into() > amount_swapped {
+                if debt > amount_swapped {
                     repaid_amount += amount_swapped;
                     debt_dispatcher.approve(zk_market.contract_address, amount_swapped.into());
                     zk_market.repay(debt_token, amount_swapped.try_into().unwrap());
                 } else {
-                    repaid_amount += debt.into();
-                    debt_dispatcher.approve(zk_market.contract_address, debt.into());
+                    repaid_amount += debt;
+                    debt_dispatcher.approve(zk_market.contract_address, debt);
                     zk_market.repay_all(debt_token);
                 }
 
-                debt = zk_market.get_user_debt_for_token(contract_address, debt_token);
+                debt = zk_market.get_user_debt_for_token(contract_address, debt_token).into();
             };
-
-            let left = debt_dispatcher.balanceOf(contract_address);
-            let params = SwapParameters {
-                amount: i129 { mag: left.try_into().unwrap(), sign: false },
-                is_token1: !is_token1_repay_swap,
-                sqrt_ratio_limit: SQRT_LIMIT_WITHDRAW,
-                skip_ahead: 0
-            };
-            self.swap(SwapData { params, pool_key, caller: contract_address });
             zk_market.withdraw_all(supply_token);
             zk_market.disable_collateral(supply_token);
             self.is_position_open.write(false);

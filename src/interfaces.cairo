@@ -17,8 +17,8 @@ pub trait IDeposit<TContractState> {
         supply_token: ContractAddress,
         debt_token: ContractAddress,
         pool_key: PoolKey,
-        supply_price: felt252,
-        debt_price: felt252
+        supply_price: u256,
+        debt_price: u256
     );
 }
 
