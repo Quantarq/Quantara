@@ -1,3 +1,7 @@
+"""
+This module contains the database configuration and session.
+"""
+
 import os
 
 from dotenv import load_dotenv

@@ -1,3 +1,7 @@
+"""
+This module handles the blockchain calls.
+"""
+
 import logging
 import os
 import time
@@ -104,8 +108,12 @@ class StarknetClient:
         )
         price_data = await ekubo_contract.functions["get_pool_price"].call(pool_key)
 
-        underlying_token_0_address = TokenParams.add_underlying_address(str(hex(pool_key["token0"])))
-        underlying_token_1_address = TokenParams.add_underlying_address(str(hex(pool_key["token1"])))
+        underlying_token_0_address = TokenParams.add_underlying_address(
+            str(hex(pool_key["token0"]))
+        )
+        underlying_token_1_address = TokenParams.add_underlying_address(
+            str(hex(pool_key["token1"]))
+        )
 
         token_0_decimals = TokenParams.get_token_decimals(underlying_token_0_address)
         token_1_decimals = TokenParams.get_token_decimals(underlying_token_1_address)

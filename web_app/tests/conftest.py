@@ -1,3 +1,7 @@
+"""
+This module contains the fixtures for the tests.
+"""
+
 from unittest.mock import MagicMock
 
 import pytest

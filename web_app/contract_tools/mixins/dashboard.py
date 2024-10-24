@@ -1,3 +1,7 @@
+"""
+This module contains the dashboard mixin class.
+"""
+
 from typing import Dict
 
 from web_app.contract_tools.blockchain_call import StarknetClient
@@ -6,7 +10,8 @@ from web_app.contract_tools.api_request import APIRequest
 from web_app.api.serializers.dashboard import ZkLendPositionResponse
 
 CLIENT = StarknetClient()
-# ARGENT_X_POSITION_URL = "https://cloud.argent-api.com/v1/tokens/defi/decomposition/{wallet_id}?chain=starknet"
+# alternative ARGENT_X_POSITION_URL
+# "https://cloud.argent-api.com/v1/tokens/defi/decomposition/{wallet_id}?chain=starknet"
 ARGENT_X_POSITION_URL = "https://cloud.argent-api.com/v1/tokens/defi/"
 
 

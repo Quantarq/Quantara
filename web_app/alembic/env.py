@@ -1,3 +1,11 @@
+"""
+Alembic migration environment configuration.
+
+This module sets up the environment for Alembic database migrations, 
+including database URL configuration, logging setup, and migration 
+execution modes (online and offline). It integrates with SQLAlchemy models 
+and provides the core functionality needed for database schema version control.
+"""
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config

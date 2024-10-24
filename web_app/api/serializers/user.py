@@ -1,19 +1,32 @@
+"""
+This module defines the serializers for the user data.
+"""
+
 from pydantic import BaseModel, Field
 
 
 class CheckUserResponse(BaseModel):
+    """
+    Pydantic model for the check user response.
+    """
     is_contract_deployed: bool = Field(
         ..., example=False, description="Indicates if the user's contract is deployed."
     )
 
 
 class UpdateUserContractResponse(BaseModel):
+    """
+    Pydantic model for the update user contract response.
+    """
     is_contract_deployed: bool = Field(
         ..., example=False, description="Indicates if the user's contract is deployed."
     )
 
 
 class GetUserContractAddressResponse(BaseModel):
+    """
+    Pydantic model for the get user contract address response.
+    """
     contract_address: str | None = Field(
         None,
         example="0xabc123...",

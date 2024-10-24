@@ -1,3 +1,7 @@
+"""
+This module contains utility functions for the contract tools.
+"""
+
 from typing import Dict
 
 from decimal import Decimal
@@ -7,7 +11,8 @@ from web_app.contract_tools.api_request import APIRequest
 from web_app.api.serializers.dashboard import ZkLendPositionResponse
 
 CLIENT = StarknetClient()
-# ARGENT_X_POSITION_URL = "https://cloud.argent-api.com/v1/tokens/defi/decomposition/{wallet_id}?chain=starknet"
+# alternative ARGENT_X_POSITION_URL
+# "https://cloud.argent-api.com/v1/tokens/defi/decomposition/{wallet_id}?chain=starknet"
 ARGENT_X_POSITION_URL = "https://cloud.argent-api.com/v1/tokens/defi/"
 
 

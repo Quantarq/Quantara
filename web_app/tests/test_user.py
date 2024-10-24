@@ -1,3 +1,7 @@
+"""
+This module contains the tests for the user endpoints.
+"""
+
 from unittest.mock import MagicMock
 
 import pytest

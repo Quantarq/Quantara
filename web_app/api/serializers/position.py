@@ -1,3 +1,7 @@
+"""
+This module defines the serializers for the position data.
+"""
+
 from pydantic import BaseModel, field_validator
 
 

@@ -1,3 +1,6 @@
+"""
+This module defines the serializers for the dashboard data.
+"""
 from datetime import datetime
 from decimal import Decimal
 from typing import Dict, List, Optional, Any
@@ -7,16 +10,25 @@ from web_app.contract_tools.constants import TokenParams
 
 
 class Data(BaseModel):
+    """
+    Data class for position details.
+    """
     collateral: bool
     debt: bool
 
 
 class TotalBalances(RootModel):
+    """
+    TotalBalances class for total balances.
+    """
     # Since the keys are dynamic (addresses), we use a generic Dict
     root: Dict[str, str]
 
 
 class Position(BaseModel):
+    """
+    Position class for position details.
+    """
     data: Data
     token_address: Optional[str] = Field(None, alias="tokenAddress")
     total_balances: TotalBalances = Field(alias="totalBalances")
@@ -40,16 +52,25 @@ class Position(BaseModel):
         return converted_balances
 
     class Config:
+        """
+        Configuration for the Position class.
+        """
         populate_by_name = True
 
 
 class Product(BaseModel):
+    """
+    Product class for product details.
+    """
     name: str
     health_ratio: str
     positions: List[Position]
 
 
 class ZkLendPositionResponse(BaseModel):
+    """
+    ZkLendPositionResponse class for ZkLend position details.
+    """
     products: List[Product] = Field(default_factory=list)
 
     @field_validator("products", mode="before")
@@ -66,10 +87,16 @@ class ZkLendPositionResponse(BaseModel):
         return converted_products
 
     class Config:
+        """
+        Configuration for the ZkLendPositionResponse class.
+        """
         populate_by_name = True
 
 
 class DashboardResponse(BaseModel):
+    """
+    DashboardResponse class for dashboard details.
+    """
     balances: Dict[str, Any] = Field(
         ...,
         example={"ETH": 5.0, "USDC": 1000.0},

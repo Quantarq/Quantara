@@ -1,3 +1,11 @@
+"""
+Main FastAPI application module for the SPOTNET API.
+
+This module sets up the FastAPI application 
+and includes middleware for session management and CORS.
+It also includes routers for the dashboard, position, and user endpoints.
+"""
+
 import os
 from uuid import uuid4
 
@@ -11,7 +19,10 @@ from web_app.api.user import router as user_router
 
 app = FastAPI(
     title="SPOTNET API",
-    description="An API that supports depositing collateral, borrowing stablecoins, trading on AMMs, and managing user positions on Starknet.",
+    description=(
+        "An API that supports depositing collateral, borrowing stablecoins, "
+        "trading on AMMs, and managing user positions on Starknet."
+    ),
     version="0.1.0",
     license_info={
         "name": "MIT License",

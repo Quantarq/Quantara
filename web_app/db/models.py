@@ -1,3 +1,7 @@
+"""
+This module contains the SQLAlchemy models for the database.
+"""
+
 from uuid import uuid4
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
@@ -7,12 +11,19 @@ from web_app.db.database import Base
 
 
 class Status(PyEnum):
+    """
+    Enum for the position status.
+    """
+
     PENDING = "pending"
     OPENED = "opened"
     CLOSED = "closed"
 
     @classmethod
     def choices(cls):
+        """
+        Returns the list of status choices.
+        """
         return [status.value for status in cls]
 
 

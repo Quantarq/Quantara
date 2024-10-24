@@ -1,9 +1,14 @@
+"""
+This module contains the deposit mixin class.
+"""
+
 from decimal import Decimal
 from web_app.contract_tools.blockchain_call import StarknetClient
 from web_app.contract_tools.constants import SPOTNET_CORE_ADDRESS, TokenParams
 
 CLIENT = StarknetClient()
-# ARGENT_X_POSITION_URL = "https://cloud.argent-api.com/v1/tokens/defi/decomposition/{wallet_id}?chain=starknet"
+# alternative ARGENT_X_POSITION_URL
+# "https://cloud.argent-api.com/v1/tokens/defi/decomposition/{wallet_id}?chain=starknet"
 ARGENT_X_POSITION_URL = "https://cloud.argent-api.com/v1/tokens/defi/"
 
 

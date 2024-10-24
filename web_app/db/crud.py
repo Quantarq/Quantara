@@ -1,3 +1,7 @@
+"""
+This module contains the CRUD operations for the database.
+"""
+
 import logging
 import uuid
 from typing import Type, TypeVar
@@ -193,7 +197,8 @@ class PositionDBConnector(UserDBConnector):
 
     def get_positions_by_wallet_id(self, wallet_id: str) -> list:
         """
-        Retrieves all positions for a user by their wallet ID and returns them as a list of dictionaries.
+        Retrieves all positions for a user by their wallet ID 
+        and returns them as a list of dictionaries.
         :param wallet_id: str
         :return: list of dict
         """
