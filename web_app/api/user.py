@@ -1,11 +1,13 @@
 from fastapi import APIRouter, Request, HTTPException
-from web_app.db.crud import UserDBConnector
+from web_app.db.crud import PositionDBConnector, UserDBConnector
 from web_app.api.serializers.transaction import UpdateUserContractRequest
 from web_app.api.serializers.user import CheckUserResponse, UpdateUserContractResponse, GetUserContractAddressResponse
 
 router = APIRouter()  # Initialize the router
 
 user_db = UserDBConnector()
+
+position_db = PositionDBConnector()
 
 
 @router.get("/api/get-user-contract", tags=["User Operations"], summary="Get user's contract status", response_description="Returns 0 if the user is None or if the contract is not deployed. Returns the transaction hash if the contract is deployed.")
@@ -86,3 +88,27 @@ async def get_user_contract_address(wallet_id: str) -> GetUserContractAddressRes
         return {"contract_address": contract_address}
     else:
         return {"contract_address": None}
+
+
+@router.get("/api/get_stats", tags=["Statistics"], summary="Get all user amounts and the number of unique users.")
+async def get_stats():
+    """
+    Returns all user amounts for open positions and the number of unique users.
+
+    ### Returns:
+    - Dictionary containing:
+        - total_amounts: dict where keys are user IDs and values are total amounts
+        - unique_users: The count of unique users with open positions
+    """
+    try:
+        # Fetch total amounts for each user where position status is OPENED
+        total_amounts = position_db.get_all_amounts_for_opened_positions()
+        
+        # Get the number of unique users
+        unique_users_count = len(total_amounts)
+
+        # Return total amounts and unique users count
+        return {"total_amounts": total_amounts, "unique_users": unique_users_count}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error retrieving statistics.")

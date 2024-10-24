@@ -326,3 +326,40 @@ class PositionDBConnector(UserDBConnector):
             position.status = Status.OPENED.value
             self.write_to_db(position)
         return position.status
+    
+    def get_unique_users(self) -> list[str]:
+        """
+        Fetches all unique users from the Position table.
+        :return: list of unique user ids
+        """
+        with self.Session() as db :
+            try:
+                # Query for distinct user IDs from the Position table
+                unique_users = db.query(Position.user_id).distinct().all()
+                return [user[0] for user in unique_users]  # Extract user_id from tuple
+            except SQLAlchemyError as e:
+                logger.error(f"Error fetching unique users: {str(e)}")
+                return []
+            
+    def get_all_amounts_for_opened_positions(self) -> dict[str, float]:
+        """
+        Fetches the total amount for all users where position status is 'OPENED'.
+        
+        :return: A dictionary with user IDs as keys and the total amount as values.
+        """
+        with self.Session() as db:
+            try:
+                # Query all positions with status OPENED and group by user_id
+                opened_positions = (
+                    db.query(Position.user_id, db.func.sum(Position.amount).label('total_amount'))
+                    .filter(Position.status == Status.OPENED.value)
+                    .group_by(Position.user_id)
+                    .all()
+                )
+                
+                # Return a dictionary with user IDs and their respective total amounts
+                return {user_id: total_amount for user_id, total_amount in opened_positions}
+
+            except SQLAlchemyError as e:
+                logger.error(f"Error fetching amounts for opened positions: {str(e)}")
+                return {}
