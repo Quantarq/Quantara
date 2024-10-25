@@ -79,3 +79,34 @@ If you have made changes to the code or Docker configuration, rebuild the contai
 docker-compose -f docker-compose.dev.yaml up --build
 ```
 
+## About Celery
+
+This project utilizes Celery to handle asynchronous tasks. The Celery workers and scheduler are defined within the Docker Compose setup.
+
+### Services Overview
+
+- **Celery Worker**: Executes tasks in the background.
+- **Celery Beat**: Schedules periodic tasks.
+- **Redis**: Used as the message broker for Celery.
+
+### Running Celery
+
+To start the Celery worker and Celery Beat services, use the following command in the terminal within your project directory:
+
+```bash
+docker-compose up -d celery celery_beat
+```
+### Stopping Celery
+To stop the Celery worker and Beat services, run
+
+```bash
+docker-compose stop celery celery_beat
+```
+
+### Purging Celery Tasks
+If you want to purge all tasks from the Celery queue, you can do this by executing
+
+```bash
+docker-compose run --rm celery celery -A spotnet_tracker.celery_config purge
+```
+
