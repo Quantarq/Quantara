@@ -255,7 +255,7 @@ class PositionDBConnector(UserDBConnector):
                 existing_position.token_symbol = token_symbol
                 existing_position.amount = amount
                 existing_position.multiplier = multiplier
-                existing_position.start_price = PositionDBConnector.start_price
+                existing_position.start_price = PositionDBConnector.START_PRICE
                 session.commit()  # Commit the changes to the database
                 session.refresh(existing_position)  # Refresh to get updated values
                 return existing_position
@@ -267,7 +267,7 @@ class PositionDBConnector(UserDBConnector):
                 amount=amount,
                 multiplier=multiplier,
                 status=Status.PENDING.value,  # Set status as 'pending' by default
-                start_price=PositionDBConnector.start_price,
+                start_price=PositionDBConnector.START_PRICE,
             )
 
             # Write the new position to the database
