@@ -41,7 +41,7 @@ def sample_position(db_connector, sample_user):
         amount="100",
         multiplier=2,
         status=Status.PENDING.value,
-        start_price=0.0,  # Make sure this field is set for your model
+        start_price=0.0,  
     )
     return db_connector.write_to_db(position)
 
