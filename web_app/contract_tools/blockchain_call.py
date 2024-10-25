@@ -20,6 +20,14 @@ from .constants import EKUBO_MAINNET_ADDRESS, TokenParams
 logger = logging.getLogger(__name__)
 
 
+class RepayDataException(Exception):
+    """
+    Custom RepayDataException for handling errors while repaying data
+    """
+
+    pass
+
+
 class StarknetClient:
     """
     A client to interact with the Starknet blockchain.
@@ -66,7 +74,7 @@ class StarknetClient:
         )
         try:
             res = await self.client.call_contract(call)
-        except Exception as e: # Catch and log any errors
+        except Exception as e:  # Catch and log any errors
             logger.error(f"Error making contract call: {e}")
             time.sleep(self.SLEEP_TIME)
             res = await self.client.call_contract(call)
@@ -205,7 +213,18 @@ class StarknetClient:
         pool_key["token0"], pool_key["token1"] = deposit_token, borrowing_token
         is_token1 = deposit_token == pool_key["token1"]
         supply_price = floor(await self._get_pool_price(pool_key, is_token1))
-        debt_price = floor((1 / supply_price) * 10**decimals_sum)
+
+        try:
+            debt_price = floor((1 / supply_price) * 10**decimals_sum)
+        except ZeroDivisionError:
+            logger.error(
+                f"Error while getting repay data: {deposit_token=}, {borrowing_token=}"
+            )
+            raise RepayDataException(
+                f"Error while getting repay data(supply_price=0): "
+                f"{deposit_token=}, {borrowing_token=}"
+            )
+
         return {
             "supply_price": supply_price,
             "debt_price": debt_price,

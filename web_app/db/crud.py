@@ -9,14 +9,8 @@ from typing import Type, TypeVar
 from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import scoped_session, sessionmaker
-
 from web_app.db.database import SQLALCHEMY_DATABASE_URL
-from web_app.db.models import (
-    Base,
-    User,
-    Position,
-    Status,
-)
+from web_app.db.models import Base, Position, Status, User
 
 logger = logging.getLogger(__name__)
 ModelType = TypeVar("ModelType", bound=Base)
@@ -168,6 +162,8 @@ class PositionDBConnector(UserDBConnector):
     Provides database connection and operations management for the Position model.
     """
 
+    START_PRICE = 0.0
+
     @staticmethod
     def _position_to_dict(position: Position) -> dict:
         """
@@ -197,7 +193,7 @@ class PositionDBConnector(UserDBConnector):
 
     def get_positions_by_wallet_id(self, wallet_id: str) -> list:
         """
-        Retrieves all positions for a user by their wallet ID 
+        Retrieves all positions for a user by their wallet ID
         and returns them as a list of dictionaries.
         :param wallet_id: str
         :return: list of dict
@@ -259,6 +255,7 @@ class PositionDBConnector(UserDBConnector):
                 existing_position.token_symbol = token_symbol
                 existing_position.amount = amount
                 existing_position.multiplier = multiplier
+                existing_position.start_price = PositionDBConnector.START_PRICE
                 session.commit()  # Commit the changes to the database
                 session.refresh(existing_position)  # Refresh to get updated values
                 return existing_position
@@ -270,6 +267,7 @@ class PositionDBConnector(UserDBConnector):
                 amount=amount,
                 multiplier=multiplier,
                 status=Status.PENDING.value,  # Set status as 'pending' by default
+                start_price=PositionDBConnector.START_PRICE,
             )
 
             # Write the new position to the database
@@ -286,7 +284,6 @@ class PositionDBConnector(UserDBConnector):
         if position:
             return position[0]["id"]
         return None
-
 
     def update_position(self, position: Position, amount: str, multiplier: int) -> None:
         """
@@ -331,3 +328,36 @@ class PositionDBConnector(UserDBConnector):
             position.status = Status.OPENED.value
             self.write_to_db(position)
         return position.status
+
+    def get_unique_users_count(self) -> int:
+        """
+        Retrieves the number of unique users in the database.
+        :return: The count of unique users.
+        """
+        with self.Session() as db:
+            try:
+                # Query to count distinct users based on wallet ID
+                unique_users_count = db.query(User.wallet_id).distinct().count()
+                return unique_users_count
+
+            except SQLAlchemyError as e:
+                logger.error(f"Failed to retrieve unique users count: {str(e)}")
+                return 0
+
+    def get_total_amounts_for_open_positions(self) -> float | None:
+        """
+        Calculates the total amount for all positions where status is 'OPENED'.
+
+        :return: Total amount for all opened positions, or None if no open positions are found
+        """
+        with self.Session() as db:
+            try:
+                total_opened_amount = (
+                    db.query(db.func.sum(Position.amount))
+                    .filter(Position.status == Status.OPENED.value)
+                    .scalar()
+                )
+                return total_opened_amount
+            except SQLAlchemyError as e:
+                logger.error(f"Error calculating total amount for open positions: {e}")
+                return None
