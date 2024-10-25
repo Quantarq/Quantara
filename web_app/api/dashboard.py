@@ -5,7 +5,6 @@ This module handles dashboard-related API endpoints.
 import collections
 
 from fastapi import APIRouter
-from starlette.requests import Request
 from web_app.api.serializers.dashboard import DashboardResponse
 from web_app.contract_tools.mixins.dashboard import DashboardMixin
 from web_app.db.crud import PositionDBConnector

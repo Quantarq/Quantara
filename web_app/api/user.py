@@ -2,7 +2,7 @@
 This module handles user-related API endpoints.
 """
 
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, HTTPException
 from web_app.db.crud import UserDBConnector
 from web_app.api.serializers.transaction import UpdateUserContractRequest
 from web_app.api.serializers.user import (
