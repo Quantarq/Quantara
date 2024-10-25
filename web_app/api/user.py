@@ -132,7 +132,8 @@ async def get_user_contract_address(wallet_id: str) -> GetUserContractAddressRes
         tags=["User Operations"],
         summary="Get total opened amounts and number of unique users",
         response_model=GetStatsResponse,
-        response_description="Total amount for all open positions across all users & Number of unique users in the database.",
+        response_description="Total amount for all open positions across all users & \
+                              Number of unique users in the database.",
 )
 async def get_stats() -> GetStatsResponse:
     """
