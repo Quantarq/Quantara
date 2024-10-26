@@ -3,7 +3,10 @@ This module contains utility functions for the Telegram bot.
 
 It includes functions for building response writers for webhook responses.
 """
+import hashlib
+import hmac
 import secrets
+import time
 from typing import Dict, Optional
 
 from aiogram import Bot
@@ -11,6 +14,26 @@ from aiogram.methods import TelegramMethod
 from aiogram.methods.base import TelegramType
 from aiogram.types import InputFile
 from aiohttp import MultipartWriter
+
+
+def check_telegram_authorization(token: str, auth_data: dict):
+    check_hash = auth_data.pop("hash")
+    data_check_arr = [f"{key}={value}" for key, value in auth_data.items()]
+    data_check_arr.sort()
+    data_check_string = "\n".join(data_check_arr)
+
+    secret_key = hashlib.sha256(token.encode()).digest()
+    hash_value = hmac.new(
+        secret_key, data_check_string.encode(), hashlib.sha256
+    ).hexdigest()
+
+    if hash_value != check_hash:
+        raise Exception("Data is NOT from Telegram")
+
+    if (int(time.time()) - auth_data["auth_date"]) > 86400:
+        raise Exception("Data is outdated")
+
+    return auth_data
 
 
 def build_response_writer(

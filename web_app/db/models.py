@@ -1,22 +1,17 @@
-"""
-This module contains the SQLAlchemy models for the database.
-"""
-
-from enum import Enum as PyEnum
 from uuid import uuid4
-
-from sqlalchemy import (
-    DECIMAL,
-    Boolean,
-    Column,
-    DateTime,
-    Enum,
-    ForeignKey,
-    Integer,
-    String,
-)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
+from sqlalchemy import (
+    DECIMAL,
+    Column,
+    String,
+    Boolean,
+    Integer,
+    ForeignKey,
+    DateTime,
+    Enum,
+)
+from enum import Enum as PyEnum
 from web_app.db.database import Base
 
 
@@ -90,3 +85,24 @@ class AirDrop(Base):
     amount = Column(DECIMAL, nullable=True)
     is_claimed = Column(Boolean, default=False, index=True)
     claimed_at = Column(DateTime, nullable=True)
+
+
+class TelegramUser(Base):
+    """
+    SQLAlchemy model for the telegram_user table.
+    """
+
+    __tablename__ = "telegram_user"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    telegram_id = Column(String, nullable=False, unique=True, index=True)
+    username = Column(String, nullable=True)
+    first_name = Column(String, nullable=True)
+    last_name = Column(String, nullable=True)
+    wallet_id = Column(String, ForeignKey("user.wallet_id"), nullable=True)
+    photo_url = Column(String, nullable=True)
+
+    created_at = Column(DateTime, nullable=False, default=func.now())
+    updated_at = Column(
+        DateTime, nullable=False, default=func.now(), onupdate=func.now()
+    )
