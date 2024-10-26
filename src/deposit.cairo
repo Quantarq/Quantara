@@ -9,8 +9,8 @@ mod Deposit {
     use openzeppelin_token::erc20::interface::{ERC20ABIDispatcher, ERC20ABIDispatcherTrait};
     use spotnet::constants::ZK_SCALE_DECIMALS;
 
-    use spotnet::interfaces::{IMarketDispatcher, IMarketDispatcherTrait, IDeposit};
-    use spotnet::types::{SwapData, SwapResult, DepositData};
+    use spotnet::interfaces::{IMarketDispatcher, IMarketDispatcherTrait, IAirdropDispatcher, IAirdropDispatcherTrait, IDeposit};
+    use spotnet::types::{SwapData, SwapResult, DepositData, Claim};
 
     use starknet::event::EventEmitter;
     use starknet::storage::{StoragePointerWriteAccess, StoragePointerReadAccess};
@@ -81,11 +81,22 @@ mod Deposit {
         repaid_amount: u256
     }
 
+    #[derive(starknet::Event, Drop)]
+    struct RewardClaimed {
+        claim_id: u64,
+        claimed_amount: u128,
+        claimee: ContractAddress,
+        proofs: Span<felt252>,
+        claim_status: bool,
+        claim_contract: ContractAddress
+    }
+
     #[event]
     #[derive(Drop, starknet::Event)]
     enum Event {
         LiquidityLooped: LiquidityLooped,
-        PositionClosed: PositionClosed
+        PositionClosed: PositionClosed,
+        RewardClaimed: RewardClaimed
     }
 
     #[generate_trait]
@@ -325,6 +336,39 @@ mod Deposit {
                     }
                 );
         }
+
+        fn claim_rewards(
+            ref self: ContractState,
+            claim_data: Claim,
+            proofs: Span<felt252>,
+            claim_contract: ContractAddress,
+            reward_token: ContractAddress
+        ) {
+            assert(self.is_position_open.read(), 'Position is not open');
+            assert(proofs.len() != 0, 'Proofs Span cannot be empty');
+
+            let airdrop_dispatcher = IAirdropDispatcher { contract_address: claim_contract };
+            let reward_dispatcher = ERC20ABIDispatcher { contract_address: reward_token };
+
+            let res = airdrop_dispatcher.claim(claim_data, proofs);
+            assert(res, 'Claim failed');
+
+            let send_res = reward_dispatcher.transfer(claim_data.claimee, claim_data.amount.into());
+
+            assert(send_res, 'Transfer failed');
+
+            self
+                .emit(
+                    RewardClaimed {
+                        claim_id: claim_data.id,
+                        claimed_amount: claim_data.amount,
+                        claimee: claim_data.claimee,
+                        proofs,
+                        claim_status: res,
+                        claim_contract
+                    }
+                );
+	    }
     }
 
     #[abi(embed_v0)]
