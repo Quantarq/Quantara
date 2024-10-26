@@ -32,4 +32,4 @@ async def get_dashboard(request: Request, wallet_id: str) -> dict:
         "multipliers": {"ETH": first_opened_position["multiplier"]},
         "start_dates": {"ETH": first_opened_position["created_at"]},
         "zklend_position": zklend_position,
-    }  
+    }
