@@ -34,7 +34,7 @@ function App() {
       return
     }
     if (!walletId) {
-      getTelegramUserWalletId(tgUser.id)
+      getTelegramUserWalletId(tgUser)
         .then(fetchedWalletId => {
           if (fetchedWalletId) {
             setWalletId(fetchedWalletId);

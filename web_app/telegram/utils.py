@@ -16,7 +16,7 @@ from aiogram.types import InputFile
 from aiohttp import MultipartWriter
 
 
-def check_telegram_authorization(token: str, auth_data: dict):
+def check_telegram_authorization(token: str, auth_data: dict, expired: int = None) -> bool:
     """
     Verify the Telegram authorization data.
 
@@ -31,8 +31,10 @@ def check_telegram_authorization(token: str, auth_data: dict):
     Returns:
         dict: The verified authorization data.
     """
-    check_hash = auth_data.pop("hash")
-    data_check_arr = [f"{key}={value}" for key, value in auth_data.items()]
+    check_hash = auth_data.get("hash")
+    if not check_hash:
+        return False
+    data_check_arr = [f"{key}={value}" for key, value in auth_data.items() if key != "hash"]
     data_check_arr.sort()
     data_check_string = "\n".join(data_check_arr)
 
@@ -42,12 +44,12 @@ def check_telegram_authorization(token: str, auth_data: dict):
     ).hexdigest()
 
     if hash_value != check_hash:
-        raise Exception("Data is NOT from Telegram")
+        return False
 
-    if (int(time.time()) - auth_data["auth_date"]) > 86400:
-        raise Exception("Data is outdated")
+    if expired and (int(time.time()) - auth_data["auth_date"]) > expired:
+        return False
 
-    return auth_data
+    return True
 
 
 def build_response_writer(

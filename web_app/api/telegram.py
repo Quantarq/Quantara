@@ -14,15 +14,14 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from web_app.api.serializers.telegram import TelegramUserAuth, TelegramUserCreate
-from web_app.db.acrud import AsyncTelegramUserDBConnector
-from web_app.db.crud import DBConnector
+from web_app.db.crud import DBConnector, TelegramUserDBConnector
 from web_app.telegram import TELEGRAM_TOKEN, bot, dp
 from web_app.telegram.utils import build_response_writer, check_telegram_authorization
 
 # Create a FastAPI router for handling Telegram webhook requests
 router = APIRouter()
 db_connector = DBConnector()
-adb_telegram_user = AsyncTelegramUserDBConnector()
+telegram_user_db_connector = TelegramUserDBConnector()
 
 
 @router.get(
@@ -82,7 +81,7 @@ async def save_telegram_user(user: TelegramUserCreate):
         dict: A dictionary with a success message.
     """
     try:
-        await adb_telegram_user.save_or_update_user(user.model_dump())
+        telegram_user_db_connector.save_or_update_user(user.model_dump())
         return {"message": "Telegram user saved successfully"}
     except Exception as e:
         raise HTTPException(
@@ -90,7 +89,7 @@ async def save_telegram_user(user: TelegramUserCreate):
         )
 
 
-@router.get(
+@router.post(
     "/api/telegram/get-wallet-id/{telegram_id}",
     tags=["Telegram Operations"],
     summary="Get wallet ID for a Telegram user",
@@ -111,8 +110,8 @@ async def get_wallet_id(telegram_auth: TelegramUserAuth, telegram_id: str):
     else:
         is_valid = check_telegram_authorization(TELEGRAM_TOKEN, telegram_auth.raw)
 
-    if is_valid:
+    if not is_valid:
         raise HTTPException(400, "Telegram auth data is invalid.")
 
-    wallet_id = await adb_telegram_user.get_wallet_id_by_telegram_id(telegram_id)
+    wallet_id = telegram_user_db_connector.get_wallet_id_by_telegram_id(telegram_id)
     return {"wallet_id": wallet_id}

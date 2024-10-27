@@ -32,7 +32,11 @@ const TelegramLogin = ({ user, onLogin }) => {
         <div className="telegram-login">
             {user ? (
                 <div className="user-info" onClick={handleLogout}>
-                    <img src={user.photo_url} alt={user.first_name} className="user-photo" />
+                    {user.photo_url ? (
+                        <img src={user.photo_url} alt={user.first_name} className="user-photo" />
+                    ) : (
+                        <div className="user-photo-placeholder" />
+                    )}
                     <span className="user-name">{user.first_name}</span>
                 </div>
             ) : (

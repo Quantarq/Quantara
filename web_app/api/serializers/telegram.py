@@ -16,12 +16,13 @@ class TelegramUserCreate(BaseModel):
         photo_url (str | None): The URL of the user's profile photo.
         wallet_id (str | None): The wallet ID associated with the user.
     """
-    telegram_id: str
-    username: str | None
-    first_name: str | None
-    last_name: str | None
-    photo_url: str | None
-    wallet_id: str | None
+    telegram_id: int
+    username: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    photo_url: str | None = None
+    
+    wallet_id: str | None = None
 
 class TelegramUserAuth(BaseModel):
     """

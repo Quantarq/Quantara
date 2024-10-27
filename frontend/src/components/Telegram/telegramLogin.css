@@ -49,11 +49,13 @@
 }
 
 .btn-telegram:hover {
-    /* Змінюємо ефект при наведенні */
     background: var(--button-gradient-hover);
 }
 
 .btn-telegram:active {
-    /* Додаємо ефект при натисканні */
     background: var(--button-gradient-active);
 }
+
+/* div.user-photo-placeholder {
+    add style to user placeholder
+} */
