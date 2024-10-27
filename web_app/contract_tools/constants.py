@@ -21,7 +21,7 @@ class TokenConfig:
     """
     Class to hold the token configuration for the pools.
     """
-    
+
     address: str
     decimals: int
     name: str
@@ -32,11 +32,12 @@ class TokenMultipliers:
     """
     Class to hold the predefined multipliers for supported tokens/
     """
+
     ETH: float = 5.0
     STRK: float = 2.5
     USDC: float = 5.0
 
-    
+
 class TokenParams:
     """
     Class to hold the token configurations for tokens as class-level variables.
@@ -124,6 +125,6 @@ class ProtocolAddress(Enum):
     """
     Enum for the protocol addresses.
     """
+
     zklend: str = "0x04c0a5193d58f74fbace4b74dcf65481e734ed1714121bdc571da345540efa05"
     nostra: str = "0x00c530f2c0aa4c16a0806365b0898499fba372e5df7a7172dc6fe9ba777e8007"
-

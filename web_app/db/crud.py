@@ -4,13 +4,15 @@ This module contains the CRUD operations for the database.
 
 import logging
 import uuid
-from typing import Type, TypeVar
+from datetime import datetime
+from decimal import Decimal
+from typing import List, Type, TypeVar
 
 from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import scoped_session, sessionmaker
 from web_app.db.database import SQLALCHEMY_DATABASE_URL
-from web_app.db.models import Base, Position, Status, User
+from web_app.db.models import AirDrop, Base, Position, Status, User
 
 logger = logging.getLogger(__name__)
 ModelType = TypeVar("ModelType", bound=Base)
@@ -111,6 +113,16 @@ class DBConnector:
 
         finally:
             db.close()
+
+    def create_empty_claim(self, user_id: uuid.UUID) -> AirDrop:
+        """
+        Creates a new empty AirDrop instance for the given user_id.
+        :param user_id: uuid.UUID
+        :return: AirDrop
+        """
+        airdrop = AirDrop(user_id=user_id)
+        self.write_to_db(airdrop)
+        return airdrop
 
 
 class UserDBConnector(DBConnector):
@@ -317,17 +329,21 @@ class PositionDBConnector(UserDBConnector):
             self.write_to_db(position)
         return position.status
 
-    def open_position(self, position_id: uuid) -> Position | None:
+    def open_position(self, position_id: uuid.UUID) -> str | None:
         """
-        Retrieves a position by its contract address.
-        :param position_id: uuid
-        :return: Position | None
+        Opens a position by updating its status and creating an AirDrop claim.
+        :param position_id: uuid.UUID
+        :return: str | None
         """
         position = self.get_object(Position, position_id)
         if position:
             position.status = Status.OPENED.value
             self.write_to_db(position)
-        return position.status
+            self.create_empty_claim(position.user_id)
+            return position.status
+        else:
+            logger.error(f"Position with ID {position_id} not found")
+            return None
 
     def get_unique_users_count(self) -> int:
         """
@@ -361,3 +377,43 @@ class PositionDBConnector(UserDBConnector):
             except SQLAlchemyError as e:
                 logger.error(f"Error calculating total amount for open positions: {e}")
                 return None
+
+
+class AirDropDBConnector(DBConnector):
+    """
+    Provides database connection and operations management for the AirDrop model.
+    """
+
+    def save_claim_data(self, airdrop_id: uuid.UUID, amount: Decimal) -> None:
+        """
+        Updates the AirDrop instance with claim data.
+        :param airdrop_id: uuid.UUID
+        :param amount: Decimal
+        """
+        airdrop = self.get_object(AirDrop, airdrop_id)
+        if airdrop:
+            airdrop.amount = amount
+            airdrop.is_claimed = True
+            airdrop.claimed_at = datetime.now()
+            self.write_to_db(airdrop)
+        else:
+            logger.error(f"AirDrop with ID {airdrop_id} not found")
+
+    def get_all_unclaimed(self) -> List[AirDrop]:
+        """
+        Returns all unclaimed AirDrop instances (where is_claimed is False).
+
+        :return: List of unclaimed AirDrop instances
+        """
+        with self.Session() as db:
+            try:
+
+                unclaimed_instances = (
+                    db.query(AirDrop).filter_by(is_claimed=False).all()
+                )
+                return unclaimed_instances
+            except SQLAlchemyError as e:
+                logger.error(
+                    f"Failed to retrieve unclaimed AirDrop instances: {str(e)}"
+                )
+                return []

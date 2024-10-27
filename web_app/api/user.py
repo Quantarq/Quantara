@@ -128,11 +128,11 @@ async def get_user_contract_address(wallet_id: str) -> GetUserContractAddressRes
 
 
 @router.get(
-        "/api/get_stats",
-        tags=["User Operations"],
-        summary="Get total opened amounts and number of unique users",
-        response_model=GetStatsResponse,
-        response_description="Total amount for all open positions across all users & \
+    "/api/get_stats",
+    tags=["User Operations"],
+    summary="Get total opened amounts and number of unique users",
+    response_model=GetStatsResponse,
+    response_description="Total amount for all open positions across all users & \
                               Number of unique users in the database.",
 )
 async def get_stats() -> GetStatsResponse:
@@ -146,8 +146,10 @@ async def get_stats() -> GetStatsResponse:
     try:
         total_opened_amount = position_db.get_total_amounts_for_open_positions()
         unique_users = user_db.get_unique_users_count()
-        return GetStatsResponse(total_opened_amount=total_opened_amount, unique_users=unique_users)
-    
+        return GetStatsResponse(
+            total_opened_amount=total_opened_amount, unique_users=unique_users
+        )
+
     except AttributeError as e:
         raise HTTPException(status_code=500, detail=f"AttributeError: {str(e)}")
     except TypeError as e:

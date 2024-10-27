@@ -48,6 +48,9 @@ async def get_dashboard(wallet_id: str) -> DashboardResponse:
     # Fetch zkLend position for the wallet ID
     zklend_position = await DashboardMixin.get_zklend_position(contract_address)
 
+     # Fetch current prices
+    current_prices = await DashboardMixin.get_current_prices()
+
     # Fetch balances (assuming you have a method for this)
     wallet_balances = await DashboardMixin.get_wallet_balances(wallet_id)
     return DashboardResponse(
@@ -55,4 +58,5 @@ async def get_dashboard(wallet_id: str) -> DashboardResponse:
         multipliers={"ETH": first_opened_position["multiplier"]},
         start_dates={"ETH": first_opened_position["created_at"]},
         zklend_position=zklend_position,
+        current_prices=current_prices,
     )

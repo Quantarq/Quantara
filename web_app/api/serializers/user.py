@@ -41,6 +41,7 @@ class GetStatsResponse(BaseModel):
     """
     Pydantic model for the get_stats response.
     """
+
     total_opened_amount: float = Field(
         ...,
         example=1000.0,

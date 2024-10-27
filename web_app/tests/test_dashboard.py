@@ -31,9 +31,9 @@ async def generic_exception_handler(request: Request, exc: Exception):
     """
     Generic exception handler for unexpected server errors.
 
-    This function handles uncaught exceptions and returns a JSON response with 
-    a 500 status code, indicating an internal server error. It is registered as 
-    an exception handler for all exceptions not handled by specific exception 
+    This function handles uncaught exceptions and returns a JSON response with
+    a 500 status code, indicating an internal server error. It is registered as
+    an exception handler for all exceptions not handled by specific exception
     handlers.
 
     Args:
@@ -41,13 +41,14 @@ async def generic_exception_handler(request: Request, exc: Exception):
         exc (Exception): The exception instance raised during the request.
 
     Returns:
-        JSONResponse: A JSON response containing a "detail" key with a message 
+        JSONResponse: A JSON response containing a "detail" key with a message
                       indicating an internal server error, with a 500 status code.
     """
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal Server Error"},
     )
+
 
 client = TestClient(router)
 
@@ -80,9 +81,8 @@ MOCK_ZKLEND_POSITION = {
 
 @pytest.mark.asyncio
 async def test_get_dashboard_success():
-    
     """Test successful retrieval of dashboard data."""
-    
+
     wallet_id = "0x1234567890abcdef"
     with patch(
         "web_app.api.dashboard.position_db_connector.get_contract_address_by_wallet_id"
@@ -102,7 +102,10 @@ async def test_get_dashboard_success():
                 "created_at": "2024-01-01T00:00:00",
             }
         ]
-        mock_get_wallet_balances.return_value = {"ETH": 5.0, "USDC": 1000.0}
+        mock_get_wallet_balances.return_value = {
+            "ETH": 5.0,
+            "USDC": 1000.0,
+        }
         mock_get_zklend_position.return_value = {
             "products": [
                 {
@@ -132,9 +135,8 @@ async def test_get_dashboard_success():
 
 @pytest.mark.asyncio
 async def test_get_dashboard_no_positions():
-    
     """Test handling of wallet with no positions."""
-    
+
     wallet_id = "0x1234567890abcdef"
     with patch(
         "web_app.api.dashboard.position_db_connector.get_contract_address_by_wallet_id"
@@ -165,9 +167,8 @@ async def test_get_dashboard_no_positions():
 
 @pytest.mark.asyncio
 async def test_get_dashboard_no_contract_address():
-    
     """Test handling of missing contract address."""
-    
+
     wallet_id = "0x1234567890abcdef"
     with patch(
         "web_app.api.dashboard.position_db_connector.get_contract_address_by_wallet_id"
@@ -212,10 +213,10 @@ def mock_db_connector():
 @pytest.fixture
 def mock_dashboard_mixin():
     """
-    Fixture that provides a mocked instance of the DashboardMixin used 
-    in the dashboard module. This mock allows for controlled testing of 
-    external service interactions (e.g., wallet balances and ZkLend positions) 
-    without relying on real API calls, enabling the simulation of various 
+    Fixture that provides a mocked instance of the DashboardMixin used
+    in the dashboard module. This mock allows for controlled testing of
+    external service interactions (e.g., wallet balances and ZkLend positions)
+    without relying on real API calls, enabling the simulation of various
     responses and error conditions.
     """
     with patch("web_app.contract_tools.mixins.dashboard.DashboardMixin") as mock:
@@ -226,9 +227,8 @@ def mock_dashboard_mixin():
 
 @pytest.mark.asyncio
 async def test_invalid_wallet_id(mock_db_connector):
-    
     """Test handling of invalid wallet ID."""
-    
+
     mock_db_connector.get_contract_address_by_wallet_id.side_effect = ValueError(
         "Invalid wallet ID"
     )
@@ -239,9 +239,8 @@ async def test_invalid_wallet_id(mock_db_connector):
 
 @pytest.mark.asyncio
 async def test_empty_positions(mock_db_connector, mock_dashboard_mixin):
-    
     """Test handling of wallet with no positions."""
-    
+
     mock_db_connector.get_contract_address_by_wallet_id.return_value = (
         MOCK_CONTRACT_ADDRESS
     )
@@ -260,7 +259,6 @@ async def test_empty_positions(mock_db_connector, mock_dashboard_mixin):
 
 @pytest.mark.asyncio
 async def test_external_service_errors(mock_db_connector):
-    
     """Test handling of external service failures."""
 
     mock_db_connector.get_contract_address_by_wallet_id.return_value = (
@@ -277,7 +275,6 @@ async def test_external_service_errors(mock_db_connector):
 
 @pytest.mark.asyncio
 async def test_zklend_service_error(mock_db_connector):
-    
     """Test handling of ZkLend service failure."""
 
     mock_db_connector.get_contract_address_by_wallet_id.return_value = (

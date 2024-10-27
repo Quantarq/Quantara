@@ -11,55 +11,52 @@ from web_app.api.serializers.transaction import (
 )
 from web_app.api.serializers.position import PositionFormData
 from web_app.contract_tools.constants import (
-    TokenParams, 
+    TokenParams,
     TokenMultipliers,
-    )
+)
 from web_app.contract_tools.mixins.deposit import DepositMixin
 from web_app.db.crud import PositionDBConnector
 
 router = APIRouter()  # Initialize the router
 position_db_connector = PositionDBConnector()  # Initialize the PositionDBConnector
 
+
 class TokenMultiplierResponse(BaseModel):
     """
-    This class defines the structure of the response for the token multiplier 
+    This class defines the structure of the response for the token multiplier
     endpoint, encapsulating a dictionary where each token symbol:
-    (e.g., "ETH", "STRK") 
+    (e.g., "ETH", "STRK")
     is mapped to its respective multiplier value.
 
     ### Parameters:
-    - **multipliers**: A dictionary containing token symbols as keys: 
-      (e.g., "ETH", "STRK", "USDC") 
+    - **multipliers**: A dictionary containing token symbols as keys:
+      (e.g., "ETH", "STRK", "USDC")
       and their respective multipliers as values.
 
     ### Returns:
     A structured JSON response with each token and its multiplier.
     """
+
     multipliers: dict[str, float]
 
     class Config:
         """
-        Metadata for TokenMultiplierResponse 
+        Metadata for TokenMultiplierResponse
         with example JSON response format in **schema_extra**.
         """
+
         schema_extra = {
-            "example": {
-                "multipliers": {
-                    "ETH": 5.0,
-                    "STRK": 2.5,
-                    "USDC": 5.0
-                }
-            }
+            "example": {"multipliers": {"ETH": 5.0, "STRK": 2.5, "USDC": 5.0}}
         }
-    
+
 
 @router.get(
-        "/api/get-multipliers", 
-        tags=["Position Operations"], 
-        response_model=TokenMultiplierResponse, 
-        summary="Get token multipliers", 
-        response_description="Returns token multipliers",
-        )
+    "/api/get-multipliers",
+    tags=["Position Operations"],
+    response_model=TokenMultiplierResponse,
+    summary="Get token multipliers",
+    response_description="Returns token multipliers",
+)
 async def get_multipliers() -> TokenMultiplierResponse:
     """
     This Endpoint retrieves the multipliers for tokens like ETH, STRK, and USDC.
@@ -67,7 +64,7 @@ async def get_multipliers() -> TokenMultiplierResponse:
     multipliers = {
         "ETH": TokenMultipliers.ETH,
         "STRK": TokenMultipliers.STRK,
-        "USDC": TokenMultipliers.USDC
+        "USDC": TokenMultipliers.USDC,
     }
     return TokenMultiplierResponse(multipliers=multipliers)
 

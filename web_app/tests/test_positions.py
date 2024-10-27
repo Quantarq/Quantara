@@ -76,7 +76,7 @@ async def test_close_position_success(client: AsyncClient) -> None:
 @pytest.mark.anyio
 async def test_close_position_invalid_position_id(client: AsyncClient) -> None:
     """
-    Test for attempting to close a position using an invalid position ID, 
+    Test for attempting to close a position using an invalid position ID,
     which should return a 404 error.
     Args:
         client (AsyncClient): The test client for the FastAPI application.
@@ -201,7 +201,7 @@ async def test_get_repay_data_success(
 @pytest.mark.anyio
 async def test_get_repay_data_missing_wallet_id(client: AsyncClient) -> None:
     """
-    Test for missing wallet ID when attempting to retrieve repayment data, 
+    Test for missing wallet ID when attempting to retrieve repayment data,
     which should return a 404 error.
     Args:
         client (AsyncClient): The test client for the FastAPI application.
