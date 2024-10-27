@@ -16,6 +16,6 @@ class AirdropItem(BaseModel):
 
 class AirdropResponseModel(BaseModel):
     """
-    Model to encapsulate a list of AirdropItem instances, providing a structured response.
+    A model to encapsulate a list of AirdropItem instances, providing a structured response.
     """
     airdrops: List[AirdropItem] # A list of filtered and validated airdrop items
