@@ -11,7 +11,9 @@ from typing import List, Type, TypeVar
 from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import scoped_session, sessionmaker
-from web_app.db.database import SQLALCHEMY_DATABASE_URL
+
+from web_app.contract_tools.mixins.dashboard import DashboardMixin
+from web_app.db.database import SQLALCHEMY_DATABASE_URL, get_database
 from web_app.db.models import AirDrop, Base, Position, Status, User
 
 logger = logging.getLogger(__name__)
@@ -340,6 +342,7 @@ class PositionDBConnector(UserDBConnector):
             position.status = Status.OPENED.value
             self.write_to_db(position)
             self.create_empty_claim(position.user_id)
+            self.save_current_price(position)
             return position.status
         else:
             logger.error(f"Position with ID {position_id} not found")
@@ -378,6 +381,19 @@ class PositionDBConnector(UserDBConnector):
                 logger.error(f"Error calculating total amount for open positions: {e}")
                 return None
 
+    def save_current_price(self, position: Position) -> None:
+        """
+        Saves current prices into db.
+        :return: None
+        """
+        price_dict = DashboardMixin.get_current_prices()
+        start_price = price_dict.get(position.token_symbol)
+        try:
+            position.start_price = start_price
+            self.write_to_db(position)
+        except SQLAlchemyError as e:
+            logger.error(f"Error while saving current_price for position: {e}")
+
 
 class AirDropDBConnector(DBConnector):
     """
@@ -407,7 +423,6 @@ class AirDropDBConnector(DBConnector):
         """
         with self.Session() as db:
             try:
-
                 unclaimed_instances = (
                     db.query(AirDrop).filter_by(is_claimed=False).all()
                 )
