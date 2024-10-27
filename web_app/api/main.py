@@ -16,6 +16,7 @@ from starlette.middleware.cors import CORSMiddleware
 from web_app.api.dashboard import router as dashboard_router
 from web_app.api.position import router as position_router
 from web_app.api.user import router as user_router
+from web_app.api.telegram import router as telegram_router
 
 app = FastAPI(
     title="SPOTNET API",
@@ -44,3 +45,4 @@ app.add_middleware(
 app.include_router(position_router)
 app.include_router(dashboard_router)
 app.include_router(user_router)
+app.include_router(telegram_router)
