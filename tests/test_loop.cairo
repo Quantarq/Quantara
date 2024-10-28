@@ -590,6 +590,7 @@ fn test_claim_rewards() {
     // println!("final bal {}", final_balance);
 
     assert(final_balance > initial_balance, 'Reward was not transferred');
+    assert(final_balance - initial_balance == claim_data.amount.into(), 'Unexpected amount was rewarded');
 }
 // TODO: Calculate interest rates to test behaviour after liquidation.
 
