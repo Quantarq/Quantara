@@ -45,7 +45,7 @@ jobs:
 
       - name: Run tests
         run: |
-          docker-compose exec backend pytest web_app/tests
+          docker-compose exec backend poetry run pytest web_app/tests
 
       - name: Tear down
         run: |

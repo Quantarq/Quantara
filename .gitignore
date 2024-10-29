@@ -9,7 +9,6 @@ __pycache__/
 # local
 local.py
 images/
-poetry.lock
 
 .idea
 

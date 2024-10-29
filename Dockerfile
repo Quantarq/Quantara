@@ -4,9 +4,8 @@ FROM python:3.12-slim
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONDONTWRITEBYTECODE 1
 
-# Create app directory
-RUN mkdir /app
-WORKDIR /app
+# Set PATH for Poetry
+ENV PATH="/root/.local/bin:$PATH"
 
 # Add system-level dependencies (including gcc and npm)
 RUN apt-get update \
@@ -15,17 +14,28 @@ RUN apt-get update \
        curl nodejs npm \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy only requirements.txt to leverage Docker cache
-COPY ./requirements.txt /app/requirements.txt
+# Install Poetry
+RUN curl -sSL https://install.python-poetry.org | python3 -
 
-# Install Python dependencies from requirements.txt and cache the layer
-RUN pip install --no-cache-dir -r /app/requirements.txt
+# Create app directory
+RUN mkdir /app
+WORKDIR /app
+
+# Copy the pyproject.toml and poetry.lock files into container's /app/ directory
+COPY pyproject.toml poetry.lock /app/
+
+# Install dependencies from the poetry.lock file
+RUN poetry config virtualenvs.create false \
+    && poetry install --no-dev --no-interaction --no-root
 
 # Copy the rest of the application code
 ADD . /app
 
 # Install StarknetKit via npm with legacy-peer-deps flag
 RUN npm install @argent/get-starknet --legacy-peer-deps --save
+
+# Set the entrypoint script as executable
+RUN chmod +x /app/entrypoint.sh
 
 EXPOSE 8000
 

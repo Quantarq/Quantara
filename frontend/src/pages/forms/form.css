@@ -98,6 +98,14 @@
   background: var(--secondary-color);
 }
 
+.token-card:has(input[type="radio"]:checked) h5 {
+    color: black;
+}
+
+.token-card:has(input[type="radio"]:checked) h5 svg path {
+    fill: black;
+}
+
 /* .token-card:active {
     background: var(--blue-color);
     border-radius: 8px;
@@ -129,9 +137,13 @@
   padding: 10px;
 }
 
-.form-wrapper > * {
-  color: white;
-  margin-bottom: 10px;
+.token-label-component svg {
+    fill: red;
+}
+
+.form-wrapper > *{
+    color: white;
+    margin-bottom: 10px;
 }
 
 .token-card h5 {
@@ -164,39 +176,41 @@
   height: 15px;
 }
 
-.recommended p {
-  background-color: var(--blue-color);
-  width: 120px;
-  height: 15px;
-  text-align: center;
-  font-size: 15px;
-  font-size: 15px;
-  border-radius: 5px 5px 0 0;
-  display: flex;
-  align-items: center;
-  color: black;
-  font-family: var(--text-font);
-  justify-content: center;
+.recommended p{
+    background-color: var(--blue-color);
+    width: 120px;
+    height: 15px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 11px;
+    border-radius: 5px 5px 0 0;
+    display: flex;
+    align-items: center;
+    color: black;
+    font-family: var(--text-font);
+    justify-content: center;
 }
 
 .recommended-item {
-  display: flex;
-  align-items: flex-end !important;
-  font-size: 28px !important;
+    display: flex;
+    align-items: flex-end !important;
+    font-size: 20px;
+
 }
 
-.multiplier-item label {
-  border: 1px solid var(--blue-color);
-  width: 120px;
-  height: 50px;
-  border-radius: 8px;
-  font-size: 24px;
-  display: flex;
-  justify-content: center;
+.multiplier-item label{
+    border: 1px solid var(--blue-color);
+    width: 120px;
+    height: 50px;
+    border-radius: 8px;
+    font-size: 24px;
+    display: flex;
+    justify-content: center;
 }
 
 .multiplier-item:not(.recommended-item) label {
-  align-items: center;
+    align-items: center;
+    font-size: 21px;
 }
 
 input[type="radio"] {
@@ -213,8 +227,8 @@ input[type="radio"] {
 }
 
 .multiplier-item input[type="radio"]:checked + label {
-  border-color: var(--blue-color);
-  box-shadow: 0 4px 8px var(--blue-color);
+    border-color: var(--blue-color);
+    box-shadow: 0 4px 20px var(--blue-color);
 }
 
 input[type="number"]::-webkit-outer-spin-button,
@@ -294,23 +308,99 @@ input[type="number"].error {
 }
 
 @media (min-width: 1800px) {
-  .form-card {
-    width: 400px;
-  }
+    .form-card{
+        width: 400px;
+    }
 
-  .form-token label,
-  .multiplier-card label {
-    width: 150px;
-    height: 60px;
-  }
+    .form-token label, .multiplier-card label{
+        width: 150px;
+        height: 60px;
+    }
 
-  input[type="number"] {
-    height: 60px;
-  }
+    input[type='number']{
+        height: 60px;
+    }
 
-  .recommended p {
-    width: 150px;
-    height: 22px;
-    font-size: 15px;
-  }
+    .recommended p {
+        width: 150px;
+        height: 22px;
+        font-size: 15px;
+    }
+}
+
+.forms-gradient .card-gradient:nth-child(1){
+    position: absolute;
+    top: 240px;
+    left: -156px;
+    width: 232px;
+    height: 208px;
+    flex-shrink: 0;
+    border-radius: 2000px;
+    background: var(--gradient, linear-gradient(73deg, #74D6FD 1.13%, #E01DEE 103.45%));
+    filter: blur(111px);
+}
+
+.forms-gradient .card-gradient:nth-child(2){
+    position: absolute;
+    right: -70px;
+    bottom: -55px;
+    width: 232px;
+    height: 208px;
+    flex-shrink: 0;
+    border-radius: 2000px;
+    background: var(--gradient, linear-gradient(73deg, #74D6FD 1.13%, #E01DEE 103.45%));
+    /* Blur */
+    filter: blur(123px);
+}
+
+.form-alert{
+    display: flex;
+    align-items: center;
+}
+
+.form-alert-hex{
+    margin-left: auto;
+}
+
+.balance-container{
+    display: flex;
+    margin-bottom: 60px;
+    justify-content: space-between;
+}
+
+.balance-item{
+    display: flex;
+    flex-direction: column;
+    background-color: #74D6FD80;
+    height: 129px;
+    width: 300px;
+    align-items: center;
+    border-radius: 8px;
+    border: 0.5px solid #4e7787;
+    justify-content: center;
+    background: linear-gradient(150deg, #74D6FD80 1.13%, #0B0C1080 103.45%);
+    margin-right: 20px;
+    box-shadow: 3.75px 3.75px 9.38px 0px #99EAFF40 inset;
+}
+
+.balance-item label:nth-child(1){
+    font-size: 20px;
+    color: var(--secondary);
+    letter-spacing: 0.5px;
+}
+
+.balance-item label:nth-child(2){
+    font-size: 32px;
+    color: var(--secondary);
+}
+
+.balance-title{
+    display: flex;
+    align-items: center;
+}
+
+.balance-title svg{
+    margin-right: 5px;
+    height: 25px;
+    width: 24px ;
 }

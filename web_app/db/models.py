@@ -1,22 +1,24 @@
 """
-This module contains the SQLAlchemy models for the database.
+This module contains SQLAlchemy models for the application, including
+User, Position, AirDrop, and TelegramUser. Each model represents a
+table in the database and defines the structure and relationships
+between the data entities.
 """
 
-from enum import Enum as PyEnum
 from uuid import uuid4
-
-from sqlalchemy import (
-    DECIMAL,
-    Boolean,
-    Column,
-    DateTime,
-    Enum,
-    ForeignKey,
-    Integer,
-    String,
-)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
+from sqlalchemy import (
+    DECIMAL,
+    Column,
+    String,
+    Boolean,
+    Integer,
+    ForeignKey,
+    DateTime,
+    Enum,
+)
+from enum import Enum as PyEnum
 from web_app.db.database import Base
 
 
@@ -46,7 +48,7 @@ class User(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     is_contract_deployed = Column(Boolean, default=False)
-    wallet_id = Column(String, nullable=False, index=True)
+    wallet_id = Column(String, nullable=False, unique=True, index=True)
     contract_address = Column(String)
 
 
@@ -90,3 +92,24 @@ class AirDrop(Base):
     amount = Column(DECIMAL, nullable=True)
     is_claimed = Column(Boolean, default=False, index=True)
     claimed_at = Column(DateTime, nullable=True)
+
+
+class TelegramUser(Base):
+    """
+    SQLAlchemy model for the telegram_user table.
+    """
+
+    __tablename__ = "telegram_user"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    telegram_id = Column(String, nullable=False, unique=True, index=True)
+    username = Column(String)
+    first_name = Column(String)
+    last_name = Column(String)
+    wallet_id = Column(String, ForeignKey("user.wallet_id"))
+    photo_url = Column(String)
+
+    created_at = Column(DateTime, nullable=False, default=func.now())
+    updated_at = Column(
+        DateTime, nullable=False, default=func.now(), onupdate=func.now()
+    )
