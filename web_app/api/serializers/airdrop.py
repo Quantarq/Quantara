@@ -1,21 +1,18 @@
 """
-This module defines the serializers for the airdrop data.
+Serializers for airdrop data.
 """
-
-from pydantic import BaseModel
 from typing import List
+from pydantic import BaseModel
+
 
 class AirdropItem(BaseModel):
-    """
-    A model to represent individual airdrop data with only the necessary fields.
-    """
-    amount: float # Amount of the airdrop tokens
-    proof: str # Proof for claiming the airdrop
-    is_claimed: bool # Whether the airdrop has been claimed
-    recipient: str #Recipient address of the airdrop
+    """Model for individual airdrop items."""
+    amount: str
+    proof: List[str]  # This needs to be List[str], not str
+    is_claimed: bool
+    recipient: str
+
 
 class AirdropResponseModel(BaseModel):
-    """
-    A model to encapsulate a list of AirdropItem instances, providing a structured response.
-    """
-    airdrops: List[AirdropItem] # A list of filtered and validated airdrop items
+    """Model for the complete airdrop response."""
+    airdrops: List[AirdropItem]

@@ -31,7 +31,12 @@ class ZkLendAirdrop:
         Returns:
             AirdropResponseModel: A validated list of airdrop items
             for the specified contract.
+        Raises:
+            ValueError: If contract_id is None
         """
+        if contract_id is None:
+            raise ValueError("Contract ID cannot be None")
+            
         underlying_contract_id = TokenParams.add_underlying_address(contract_id)
         response = await self.api.fetch(underlying_contract_id)
         return self._validate_response(response)
@@ -49,7 +54,7 @@ class ZkLendAirdrop:
         for item in data:
             validated_item = AirdropItem(
                 amount=item["amount"],
-                proof=item["proof"],
+                proof=item["proof"],  # This is correct now as AirdropItem expects List[str]
                 is_claimed=item["is_claimed"],
                 recipient=item["recipient"]
             )
