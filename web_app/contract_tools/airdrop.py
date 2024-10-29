@@ -3,22 +3,23 @@ This module defines the contract tools for the airdrop data.
 """
 
 from typing import List
-from api.serializers.airdrop import AirdropItem, AirdropResponseModel
-from contract_tools.api_request import APIRequest
+from web_app.api.serializers.airdrop import AirdropItem, AirdropResponseModel
+from web_app.contract_tools.api_request import APIRequest
+from web_app.contract_tools.constants import TokenParams
+
 
 class ZkLendAirdrop:
     """
     A class to fetch and validate airdrop data 
     for a specified contract.
     """
+    REWARD_API_ENDPOINT = "https://app.zklend.com/api/reward/all/"
 
-    def __init__(self, api: APIRequest):
+    def __init__(self):
         """
         Initializes the ZkLendAirdrop class with an APIRequest instance.
-        Args:
-            api (APIRequest): An instance of APIRequest for making API calls.
         """
-        self.api = api
+        self.api = APIRequest(base_url=self.REWARD_API_ENDPOINT)
 
     async def get_contract_airdrop(self, contract_id: str) -> AirdropResponseModel:
         """
@@ -31,11 +32,12 @@ class ZkLendAirdrop:
             AirdropResponseModel: A validated list of airdrop items
             for the specified contract.
         """
-        endpoint = f"/contracts/{contract_id}/airdrops"
-        response = await self.api.fetch(endpoint)
+        underlying_contract_id = TokenParams.add_underlying_address(contract_id)
+        response = await self.api.fetch(underlying_contract_id)
         return self._validate_response(response)
 
-    def _validate_response(self, data: List[dict]) -> AirdropResponseModel:
+    @staticmethod
+    def _validate_response(data: List[dict]) -> AirdropResponseModel:
         """
         Validates and formats the response data, keeping only necessary fields.
         Args:
