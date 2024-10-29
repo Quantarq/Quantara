@@ -1,45 +1,45 @@
-@import url('https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap");
 
-:root{
-    --text-font:'Rethink Sans',sans-serif;
-    --secondary-color:#1A1C24;
-    --brand:#74D6FD;
-    --primary-color:#0B0C10;
-    --black: #000;
-    --primary: #fff;
-    --secondary: #E7ECF0;
+:root {
+  --text-font: "Rethink Sans", sans-serif;
+  --secondary-color: #1a1c24;
+  --brand: #74d6fd;
+  --primary-color: #0b0c10;
+  --black: #000;
+  --primary: #fff;
+  --secondary: #e7ecf0;
 }
 
-.dont-miss__container{
-    height: 70vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    position: relative;
+.dont-miss__container {
+  height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  position: relative;
 }
 
-.miss-title{
-    color: var(--primary);
-    font-size: 50px;
+.miss-title {
+  color: var(--primary);
+  font-size: 50px;
 }
 
-.miss-description{
-    color: var(--secondary);
-    font-size: 24px;
-    margin-bottom: 0;
+.miss-description {
+  color: var(--secondary);
+  font-size: 24px;
+  margin-bottom: 0;
 }
 
-.miss-btn{
-    width: 400px;
+.miss-btn {
+  width: 400px;
 }
 
-.miss-button{
-    position: relative;
+.miss-button {
+  position: relative;
 }
 
-.hand-icon{
-    position: absolute;
-    right: -50px;
-    top: 26px;
+.hand-icon {
+  position: absolute;
+  right: -50px;
+  top: 26px;
 }

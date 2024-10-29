@@ -1,451 +1,465 @@
-@import url('https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap");
 
-:root{
-    --text-font:'Rethink Sans',sans-serif;
-    --gradient: linear-gradient(73deg, #74D6FD 1.13%, #E01DEE 103.45%);
-    --primary-color:#0B0C10;
-    --collateral-color: #1D9259;
-    --borrow-color: #F42222;
-    --card-box-shadow: 0px 3.75px 3.75px 0px rgba(0, 0, 0, 0.15), 3.75px 3.75px 9.375px 0px rgba(153, 234, 255, 0.25) inset;
-    --background-main: rgba(11, 12, 16, 1);
-    --primary-color:#0B0C10;
-    --black: #000;
-    --primary: #fff;
-    --secondary: #E7ECF0;
-    --button-gradient: linear-gradient(55deg, #74d6fd 0%, #e01dee 100%);
-    --button-gradient-hover: linear-gradient(55deg, #74d6fd 0%, #74d6fd 100%);
-    --button-gradient-active: linear-gradient(55deg, #58c4ef 0%, #58c4ef 100%);
+:root {
+  --text-font: "Rethink Sans", sans-serif;
+  --gradient: linear-gradient(73deg, #74d6fd 1.13%, #e01dee 103.45%);
+  --primary-color: #0b0c10;
+  --collateral-color: #1d9259;
+  --borrow-color: #f42222;
+  --card-box-shadow: 0px 3.75px 3.75px 0px rgba(0, 0, 0, 0.15),
+    3.75px 3.75px 9.375px 0px rgba(153, 234, 255, 0.25) inset;
+  --background-main: rgba(11, 12, 16, 1);
+  --primary-color: #0b0c10;
+  --black: #000;
+  --primary: #fff;
+  --secondary: #e7ecf0;
+  --button-gradient: linear-gradient(55deg, #74d6fd 0%, #e01dee 100%);
+  --button-gradient-hover: linear-gradient(55deg, #74d6fd 0%, #74d6fd 100%);
+  --button-gradient-active: linear-gradient(55deg, #58c4ef 0%, #58c4ef 100%);
 }
 
 body {
-    background-color: var(--background-main);
-    font-family: 'Rethink Sans', -apple-system, Roboto, Helvetica, sans-serif;
+  background-color: var(--background-main);
+  font-family:
+    "Rethink Sans",
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
 }
-  
+
 .dashboard-container {
-    margin-top: 4rem !important;
-    margin-bottom: 12rem !important;
-    min-height: 100vh;
-    position: relative !important;
-    width: 100%;
+  margin-top: 4rem !important;
+  margin-bottom: 12rem !important;
+  min-height: 100vh;
+  position: relative !important;
+  width: 100%;
 }
 
 .dashboard-text-color {
-    color: var(--secondary);
+  color: var(--secondary);
 }
 
 /* DESKTOP */
 /* Health factor styles */
 
 .health-text-size {
-    font-size: 28px;
-    font-weight: 500;
-    margin-right: 12px;
+  font-size: 28px;
+  font-weight: 500;
+  margin-right: 12px;
 }
 
 .bg-custom-color {
-    background-color: var(--primary-color);
-    padding: 30px 65px;
+  background-color: var(--primary-color);
+  padding: 30px 65px;
 }
 
 .bg-custom-health {
-    background-color: var(--primary-color);
-    padding: 30px 65px;
+  background-color: var(--primary-color);
+  padding: 30px 65px;
 }
 
 .bg-card-health {
-    height: 74px;
-    padding: 23px 24px;
+  height: 74px;
+  padding: 23px 24px;
 }
 
 .zkLend-text {
-    font-size: 48px; 
-    margin-bottom: 24px;
+  font-size: 48px;
+  margin-bottom: 24px;
 }
 
 .card-health-factor {
-        background: linear-gradient(to bottom right, rgba(116, 214, 253, 0.5) 0%, rgba(11, 12, 16, 0.5) 100%);
-        padding: 36px;
-        border-radius: 6px;
-        width: 100%;
-        border: 0.5px solid #74D6FD;
-        height: 146px;
+  background: linear-gradient(
+    to bottom right,
+    rgba(116, 214, 253, 0.5) 0%,
+    rgba(11, 12, 16, 0.5) 100%
+  );
+  padding: 36px;
+  border-radius: 6px;
+  width: 100%;
+  border: 0.5px solid #74d6fd;
+  height: 146px;
 }
 
 /* Cards styles */
 
 .card-icons {
-    width: 44px;
-    height: 44px;
+  width: 44px;
+  height: 44px;
 }
 
 .text-style {
-    font-size: 32px;
-    font-weight: 600;
+  font-size: 32px;
+  font-weight: 600;
 }
 
 .cards-custom {
-    margin-top: 29px;
+  margin-top: 29px;
 }
 
 .coll-earn-text {
-    color: var(--collateral-color);
+  color: var(--collateral-color);
 }
 
 .borr-text {
-    color: var(--borrow-color);
+  color: var(--borrow-color);
 }
 
 .card-header {
-    padding-top: 13px;
-    padding-bottom: 13px;
+  padding-top: 13px;
+  padding-bottom: 13px;
 }
 
 .card-shadow {
-    box-shadow: var(--card-box-shadow);
+  box-shadow: var(--card-box-shadow);
 }
 
 .card-body-custom {
-    color: var(--primary); 
-    padding-top: 24px;
-    padding-bottom: 36px; 
+  color: var(--primary);
+  padding-top: 24px;
+  padding-bottom: 36px;
 }
 
 .card-custom-styles {
-    flex: 1;
-    background: linear-gradient(to bottom right, rgba(116, 214, 253, 0.5) 0%, rgba(11, 12, 16, 0.5) 100%); 
-    border: 0.5px solid #74D6FD;
+  flex: 1;
+  background: linear-gradient(
+    to bottom right,
+    rgba(116, 214, 253, 0.5) 0%,
+    rgba(11, 12, 16, 0.5) 100%
+  );
+  border: 0.5px solid #74d6fd;
 }
 
 .card-custom-styles:first-child {
-    margin-right: 13px;
+  margin-right: 13px;
 }
 
 .card-custom-styles:last-child {
-    margin-left: 13px;
+  margin-left: 13px;
 }
 
 .icon-text-gap {
-    margin-left: 4px !important;
+  margin-left: 4px !important;
 }
 
 .balance-text-size {
-    font-size: 28px;
-    font-weight: 500;
+  font-size: 28px;
+  font-weight: 500;
 }
 
 .mb-0 {
-    margin-bottom: 0;
+  margin-bottom: 0;
 }
 
 .mb-3 {
-    margin-bottom: 2rem !important;
+  margin-bottom: 2rem !important;
 }
 
 /* Button "Redeem" styles */
 
 .redeem-btn {
-    align-self: stretch;
-    border-radius: 8px;
-    background: var(--button-gradient);
-    padding: 18px 24px;
-    color: var(--black);
-    font: 700 24px/1 Rethink Sans;
-    width: 100%;
-    transition: background 1.3s ease;
+  align-self: stretch;
+  border-radius: 8px;
+  background: var(--button-gradient);
+  padding: 18px 24px;
+  color: var(--black);
+  font: 700 24px/1 Rethink Sans;
+  width: 100%;
+  transition: background 1.3s ease;
 }
 
 .redeem-btn:hover {
-    background: var(--button-gradient-hover);
+  background: var(--button-gradient-hover);
 }
 
 .redeem-btn:active {
-    background: var(--button-gradient-active);
+  background: var(--button-gradient-active);
 }
 
 /* background styles */
 
 .backdround-gradient {
-    position: absolute;
-    width: 332px;
-    height: 128px;
-    flex-shrink: 0;
-    border-radius: 2000px;
-    background: var(--gradient, linear-gradient(73deg, #74D6FD 1.13%, #E01DEE 103.45%));
-    filter: blur(80px);
+  position: absolute;
+  width: 332px;
+  height: 128px;
+  flex-shrink: 0;
+  border-radius: 2000px;
+  background: var(
+    --gradient,
+    linear-gradient(73deg, #74d6fd 1.13%, #e01dee 103.45%)
+  );
+  filter: blur(80px);
 }
 
 .backdround-gradient:nth-child(1) {
-    top: 250px;
-    left: -250px;
+  top: 250px;
+  left: -250px;
 }
 
 .backdround-gradient:nth-child(2) {
-    bottom: -160px;
-    right: -180px;
+  bottom: -160px;
+  right: -180px;
 }
 
 @media (min-width: 992px) and (max-width: 1400px) {
-    .dashboard-container {
-        max-width: 960px !important;
-    }
+  .dashboard-container {
+    max-width: 960px !important;
+  }
 
-    .health-text-size {
-        font-size: 18px;
-        font-weight: 500;
-        margin-right: 8px;
-    }
+  .health-text-size {
+    font-size: 18px;
+    font-weight: 500;
+    margin-right: 8px;
+  }
 
-    .zkLend-text {
-        font-size: 32px; 
-        margin-bottom: 14px;
-    } 
-    
-    .bg-custom-color {
-        padding: 12px 24px;
-    }
+  .zkLend-text {
+    font-size: 32px;
+    margin-bottom: 14px;
+  }
 
-    .bg-custom-health {
-        padding: 23px 24px;
-    }
+  .bg-custom-color {
+    padding: 12px 24px;
+  }
 
-    .card-health-factor {
-        padding: 24px;
-        height: 120px;
-    }
+  .bg-custom-health {
+    padding: 23px 24px;
+  }
 
-/* Cards styles */
+  .card-health-factor {
+    padding: 24px;
+    height: 120px;
+  }
 
-    .card-icons {
-        width: 32px;
-        height: 33px;
-    }
+  /* Cards styles */
 
-    .text-style {
-        font-size: 22px;
-    }
+  .card-icons {
+    width: 32px;
+    height: 33px;
+  }
 
-    .cards-custom {
-        margin-top: 18px;
-    }
+  .text-style {
+    font-size: 22px;
+  }
 
-    .card-body-custom {
-        padding: 16px 10px 22px;
-    }
+  .cards-custom {
+    margin-top: 18px;
+  }
 
-    .card-custom-styles:first-child {
-        margin-right: 8px;
-    }
-    
-    .card-custom-styles:last-child {
-        margin-left: 8px;
-    }
+  .card-body-custom {
+    padding: 16px 10px 22px;
+  }
 
-    .icon-text-gap {
-        margin-left: 3px !important;
-    }
+  .card-custom-styles:first-child {
+    margin-right: 8px;
+  }
 
-    .balance-text-size {
-        font-size: 18px;
-        font-weight: 400;
-    }
+  .card-custom-styles:last-child {
+    margin-left: 8px;
+  }
 
-/* Button "Redeem" styles */
+  .icon-text-gap {
+    margin-left: 3px !important;
+  }
 
-    .redeem-btn {
-        padding: 14px 18px;
-        font-size: 20px;
-        align-self: stretch;
-        border-radius: 6px;
-        font: 700 20px/1 Rethink Sans;
-        width: 100%;
-    }
+  .balance-text-size {
+    font-size: 18px;
+    font-weight: 400;
+  }
+
+  /* Button "Redeem" styles */
+
+  .redeem-btn {
+    padding: 14px 18px;
+    font-size: 20px;
+    align-self: stretch;
+    border-radius: 6px;
+    font: 700 20px/1 Rethink Sans;
+    width: 100%;
+  }
 }
-
 
 /* TABLET */
 /* Health factor styles */
 
 @media (min-width: 768px) and (max-width: 991px) {
-    .dashboard-container {
-        margin-top: 1.5rem !important;
-        margin-bottom: 4rem !important;
-        width: 100% !important;
-    }
+  .dashboard-container {
+    margin-top: 1.5rem !important;
+    margin-bottom: 4rem !important;
+    width: 100% !important;
+  }
 
-    .health-text-size {
-        font-size: 16px;
-        font-weight: 500;
-        margin-right: 6px;
-    }
+  .health-text-size {
+    font-size: 16px;
+    font-weight: 500;
+    margin-right: 6px;
+  }
 
-    .zkLend-text {
-        font-size: 30px; 
-        margin-bottom: 12px;
-    }
-    
-    .bg-custom-color {
-        padding: 12px 24px;
-    }
+  .zkLend-text {
+    font-size: 30px;
+    margin-bottom: 12px;
+  }
 
-    .bg-custom-health {
-        padding: 23px 24px;
-    }
+  .bg-custom-color {
+    padding: 12px 24px;
+  }
 
-    .card-health-factor {
-        padding: 14px;
-        height: 90px;
-    }
+  .bg-custom-health {
+    padding: 23px 24px;
+  }
 
-    .bg-card-health {
-        height: 45px;
-    }
-    
-/* Cards styles */
+  .card-health-factor {
+    padding: 14px;
+    height: 90px;
+  }
 
-    .card-icons {
-        width: 30px;
-        height: 30px;
-    }
+  .bg-card-health {
+    height: 45px;
+  }
 
-    .text-style {
-        font-size: 20px;
-    }
+  /* Cards styles */
 
-    .cards-custom {
-        margin-top: 12px;
-    }
+  .card-icons {
+    width: 30px;
+    height: 30px;
+  }
 
-    .card-body-custom {
-        padding: 12px 8px 18px;
-    }
+  .text-style {
+    font-size: 20px;
+  }
 
-    .card-custom-styles:first-child {
-        margin-right: 6px;
-    }
-    
-    .card-custom-styles:last-child {
-        margin-left: 6px;
-    }
+  .cards-custom {
+    margin-top: 12px;
+  }
 
-    .icon-text-gap {
-        margin-left: 3px !important;
-    }
+  .card-body-custom {
+    padding: 12px 8px 18px;
+  }
 
-    .balance-text-size {
-        font-size: 16px;
-        font-weight: 400;
-    }
-    
-    .mb-4  {
-        margin-bottom: 1rem !important;
-    }
+  .card-custom-styles:first-child {
+    margin-right: 6px;
+  }
 
-/* Button "Redeem" styles */
+  .card-custom-styles:last-child {
+    margin-left: 6px;
+  }
 
-    .redeem-btn {
-        padding: 14px 18px;
-        font-size: 20px;
-        align-self: stretch;
-        border-radius: 6px;
-        font: 700 20px/1 Rethink Sans;
-        width: 100%;
-    }
+  .icon-text-gap {
+    margin-left: 3px !important;
+  }
 
+  .balance-text-size {
+    font-size: 16px;
+    font-weight: 400;
+  }
+
+  .mb-4 {
+    margin-bottom: 1rem !important;
+  }
+
+  /* Button "Redeem" styles */
+
+  .redeem-btn {
+    padding: 14px 18px;
+    font-size: 20px;
+    align-self: stretch;
+    border-radius: 6px;
+    font: 700 20px/1 Rethink Sans;
+    width: 100%;
+  }
 }
 
 /* MOBILE */
 /* Health factor styles */
 
 @media (max-width: 767px) {
-    .cards-custom {
-        display: block !important;
-    }
+  .cards-custom {
+    display: block !important;
+  }
 
-    .dashboard-container {
-        margin-top: 1.5rem !important;
-        margin-bottom: 4rem !important;
-        width: 100% !important;
-    }
+  .dashboard-container {
+    margin-top: 1.5rem !important;
+    margin-bottom: 4rem !important;
+    width: 100% !important;
+  }
 
-    .health-text-size {
-        font-size: 16px;
-        font-weight: 500;
-        margin-right: 6px;
-    }
+  .health-text-size {
+    font-size: 16px;
+    font-weight: 500;
+    margin-right: 6px;
+  }
 
-    .zkLend-text {
-        font-size: 30px; 
-        margin-bottom: 12px;
-    }
+  .zkLend-text {
+    font-size: 30px;
+    margin-bottom: 12px;
+  }
 
-    .card-health-factor {
-        padding: 14px;
-        height: 90px;
-    }
+  .card-health-factor {
+    padding: 14px;
+    height: 90px;
+  }
 
-    .bg-card-health {
-        height: 45px;
-    }
+  .bg-card-health {
+    height: 45px;
+  }
 
-/* Cards styles */
+  /* Cards styles */
 
-    .bg-custom-color {
-        padding: 12px 10px;
-    }
+  .bg-custom-color {
+    padding: 12px 10px;
+  }
 
-    .bg-custom-health {
-        padding: 8px 8px;
-    }
+  .bg-custom-health {
+    padding: 8px 8px;
+  }
 
-    .card-icons {
-        width: 30px;
-        height: 30px;
-    }
+  .card-icons {
+    width: 30px;
+    height: 30px;
+  }
 
-    .text-style {
-        font-size: 20px;
-    }
+  .text-style {
+    font-size: 20px;
+  }
 
-    .cards-custom {
-        margin-top: 12px;
-    }
+  .cards-custom {
+    margin-top: 12px;
+  }
 
-    .card-body-custom {
-        padding: 12px 8px 18px;
-    }
+  .card-body-custom {
+    padding: 12px 8px 18px;
+  }
 
-    .card-custom-styles:first-child {
-        margin-right: auto;
-        margin-bottom: 10px;
-    }
-    
-    .card-custom-styles:last-child {
-        margin-left: auto;
-    }
+  .card-custom-styles:first-child {
+    margin-right: auto;
+    margin-bottom: 10px;
+  }
 
-    .balance-text-size {
-        font-size: 16px;
-        font-weight: 400;
-    }
+  .card-custom-styles:last-child {
+    margin-left: auto;
+  }
 
-    .mb-3 {
-        margin-bottom: 1.3rem !important;
-    }
+  .balance-text-size {
+    font-size: 16px;
+    font-weight: 400;
+  }
 
-    .mb-4 {
-        margin-bottom: 1rem !important;
-    }
+  .mb-3 {
+    margin-bottom: 1.3rem !important;
+  }
 
-    /* Button "Redeem" styles */
+  .mb-4 {
+    margin-bottom: 1rem !important;
+  }
 
-    .redeem-btn {
-        padding: 12px 16px;
-        font-size: 18px;
-        align-self: stretch;
-        border-radius: 6px;
-        font: 700 18px/1 Rethink Sans;
-        width: 100%;
-    }
+  /* Button "Redeem" styles */
+
+  .redeem-btn {
+    padding: 12px 16px;
+    font-size: 18px;
+    align-self: stretch;
+    border-radius: 6px;
+    font: 700 18px/1 Rethink Sans;
+    width: 100%;
+  }
 }
-

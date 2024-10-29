@@ -1,0 +1,77 @@
+// {
+//   "env": {
+//     "es6": true,
+//     "browser": true
+//   },
+//   "globals": {
+//     "BigInt": "readonly"
+//   },
+//   "plugins": ["import", "react"],
+//   "rules": {
+//     "no-unused-vars": ["warn", { "varsIgnorePattern": "^[A-Z]" }],
+//     // "no-console": "warn",
+//     "semi": ["error", "always"],
+//     "array-callback-return": "error",
+//     "no-inner-declarations": "error",
+//     "max-depth": ["error", 4],
+//     "curly": "error",
+//     "no-else-return": "error",
+//     "no-var": "error",
+//     "no-await-in-loop": "error",
+//     "indent": [
+//       "error",
+//       2,
+//       {
+//         "SwitchCase": 1,
+//         "offsetTernaryExpressions": false
+//       }
+//     ],
+//     "import/no-unresolved": "error",
+//     "import/order": "warn",
+//     "eol-last": ["error", "always"],
+//     "linebreak-style": ["error", "unix"],
+//     "require-atomic-updates": "error",
+//     "no-useless-escape": "error",
+//     "space-infix-ops": "error",
+//     "no-trailing-spaces": "error",
+//     "prefer-const": "error",
+//     "no-multiple-empty-lines": "error",
+//     "react/jsx-indent": [
+//       "error",
+//       2,
+//       {
+//         "indentLogicalExpressions": true
+//       }
+//     ],
+//     "react/react-in-jsx-scope": "off"
+//   },
+//   // "extends": ["eslint:recommended", "plugin:react/recommended"],
+//   "parserOptions": {
+//     "sourceType": "module",
+//     "ecmaVersion": 2018,
+//     "ecmaFeatures": {
+//       "jsx": true
+//     }
+//   },
+//   "settings": {
+//     "react": {
+//       "version": "detect"
+//     }
+//   }
+// }
+{
+  "env": {
+    "es6": true,
+    "browser": true
+  },
+  "globals": {
+    "BigInt": "readonly"
+  },
+  "parserOptions": {
+    "sourceType": "module",
+    "ecmaVersion": 2018,
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  }
+}

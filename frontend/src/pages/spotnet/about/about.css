@@ -1,221 +1,233 @@
-@import url('https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap");
 
-:root{
-    --text-font:'Rethink Sans', sans-serif;
-    --gradient: linear-gradient(73deg, #74D6FD 1.13%, #E01DEE 103.45%);
-    --secondary-color:#1A1C24;
-    --secondary: #E7ECF0;
-    --brand:#74D6FD;
-    --primary: #fff;
-    --primary-color:#0B0C10;
+:root {
+  --text-font: "Rethink Sans", sans-serif;
+  --gradient: linear-gradient(73deg, #74d6fd 1.13%, #e01dee 103.45%);
+  --secondary-color: #1a1c24;
+  --secondary: #e7ecf0;
+  --brand: #74d6fd;
+  --primary: #fff;
+  --primary-color: #0b0c10;
 }
 
-.flex{
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.flex {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.about-container{
-    position: relative;
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    justify-content: space-between;
-    height: 105vh;
-    width: 117%;
-    right: 9.2%;
-    background-color: var(--primary-color);
+.about-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 105vh;
+  width: 117%;
+  right: 9.2%;
+  background-color: var(--primary-color);
 }
 
 .card-icon {
-    width: 120px;
-    height: 120px;
+  width: 120px;
+  height: 120px;
 }
 
-.card-title h4{
-    font-family: var(--text-font);
-    font-weight: 500;
-    font-size: 26px;
-    line-height: 108%;
-    text-align: center;
-    color: var(--primary);
+.card-title h4 {
+  font-family: var(--text-font);
+  font-weight: 500;
+  font-size: 26px;
+  line-height: 108%;
+  text-align: center;
+  color: var(--primary);
 }
 
-.about-title{
-    text-align: center;
-    font-family: var(--text-font);
-    color: var(--primary);
-    margin-top: 20px;
-}
-
-.card-about{
-    width: 320px;
-    height: 355px;
-    background: linear-gradient(0deg, rgba(72, 143, 162, 0.03) 0%, rgba(72, 143, 162, 0.03) 100%), linear-gradient(123deg, rgba(116, 214, 253, 0.50) 0.63%, rgba(11, 12, 16, 0.50) 100.03%);
-    flex-direction: column;
-    gap: 15px;
-    border-radius: 20px;
-    border: 0.5px solid #74D6FD;
-    box-shadow: 0px 3.75px 3.75px 0px rgba(0, 0, 0, 0.15), 3.75px 3.75px 9.375px 0px rgba(153, 234, 255, 0.25) inset;
-    backdrop-filter: blur(21.09375px);
-    padding: 12px;
-}
-
-.card-container {
-    flex-grow: 1;
-    gap: 20px;
-    position: relative;
-}
-
-.card-description h6{
-    text-align: center;
-    color: var(--secondary);
-    font-weight: 400;
-    font-family: var(--text-font);
-    font-size: 20px;
-    line-height: 140%;
+.about-title {
+  text-align: center;
+  font-family: var(--text-font);
+  color: var(--primary);
+  margin-top: 20px;
 }
 
 .card-about {
-    color: var(--primary);
+  width: 320px;
+  height: 355px;
+  background: linear-gradient(
+      0deg,
+      rgba(72, 143, 162, 0.03) 0%,
+      rgba(72, 143, 162, 0.03) 100%
+    ),
+    linear-gradient(
+      123deg,
+      rgba(116, 214, 253, 0.5) 0.63%,
+      rgba(11, 12, 16, 0.5) 100.03%
+    );
+  flex-direction: column;
+  gap: 15px;
+  border-radius: 20px;
+  border: 0.5px solid #74d6fd;
+  box-shadow:
+    0px 3.75px 3.75px 0px rgba(0, 0, 0, 0.15),
+    3.75px 3.75px 9.375px 0px rgba(153, 234, 255, 0.25) inset;
+  backdrop-filter: blur(21.09375px);
+  padding: 12px;
+}
+
+.card-container {
+  flex-grow: 1;
+  gap: 20px;
+  position: relative;
+}
+
+.card-description h6 {
+  text-align: center;
+  color: var(--secondary);
+  font-weight: 400;
+  font-family: var(--text-font);
+  font-size: 20px;
+  line-height: 140%;
+}
+
+.card-about {
+  color: var(--primary);
 }
 
 .card-number {
-    position: absolute;
-    top: -25px;
-    left: 0;
-    width: 100%;
-    text-align: center;
-    color: var(--brand);
+  position: absolute;
+  top: -25px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  color: var(--brand);
 }
 
-.card-number h2{
-    border: 1px solid var(--brand);
-    margin: 0 auto;
-    padding: 5px;
-    width: 70px;
-    background-color: var(--primary-color);
-    border-radius: 10px;
-    font-weight: 600;
-    font-family: var(--text-font);
-    font-size: 32px;
+.card-number h2 {
+  border: 1px solid var(--brand);
+  margin: 0 auto;
+  padding: 5px;
+  width: 70px;
+  background-color: var(--primary-color);
+  border-radius: 10px;
+  font-weight: 600;
+  font-family: var(--text-font);
+  font-size: 32px;
 }
 
-.card-gradient:nth-child(1){
-    position: absolute;
-    top: 80px;
-    left: -40px;
-    width: 232px;
-    height: 208px;
-    flex-shrink: 0;
-    border-radius: 2000px;
-    background: var(--gradient, linear-gradient(73deg, #74D6FD 1.13%, #E01DEE 103.45%));
-    /* Blur */
-    filter: blur(80px);
+.card-gradient:nth-child(1) {
+  position: absolute;
+  top: 80px;
+  left: -40px;
+  width: 232px;
+  height: 208px;
+  flex-shrink: 0;
+  border-radius: 2000px;
+  background: var(
+    --gradient,
+    linear-gradient(73deg, #74d6fd 1.13%, #e01dee 103.45%)
+  );
+  /* Blur */
+  filter: blur(80px);
 }
 
-.card-gradient:nth-child(2){
-    position: absolute;
-    right: -50px;
-    bottom: 70px;
-    width: 232px;
-    height: 208px;
-    flex-shrink: 0;
-    border-radius: 2000px;
-    background: var(--gradient, linear-gradient(73deg, #74D6FD 1.13%, #E01DEE 103.45%));
-    /* Blur */
-    filter: blur(80px);
+.card-gradient:nth-child(2) {
+  position: absolute;
+  right: -50px;
+  bottom: 70px;
+  width: 232px;
+  height: 208px;
+  flex-shrink: 0;
+  border-radius: 2000px;
+  background: var(
+    --gradient,
+    linear-gradient(73deg, #74d6fd 1.13%, #e01dee 103.45%)
+  );
+  /* Blur */
+  filter: blur(80px);
 }
 
 @media (min-width: 1800px) {
+  .about-title {
+    font-size: 70px;
+  }
 
-    .about-title{
-        font-size: 70px;
-    }
+  .card-gradient:nth-child(1) {
+    position: absolute;
+    top: 180px;
+    left: -40px;
+    width: 232px;
+    height: 208px;
+  }
 
-    .card-gradient:nth-child(1){
-        position: absolute;
-        top: 180px;
-        left: -40px;
-        width: 232px;
-        height: 208px;
-    }
-
-    .card-gradient:nth-child(2){
-        position: absolute;
-        right: -70px;
-        bottom: 170px;
-        width: 232px;
-        height: 208px;
-    }
-
+  .card-gradient:nth-child(2) {
+    position: absolute;
+    right: -70px;
+    bottom: 170px;
+    width: 232px;
+    height: 208px;
+  }
 }
 
 @media (max-width: 1800px) {
-    .about-container {
-        width: 120%;
-        right: 100px;
-    }
+  .about-container {
+    width: 120%;
+    right: 100px;
+  }
 
-    .card-gradient:nth-child(1){
-        position: absolute;
-        top: 300px;
-        left: -40px;
-    }
+  .card-gradient:nth-child(1) {
+    position: absolute;
+    top: 300px;
+    left: -40px;
+  }
 
-    .card-gradient:nth-child(2){
-        position: absolute;
-        right: -70px;
-        bottom: 300px;
-    }
+  .card-gradient:nth-child(2) {
+    position: absolute;
+    right: -70px;
+    bottom: 300px;
+  }
 }
 
 @media (max-width: 1710px) {
-    .about-container {
-        width: 100%;
-        right: 20px;
-    }
+  .about-container {
+    width: 100%;
+    right: 20px;
+  }
 
-    .card-gradient:nth-child(1){
-        position: absolute;
-        top: 100px;
-        left: -40px;
-    }
+  .card-gradient:nth-child(1) {
+    position: absolute;
+    top: 100px;
+    left: -40px;
+  }
 
-    .card-gradient:nth-child(2){
-        position: absolute;
-        right: -70px;
-        bottom: 120px;
-    }
+  .card-gradient:nth-child(2) {
+    position: absolute;
+    right: -70px;
+    bottom: 120px;
+  }
 }
 
 @media (max-width: 1440px) {
-    .about-container {
-        left: 10px;
-        width: 97%;
-    }
-
+  .about-container {
+    left: 10px;
+    width: 97%;
+  }
 }
 
 @media (max-width: 1550px) {
-    .about-container {
-        width: 100%;
-    }
+  .about-container {
+    width: 100%;
+  }
 }
 
 @media (max-width: 1400px) {
-    .about-container {
-        left: -10px;
-        width: 105%;
-    }
+  .about-container {
+    left: -10px;
+    width: 105%;
+  }
 }
 
 @media (max-width: 1280px) {
-    .about-container {
-        width: 95%;
-        left: 15px;
-    }
+  .about-container {
+    width: 95%;
+    left: 15px;
+  }
 }
-
-

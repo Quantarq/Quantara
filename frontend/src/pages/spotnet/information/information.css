@@ -1,86 +1,103 @@
-@import url('https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap');
-:root{
-    --text-font:'Rethink Sans',sans-serif;
-    --gradient: linear-gradient(73deg, #74D6FD 1.13%, #E01DEE 103.45%);
-    --secondary-color:#1A1C24;
-    --blue-color:#74D6FD;
-    --primary-color:#0B0C10;
-    --black: #000;
-    --primary: #fff;
-    --secondary: #E7ECF0;
-    --button-gradient: linear-gradient(55deg, #74d6fd 0%, #e01dee 100%);
-    --button-gradient-hover: linear-gradient(55deg, #74d6fd 0%, #74d6fd 100%);
-    --button-gradient-active: linear-gradient(55deg, #58c4ef 0%, #58c4ef 100%);
+@import url("https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap");
+:root {
+  --text-font: "Rethink Sans", sans-serif;
+  --gradient: linear-gradient(73deg, #74d6fd 1.13%, #e01dee 103.45%);
+  --secondary-color: #1a1c24;
+  --blue-color: #74d6fd;
+  --primary-color: #0b0c10;
+  --black: #000;
+  --primary: #fff;
+  --secondary: #e7ecf0;
+  --button-gradient: linear-gradient(55deg, #74d6fd 0%, #e01dee 100%);
+  --button-gradient-hover: linear-gradient(55deg, #74d6fd 0%, #74d6fd 100%);
+  --button-gradient-active: linear-gradient(55deg, #58c4ef 0%, #58c4ef 100%);
 }
 
-.information{
-    height: 70vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.information {
+  height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.card-info__container{
-    position: relative;
-    width: 70vw;
-    display: flex;
-    justify-content: space-around;
-}
-
-.card-info{
-    width: 450px;
-    height: 300px;
-    background: linear-gradient(0deg, rgba(72, 143, 162, 0.03) 0%, rgba(72, 143, 162, 0.03) 100%), linear-gradient(123deg, rgba(116, 214, 253, 0.50) 0.63%, rgba(11, 12, 16, 0.50) 100.03%);
-    flex-direction: column;
-    gap: 15px;
-    border-radius: 20px;
-    border: 0.5px solid #74D6FD;
-    box-shadow: 0px 3.75px 3.75px 0px rgba(0, 0, 0, 0.15), 3.75px 3.75px 9.375px 0px rgba(153, 234, 255, 0.25) inset;
-    backdrop-filter: blur(21.09375px);
+.card-info__container {
+  position: relative;
+  width: 70vw;
+  display: flex;
+  justify-content: space-around;
 }
 
 .card-info {
-    color: var(--primary);
+  width: 450px;
+  height: 300px;
+  background: linear-gradient(
+      0deg,
+      rgba(72, 143, 162, 0.03) 0%,
+      rgba(72, 143, 162, 0.03) 100%
+    ),
+    linear-gradient(
+      123deg,
+      rgba(116, 214, 253, 0.5) 0.63%,
+      rgba(11, 12, 16, 0.5) 100.03%
+    );
+  flex-direction: column;
+  gap: 15px;
+  border-radius: 20px;
+  border: 0.5px solid #74d6fd;
+  box-shadow:
+    0px 3.75px 3.75px 0px rgba(0, 0, 0, 0.15),
+    3.75px 3.75px 9.375px 0px rgba(153, 234, 255, 0.25) inset;
+  backdrop-filter: blur(21.09375px);
 }
 
-.card-info h3{
-    font-size: 60px;
-    font-family: var(--text-font);
-    font-weight: 600;
-    line-height: 95%;
-    text-align: center;
-    color: var(--primary);
+.card-info {
+  color: var(--primary);
 }
 
-.card-info h1{
-    color: var(--secondary);
-    font-family: var(--text-font);
-    font-weight: 600;
-    font-size: 32px;
-    text-align: center;
+.card-info h3 {
+  font-size: 60px;
+  font-family: var(--text-font);
+  font-weight: 600;
+  line-height: 95%;
+  text-align: center;
+  color: var(--primary);
 }
 
-.infos .card-gradient:nth-child(1){
-    position: absolute;
-    top: 80px;
-    left: -330px;
-    width: 232px;
-    height: 208px;
-    flex-shrink: 0;
-    border-radius: 2000px;
-    background: var(--gradient, linear-gradient(73deg, #74D6FD 1.13%, #E01DEE 103.45%));
-    filter: blur(120px);
+.card-info h1 {
+  color: var(--secondary);
+  font-family: var(--text-font);
+  font-weight: 600;
+  font-size: 32px;
+  text-align: center;
 }
 
-.infos .card-gradient:nth-child(2){
-    position: absolute;
-    right: -450px;
-    bottom: 70px;
-    width: 342px;
-    height: 208px;
-    flex-shrink: 0;
-    border-radius: 2000px;
-    background: var(--gradient, linear-gradient(73deg, #74D6FD 1.13%, #E01DEE 103.45%));
-    /* Blur */
-    filter: blur(120px);
+.infos .card-gradient:nth-child(1) {
+  position: absolute;
+  top: 80px;
+  left: -330px;
+  width: 232px;
+  height: 208px;
+  flex-shrink: 0;
+  border-radius: 2000px;
+  background: var(
+    --gradient,
+    linear-gradient(73deg, #74d6fd 1.13%, #e01dee 103.45%)
+  );
+  filter: blur(120px);
+}
+
+.infos .card-gradient:nth-child(2) {
+  position: absolute;
+  right: -450px;
+  bottom: 70px;
+  width: 342px;
+  height: 208px;
+  flex-shrink: 0;
+  border-radius: 2000px;
+  background: var(
+    --gradient,
+    linear-gradient(73deg, #74d6fd 1.13%, #e01dee 103.45%)
+  );
+  /* Blur */
+  filter: blur(120px);
 }

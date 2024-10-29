@@ -1,8 +1,8 @@
 import React from 'react';
-import { ReactComponent as ETH } from '../assets/icons/ethereum.svg';
-import { ReactComponent as USDC } from '../assets/icons/borrow_usdc.svg';
-import { ReactComponent as STRK } from '../assets/icons/strk.svg';
-import { ReactComponent as DAI } from '../assets/icons/dai.svg';
+import { ReactComponent as ETH } from 'assets/icons/ethereum.svg';
+import { ReactComponent as USDC } from 'assets/icons/borrow_usdc.svg';
+import { ReactComponent as STRK } from 'assets/icons/strk.svg';
+import { ReactComponent as DAI } from 'assets/icons/dai.svg';
 
 const Tokens = [
   { id: 'ethOption', component: <ETH />, label: 'ETH' },
@@ -12,18 +12,20 @@ const Tokens = [
 ];
 
 const TokenSelector = ({ setSelectedToken }) => (
-  <div className="form-token">
+  <div className='form-token'>
     {Tokens.map((token) => (
-      <div className="token-card flex" key={token.id}>
+      <div className='token-card flex' key={token.id}>
         <input
-          type="radio"
+          type='radio'
           id={token.id}
-          name="token-options"
+          name='token-options'
           value={token.label}
           onChange={() => setSelectedToken(token.label)}
         />
         <label htmlFor={token.id}>
-          <h5>{token.component} {token.label}</h5>
+          <h5>
+            {token.component} {token.label}
+          </h5>
         </label>
       </div>
     ))}

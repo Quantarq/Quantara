@@ -8,22 +8,27 @@ const Multipliers = [
 ];
 
 const MultiplierSelector = ({ setSelectedMultiplier }) => (
-  <div className="multiplier-card">
+  <div className='multiplier-card'>
     {Multipliers.map((multiplier) => (
-      <div className={"multiplier-item"} key={multiplier.id}>
+      <div className={'multiplier-item'} key={multiplier.id}>
         {multiplier.recommended && (
-          <div className="recommended">
+          <div className='recommended'>
             <p>Recommended</p>
           </div>
         )}
         <input
-          type="radio"
+          type='radio'
           id={multiplier.id}
-          name="card-options"
+          name='card-options'
           value={multiplier.value}
-          onChange={() => setSelectedMultiplier(multiplier.value.replace('x', ''))}
+          onChange={() =>
+            setSelectedMultiplier(multiplier.value.replace('x', ''))
+          }
         />
-        <label htmlFor={multiplier.id} className={multiplier.recommended ? 'recommended-item' : ''}>
+        <label
+          htmlFor={multiplier.id}
+          className={multiplier.recommended ? 'recommended-item' : ''}
+        >
           {multiplier.value}
         </label>
       </div>
