@@ -5,17 +5,19 @@ from faker import Faker
 from sqlalchemy.orm import Session
 from .models import User, Position, AirDrop, TelegramUser
 from .database import Base, engine, SessionLocal
+from decimal import Decimal
+from typing import List
 
 # Initialize Faker
 fake = Faker()
 
-def create_users(session: Session):
+def create_users(session: Session) -> List[User]:
     """
     Create and save a list of fake users to the database.
     Args:
         session (Session): SQLAlchemy session object.
     Returns:
-        list: A list of User objects added to the database.
+        list[User]: A list of User objects added to the database.
     """
     users = []
     for _ in range(10):
@@ -29,7 +31,7 @@ def create_users(session: Session):
     session.commit()
     return users
 
-def create_positions(session: Session, users):
+def create_positions(session: Session, users: List[User]) -> None:
     """
     Create and save fake position records associated with given users.
     Args:
@@ -44,14 +46,14 @@ def create_positions(session: Session, users):
                 token_symbol=fake.word(),
                 amount=fake.random_number(digits=5),
                 multiplier=fake.random_int(min=1, max=10),
-                start_price=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
+                start_price=Decimal(fake.pydecimal(left_digits=5, right_digits=2, positive=True)),                
                 status=fake.random_element(elements=[status.value for status in Status]),
             )
             positions.append(position)
     session.bulk_save_objects(positions)
     session.commit()
 
-def create_airdrops(session: Session, users):
+def create_airdrops(session: Session, users: List[User]) -> None:
     """
     Create and save fake airdrop records for each user.
     Args:
@@ -63,7 +65,7 @@ def create_airdrops(session: Session, users):
         for _ in range(10):
             airdrop = AirDrop(
                 user_id=user.id,
-                amount=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
+                amount=Decimal(fake.pydecimal(left_digits=5, right_digits=2, positive=True)),
                 is_claimed=fake.boolean(),
                 claimed_at=fake.date_time_this_decade() if fake.boolean() else None,
             )
@@ -71,7 +73,7 @@ def create_airdrops(session: Session, users):
     session.bulk_save_objects(airdrops)
     session.commit()
 
-def create_telegram_users(session: Session):
+def create_telegram_users(session: Session) -> None:
     """
     Create and save fake Telegram user records to the database.
     Args:
