@@ -1,7 +1,7 @@
 import React from 'react';
 import About from '../about/About';
 import Partnership from '../partnership/Partnership';
-import Information from '../information/Informaion';
+import Information from '../information/Information';
 import DontMiss from '../dont_miss/DontMiss';
 import Home from '../home/Home';
 

@@ -21,11 +21,9 @@ const DontMiss = ({ walletId }) => {
     { top: 75, left: 80, size: 12 },
   ];
   return (
-    <div className='dont-miss__container'>
-      <h1 className='miss-title'>Don't miss out</h1>
-      <p className='miss-description'>
-        Investing wisely would be the smartest move you'll make!
-      </p>
+    <div className="dont-miss__container">
+      <h1 className="miss-title">Don&apos;t miss out</h1>
+      <p className="miss-description">Investing wisely would be the smartest move you&apos;ll make!</p>
       {starData.map((star, index) => (
         <Star
           key={index}
@@ -38,11 +36,11 @@ const DontMiss = ({ walletId }) => {
           }}
         />
       ))}
-      <div className='miss-button'>
-        <button className='launch-button' onClick={handleLaunchApp}>
+      <div className="miss-button">
+        <button className="launch-button" onClick={handleLaunchApp}>
           Launch App <Rocket />
         </button>
-        <Hand className='hand-icon' />
+        <Hand className="hand-icon" />
         <Notifier />
       </div>
     </div>

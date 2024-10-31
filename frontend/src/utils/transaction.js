@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { connect } from 'get-starknet';
 import { CallData } from 'starknet';
-import { erc20abi } from 'src/abis/erc20';
-import { abi } from 'src/abis/abi';
+import { erc20abi } from '../abis/erc20';
+import { abi } from '../abis/abi';
 
 export async function sendTransaction(loopLiquidityData, contractAddress) {
   try {
