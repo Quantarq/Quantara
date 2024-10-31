@@ -52,52 +52,49 @@ function Home({ walletId }) {
 
   return (
     <div className="home">
-      <div className="decorations">
+      <div>
         {decorationData.map((decoration, index) => (
           <Decoration
             key={index}
+            className="decoration"
             style={{
-              position: 'absolute',
-              top: `${decoration.top}%`,
-              left: `${decoration.left}%`,
-              width: `${decoration.size}%`,
-              height: `${decoration.size}%`,
-              zIndex: '-1',
+              '--top': `${decoration.top}%`,
+              '--left': `${decoration.left}%`,
+              '--size': `${decoration.size}%`,
             }}
           />
         ))}
       </div>
       <div className="top-gradient"></div>
-      <div className="stars">
+      <div>
         {starsData.map((star, index) => (
           <SmallStar
             key={index}
+            className="small-star"
             style={{
-              position: 'absolute',
-              top: `${star.top}%`,
-              left: `${star.left}%`,
+              '--top': `${star.top}%`,
+              '--left': `${star.left}%`,
             }}
           />
         ))}
         {starData.map((star, index) => (
           <Star
             key={index}
+            className="star"
             style={{
-              position: 'absolute',
-              top: `${star.top}%`,
-              left: `${star.left}%`,
-              width: `${star.size}%`,
-              height: `${star.size}%`,
+              '--top': `${star.top}%`,
+              '--left': `${star.left}%`,
+              '--size': `${star.size}%`,
             }}
           />
         ))}
-        <Starknet style={{ position: 'absolute', top: '0', right: '20px' }} />
+        <Starknet className="starknet" />
       </div>
       <h2 className="center-text">
         <span className="blue-color">Earn</span> by leveraging your assets
-        <span className="gradient"> with Spotnet</span>
+        <span className="text-gradient"> with Spotnet</span>
       </h2>
-      <h5 className="subtitle-text-styles">
+      <h5>
         Maximize the potential of your resources and start earning today. Join Spotnet and unlock new opportunities to
         grow your wealth!
       </h5>

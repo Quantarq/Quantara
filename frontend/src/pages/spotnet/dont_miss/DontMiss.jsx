@@ -27,12 +27,11 @@ const DontMiss = ({ walletId }) => {
       {starData.map((star, index) => (
         <Star
           key={index}
+          className="miss-star"
           style={{
-            position: 'absolute',
-            top: `${star.top}%`,
-            left: `${star.left}%`,
-            width: `${star.size}%`,
-            height: `${star.size}%`,
+            '--star-top': `${star.top}%`,
+            '--star-left': `${star.left}%`,
+            '--star-size': `${star.size}%`,
           }}
         />
       ))}

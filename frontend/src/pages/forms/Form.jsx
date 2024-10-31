@@ -97,7 +97,7 @@ const Form = ({ walletId, setWalletId }) => {
           </div>
           <h5>Select Multiplier</h5>
           <MultiplierSelector setSelectedMultiplier={setSelectedMultiplier} />
-          <div className="submit">
+          <div>
             <button type="submit" className="form-button">
               Submit
             </button>

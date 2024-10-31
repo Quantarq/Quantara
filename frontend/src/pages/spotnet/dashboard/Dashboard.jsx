@@ -124,22 +124,21 @@ const Dashboard = ({ walletId }) => {
       {starData.map((star, index) => (
         <Star
           key={index}
+          className="dashboard-star"
           style={{
-            position: 'absolute',
-            top: `${star.top}%`,
-            left: `${star.left}%`,
-            width: `${star.size}%`,
-            height: `${star.size}%`,
+            '--star-top': `${star.top}%`,
+            '--star-left': `${star.left}%`,
+            '--star-size': `${star.size}%`,
           }}
         />
       ))}
-      <div className="backdround-gradients position-relative">
+      <div className="position-relative">
         <div className="backdround-gradient"></div>
         <div className="backdround-gradient"></div>
       </div>
       <h1 className="text-white text-center zkLend-text">zkLend Position</h1>
       <div className="card card-health-factor mx-auto d-flex flex-column align-items-center justify-content-center card-shadow">
-        <div className="content bg-custom-health d-flex align-items-center px-4 py-3 rounded bg-card-health">
+        <div className="bg-custom-health d-flex align-items-center px-4 py-3 rounded bg-card-health">
           <span className="dashboard-text-color health-text-size">Health factor:</span>
           <span className="text-white text-style">{healthFactor}</span>
         </div>

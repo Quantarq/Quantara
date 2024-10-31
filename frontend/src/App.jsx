@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import './globals.css';
 import Header from './components/header/Header';
 import Dashboard from 'pages/spotnet/dashboard/Dashboard';
 import Footer from 'components/Footer/Footer';
