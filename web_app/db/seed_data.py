@@ -1,9 +1,8 @@
 """
 Seed data for initializing the database with predefined values.
 """
-import logging
-from faker import Faker # type: ignore
-from sqlalchemy.orm import Session # type: ignore
+from faker import Faker
+from sqlalchemy.orm import Session
 from .models import Status, User, Position, AirDrop, TelegramUser
 from .database import Base, engine, SessionLocal
 from decimal import Decimal
@@ -41,9 +40,6 @@ def create_positions(session: Session, users: List[User]) -> None:
     """
     positions = []
     for user in users:
-        if user.id is None:
-            logging.warning(f"User with ID None found. Skipping position creation for this user.")
-            continue
         for _ in range(10):
             position = Position(
                 user_id=user.id,
@@ -57,9 +53,9 @@ def create_positions(session: Session, users: List[User]) -> None:
     if positions:
         session.bulk_save_objects(positions)
         session.commit()
-        logging.info(f"Created {len(positions)} positions for {len(users)} users.")
+        print(f"Created {len(positions)} positions for {len(users)} users.")
     else:
-        logging.info("No positions created.")
+        print("No positions created.")
 
 def create_airdrops(session: Session, users: List[User]) -> None:
     """
@@ -102,12 +98,9 @@ def create_telegram_users(session: Session, users: List[User]) -> None:
             telegram_users.append(telegram_user)
     session.bulk_save_objects(telegram_users)
     session.commit()
-    logging.info(f"Created {len(telegram_users)} Telegram users.")
+    print(f"Created {len(telegram_users)} Telegram users.")
 
 if __name__ == '__main__':
-    # Create tables
-    Base.metadata.create_all(engine)
-
     # Start a new session for seeding data
     with SessionLocal() as session:
         # Populate the database
@@ -116,4 +109,4 @@ if __name__ == '__main__':
         create_airdrops(session, users)
         create_telegram_users(session, users)
 
-    print("Database populated with fake data.")
+print("Database populated with fake data.")
