@@ -10,11 +10,14 @@ use openzeppelin_token::erc20::interface::{ERC20ABIDispatcher, ERC20ABIDispatche
 #[test]
 #[fork("MAINNET_FIXED_BLOCK")]
 fn test_claim_as_keeper() {
+    let strk = ERC20ABIDispatcher { contract_address: STRK_ADDRESS.try_into().unwrap() };
     let defispring_claim_contract: ContractAddress = 0x2d55d6f311413945595788818d4e89e151360a2c2c6b5270d5d0ed16475505f.try_into().unwrap();
     
     let address_eligible_for_zklend_rewards: ContractAddress = 0x020281104e6cb5884dabcdf3be376cf4ff7b680741a7bb20e5e07c26cd4870af.try_into().unwrap();
     let contract = declare("Deposit").unwrap().contract_class();
     replace_bytecode(address_eligible_for_zklend_rewards, *contract.class_hash).unwrap();
+
+    let strk_balance_at_start = strk.balance_of(address_eligible_for_zklend_rewards.try_into().unwrap());
 
     // write the treasury address so we can check funds were sent
     let hypothetical_treasury_address = 0x98765;
@@ -49,9 +52,8 @@ fn test_claim_as_keeper() {
     deposit_contract.claim_reward(claim, proof.span(), defispring_claim_contract);
 
 
-    let strk = ERC20ABIDispatcher { contract_address: STRK_ADDRESS.try_into().unwrap() };
     let fri_in_treasury = strk.balance_of(hypothetical_treasury_address.try_into().unwrap());
     assert(fri_in_treasury == 95303608648356756, 'incorrect amount in treasury');
     let strk_left_in_contract = strk.balance_of(address_eligible_for_zklend_rewards.try_into().unwrap());
-    assert!(strk_left_in_contract == 0, "strk left in contract after airdrop claim");
+    assert!(strk_left_in_contract == strk_balance_at_start, "strk left in contract after airdrop claim");
 }
