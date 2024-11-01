@@ -1,3 +1,7 @@
+"""
+This module contains constants for the contract tools.
+"""
+
 import os
 from dataclasses import dataclass
 from enum import Enum
@@ -21,6 +25,17 @@ class TokenConfig:
     address: str
     decimals: int
     name: str
+
+
+@dataclass(frozen=True)
+class TokenMultipliers:
+    """
+    Class to hold the predefined multipliers for supported tokens/
+    """
+
+    ETH: float = 5.0
+    STRK: float = 2.5
+    USDC: float = 5.0
 
 
 class TokenParams:
@@ -87,9 +102,29 @@ class TokenParams:
                 return token.name
         raise ValueError(f"Token with address {token_address} not found")
 
+    @staticmethod
+    def convert_int_to_str(token_address: int) -> str:
+        """
+        Converts an integer to a string representation of the token balance.
+        :param token_address: Token address as an integer
+        :return: String representation of the token balance
+        """
+        return str(hex(token_address))
+
+    @staticmethod
+    def add_underlying_address(token_address: str) -> str:
+        """
+        Add underlying address to the token address.
+        :param token_address:
+        :return: underlying address
+        """
+        return token_address[:2] + "0" + token_address[2:]
+
 
 class ProtocolAddress(Enum):
+    """
+    Enum for the protocol addresses.
+    """
 
     zklend: str = "0x04c0a5193d58f74fbace4b74dcf65481e734ed1714121bdc571da345540efa05"
     nostra: str = "0x00c530f2c0aa4c16a0806365b0898499fba372e5df7a7172dc6fe9ba777e8007"
-

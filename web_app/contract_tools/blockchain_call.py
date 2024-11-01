@@ -1,3 +1,7 @@
+"""
+This module handles the blockchain calls.
+"""
+
 import logging
 import os
 import time
@@ -14,6 +18,14 @@ from starknet_py.net.full_node_client import FullNodeClient
 from .constants import EKUBO_MAINNET_ADDRESS, TokenParams
 
 logger = logging.getLogger(__name__)
+
+
+class RepayDataException(Exception):
+    """
+    Custom RepayDataException for handling errors while repaying data
+    """
+
+    pass
 
 
 class StarknetClient:
@@ -62,7 +74,8 @@ class StarknetClient:
         )
         try:
             res = await self.client.call_contract(call)
-        except Exception as e:
+        except Exception as e:  # Catch and log any errors
+            logger.error(f"Error making contract call: {e}")
             time.sleep(self.SLEEP_TIME)
             res = await self.client.call_contract(call)
         return res
@@ -103,9 +116,15 @@ class StarknetClient:
         )
         price_data = await ekubo_contract.functions["get_pool_price"].call(pool_key)
 
-        token_0_decimals = await self._func_call(pool_key["token0"], "decimals", [])
-        token_1_decimals = await self._func_call(pool_key["token1"], "decimals", [])
-        token_0_decimals, token_1_decimals = token_0_decimals[0], token_1_decimals[0]
+        underlying_token_0_address = TokenParams.add_underlying_address(
+            str(hex(pool_key["token0"]))
+        )
+        underlying_token_1_address = TokenParams.add_underlying_address(
+            str(hex(pool_key["token1"]))
+        )
+
+        token_0_decimals = TokenParams.get_token_decimals(underlying_token_0_address)
+        token_1_decimals = TokenParams.get_token_decimals(underlying_token_1_address)
 
         price = ((price_data[0]["sqrt_ratio"] / 2**128) ** 2) * (
             10 ** abs(token_0_decimals - token_1_decimals)
@@ -124,6 +143,7 @@ class StarknetClient:
 
         :param token_addr: The token contract address in hexadecimal string format.
         :param holder_addr: The address of the holder in hexadecimal string format.
+        :param decimals: The number of decimal places to round the balance to. Defaults to None.
         :return: The token balance of the holder as an integer.
         """
         token_address_int = self._convert_address(token_addr)
@@ -193,9 +213,33 @@ class StarknetClient:
         pool_key["token0"], pool_key["token1"] = deposit_token, borrowing_token
         is_token1 = deposit_token == pool_key["token1"]
         supply_price = floor(await self._get_pool_price(pool_key, is_token1))
-        debt_price = floor((1 / supply_price) * 10**decimals_sum)
+
+        try:
+            debt_price = floor((1 / supply_price) * 10**decimals_sum)
+        except ZeroDivisionError:
+            logger.error(
+                f"Error while getting repay data: {deposit_token=}, {borrowing_token=}"
+            )
+            raise RepayDataException(
+                f"Error while getting repay data(supply_price=0): "
+                f"{deposit_token=}, {borrowing_token=}"
+            )
+
         return {
             "supply_price": supply_price,
             "debt_price": debt_price,
             "pool_key": pool_key,
         }
+
+    async def claim_airdrop(self, contract_address: str, proofs: list[str]) -> None:
+        """
+        Claims an airdrop on the Starknet blockchain.
+        :param contract_address: airdrop contract address
+        :param proofs: list of proof strings
+        :return: True if the claim was successful, False otherwise
+        """
+        return await self._func_call(
+            addr=self._convert_address(contract_address),
+            selector="claim",
+            calldata=proofs,
+        )

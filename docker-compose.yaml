@@ -53,5 +53,36 @@ services:
       timeout: 5s
       retries: 5
 
+  celery:
+    build: .
+    command: celery -A spotnet_tracker.celery_config worker --loglevel=INFO
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+    networks:
+      - app_network
+
+  celery_beat:
+    build: .
+    command: celery -A spotnet_tracker.celery_config beat --loglevel=INFO
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+    networks:
+      - app_network
+
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app_network
+
 volumes:
   postgres_data:
+  redis_data:

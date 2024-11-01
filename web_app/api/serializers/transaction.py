@@ -1,4 +1,8 @@
-from pydantic import BaseModel, validator
+"""
+This module defines the serializers for the transaction data.
+"""
+
+from pydantic import BaseModel, field_validator
 
 
 class PoolKey(BaseModel):
@@ -12,8 +16,13 @@ class PoolKey(BaseModel):
     tick_spacing: str
     extension: str
 
-    @validator(
-        "token0", "token1", "fee", "tick_spacing", "extension", pre=True, always=True
+    @field_validator(
+        "token0",
+        "token1",
+        "fee",
+        "tick_spacing",
+        "extension",
+        mode="before",
     )
     def convert_int_to_str(cls, value) -> str:
         """
@@ -25,11 +34,15 @@ class PoolKey(BaseModel):
 
 
 class DepositData(BaseModel):
+    """
+    Pydantic model for the deposit data.
+    """
+
     token: str
     amount: str
     multiplier: str
 
-    @validator("token", "amount", "multiplier", pre=True, always=True)
+    @field_validator("token", "amount", "multiplier", mode="before")
     def convert_int_to_str(cls, value: int) -> str:
         """
         Convert the integer values to strings.
@@ -51,7 +64,7 @@ class LoopLiquidityData(BaseModel):
     contract_address: str
     position_id: str
 
-    @validator("caller", pre=True, always=True)
+    @field_validator("caller", mode="before")
     def convert_caller_to_str(cls, value: int) -> str:
         """
         Convert the caller address to a string.
@@ -65,6 +78,7 @@ class RepayTransactionDataResponse(BaseModel):
     """
     Pydantic model for the repay transaction data response.
     """
+
     supply_token: str
     debt_token: str
     pool_key: PoolKey
@@ -78,5 +92,22 @@ class UpdateUserContractRequest(BaseModel):
     """
     Pydantic model for the update user contract request.
     """
+
     wallet_id: str
     contract_address: str
+
+
+class DeploymentStatus(BaseModel):
+    """
+    Pydantic model for the deployment status.
+    """
+
+    is_contract_deployed: bool
+
+
+class ContractAddress(BaseModel):
+    """
+    Pydantic model for the contract address.
+    """
+
+    contract_address: str | None

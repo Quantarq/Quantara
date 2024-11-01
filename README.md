@@ -60,6 +60,20 @@ This guide explains how to start the development environment for the project usi
   ```sh
   docker-compose -f docker-compose.dev.yaml build --no-cache
   ```
+  
+## How to run test cases
+In root folder run next commands:
+```bash
+poetry install
+```
+Activate env 
+```bash
+poetry shell
+```
+Run test cases
+```bash
+poetry run pytest
+```
 
 ## Stopping the Development Environment
 
@@ -79,3 +93,43 @@ If you have made changes to the code or Docker configuration, rebuild the contai
 docker-compose -f docker-compose.dev.yaml up --build
 ```
 
+## About Celery
+
+This project utilizes Celery to handle asynchronous tasks. The Celery workers and scheduler are defined within the Docker Compose setup.
+
+### Services Overview
+
+- **Celery Worker**: Executes tasks in the background.
+- **Celery Beat**: Schedules periodic tasks.
+- **Redis**: Used as the message broker for Celery.
+
+### Running Celery
+
+To start the Celery worker and Celery Beat services, use the following command in the terminal within your project directory:
+
+```bash
+docker-compose up -d celery celery_beat
+```
+### Stopping Celery
+To stop the Celery worker and Beat services, run
+
+```bash
+docker-compose stop celery celery_beat
+```
+
+### Purging Celery Tasks
+If you want to purge all tasks from the Celery queue, you can do this by executing
+
+```bash
+docker-compose run --rm celery celery -A spotnet_tracker.celery_config purge
+```
+
+## How to add test data
+1. Run dev container
+```
+docker-compose -f docker-compose.dev.yaml up --build
+```
+2. In new terminal window run command to populate db
+```
+docker exec -ti backend_dev python -m web_app.db.seed_data
+```

@@ -1,0 +1,128 @@
+@import url("https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap");
+:root {
+  --text-font: "Rethink Sans", sans-serif;
+  --primary: #fff;
+  --footer-bg-color: #1a1c24;
+  --footer-text-color: #e7ebf5;
+  --card-bg-color: #0b0c10;
+  --footer-line-color: rgba(231, 235, 245, 0.2);
+}
+
+body {
+  overflow-x: hidden;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+a {
+  text-decoration: none;
+}
+
+li {
+  list-style-type: none;
+}
+
+.footer-container {
+  padding: 24px 0;
+  background-color: var(--footer-bg-color);
+  width: 100%;
+  height: 408px;
+}
+
+.footer-logo {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  margin-left: 64px;
+}
+
+.follow-us-text {
+  font-family: var(--font-family);
+  font-weight: 600;
+  font-size: 32px;
+  text-align: center;
+  color: var(--footer-text-color);
+  margin-top: 16px;
+}
+
+.follow-us-text {
+  margin-bottom: 0;
+}
+
+.footer-social-cards {
+  display: flex;
+  margin-top: 24px;
+  gap: 22px;
+  justify-content: center;
+}
+
+.social-card {
+  border: 1px solid #62d1fc;
+  border-radius: 16px;
+  padding: 24px 0;
+  width: 201px;
+  height: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  background-color: var(--card-bg-color);
+  transition: background-color 0.3s ease;
+}
+
+.social-card:hover {
+  background-color: var(--footer-bg-color);
+}
+
+.social-card:active {
+  background-color: var(--card-bg-color);
+}
+
+.social-card {
+  margin: 0;
+  font-family: var(--text-font);
+  font-weight: 500;
+  font-size: 28px;
+  text-align: center;
+  color: var(--primary);
+}
+
+.social-card a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  width: 100%;
+  height: 100%;
+}
+
+.line-text-container {
+  padding-left: 64px;
+  padding-right: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.footer-line {
+  width: 100%;
+  height: 1px;
+  background: var(--footer-line-color);
+  margin-top: 83px;
+  margin-bottom: 16px;
+}
+
+.footer-text {
+  font-family: var(--font-family);
+  font-weight: 400;
+  font-size: 20px;
+  line-height: 140%;
+  text-align: center;
+  color: var(--footer-text-color);
+}

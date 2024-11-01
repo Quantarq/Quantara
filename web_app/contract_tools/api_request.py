@@ -1,3 +1,7 @@
+"""
+This module handles API requests.
+"""
+
 import aiohttp
 
 
@@ -72,6 +76,9 @@ class APIRequest:
 
 # Example usage:
 async def main():
+    """
+    Main function to demonstrate APIRequest usage.
+    """
     # Initialize the APIRequest with a base URL
     api = APIRequest(base_url="https://portfolio.argent.xyz")
 

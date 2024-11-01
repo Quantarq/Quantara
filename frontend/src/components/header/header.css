@@ -1,101 +1,164 @@
-@import url('https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap');
-:root{
-    --text-font:'Rethink Sans',sans-serif;
-    --gradient: linear-gradient(73deg, #74D6FD 1.13%, #E01DEE 103.45%);
-    --secondary-color:#1A1C24;
-    --blue-color:#74D6FD;
+@import url("https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap");
+:root {
+  --text-font: "Rethink Sans", sans-serif;
+  --gradient: linear-gradient(73deg, #74d6fd 1.13%, #e01dee 103.45%);
+  --primary: #fff;
+  --secondary-color: #1a1c24;
+  --black: #000;
+  --primary: #fff;
+  --button-gradient: linear-gradient(55deg, #74d6fd 0%, #e01dee 100%);
+  --button-gradient-hover: linear-gradient(55deg, #74d6fd 0%, #74d6fd 100%);
+  --button-gradient-active: linear-gradient(55deg, #58c4ef 0%, #58c4ef 100%);
+  --brand: #74d6fd;
+  --secondary: #e7ecf0;
 }
 
-body{
-    overflow-x: hidden;
+body {
+  overflow-x: hidden;
 }
 
-*{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-a{
-    text-decoration: none;
+a {
+  text-decoration: none;
 }
 
-li{
-    list-style-type: none;
+li {
+  list-style-type: none;
 }
 
 nav {
-    height: 80px;
-    display: flex;
-    align-items: center;
-    width: 100vw;
-    justify-content: center;
-    background-color: var(--secondary-color);
+  height: 80px;
+  display: flex;
+  align-items: center;
+  width: 100vw;
+  justify-content: center;
+  background-color: var(--secondary-color);
 }
 
 .list-items {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: transparent;
-    width: 97%;
-    height: 100px;
-    position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  width: 97%;
+  height: 100px;
+  position: relative;
 }
 
 .logo {
-    position: absolute;
-    left: 10px;
+  position: absolute;
+  left: 10px;
 }
 
 .nav-items {
-    display: flex;
-    gap: 2.5em;
-    justify-content: center;
+  display: flex;
+  gap: 2.5em;
+  justify-content: center;
 }
 
 .wallet-section {
     position: absolute;
     right: 10px;
-}
-
-.nav-items a {
-    position: relative;
-    color: white;
-    font-family:var(--text-font);
-    font-size: 20px;
-}
-
-.nav-items a:hover{
-    color: var(--blue-color);
-}
-
-.gradient-button{
-    background: transparent;
-    border-radius: 8px;
-    height: 52px;
-    width: 190px;
-    font-size: 20px;
-    font-family: var(--text-font);
-    border: 1px solid var(--blue-color);
-    color: white;
-    font-weight: 700;
-}
-
-.wallet-container{
     display: flex;
     gap: 10px;
 }
 
-.wallet-id{
-    background: var(--gradient);
+.nav-items a {
+    position: relative;
+    color: var(--secondary);
+    font-family:var(--text-font);
+    font-size: 20px;
+    transition: color 0.3s;
+}
+
+.nav-items a:hover {
+  color: var(--brand);
+}
+
+.nav-items a.active-link {
+    color: var(--brand);
+    font-weight: 700;
+}
+
+.gradient-button{
     border-radius: 8px;
+    border: none;
     height: 52px;
     width: 190px;
     font-size: 20px;
     font-family: var(--text-font);
+    color: var(--black);
     font-weight: 700;
+    background: var(--button-gradient);
+    line-height: 100%;
+} 
+
+.logout-button {
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 190px;
+    height: 52px;
+    border-radius: 8px;
+    border: 1px solid var(--brand);
+    background-color: transparent;
+    color: #fff;
+    font-family: var(--text-font, 'Rethink Sans', sans-serif);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 100%;
+    transition: all 0.3s ease;
+  }
+
+  .logout-button:hover {
+    background: var(--button-gradient, linear-gradient(55deg, #74d6fd 0%, #e01dee 100%));
+    border: none;
+  }
+
+  .logout-button:active {
+    background: var(--button-gradient-active, linear-gradient(55deg, #58c4ef 0%, #58c4ef 100%));
+  }
+
+  .logout-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+
+.gradient-button:hover {
+  background: var(--button-gradient-hover);
+}
+
+.gradient-button:active {
+  background: var(--button-gradient-active);
+}
+
+.gradient-button:disabled {
+  background: var(--button-gradient);
+  color: var(--primary);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.wallet-container {
+  display: flex;
+  gap: 10px;
+}
+
+.wallet-id {
+  background: var(--gradient);
+  border-radius: 8px;
+  height: 52px;
+  width: 190px;
+  font-size: 20px;
+  font-family: var(--text-font);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

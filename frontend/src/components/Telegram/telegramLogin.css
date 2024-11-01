@@ -1,0 +1,61 @@
+.telegram-login {
+    display: flex;
+    align-items: center;
+}
+
+.user-info {
+    background: var(--gradient);
+    border-radius: 8px;
+    height: 52px;
+    width: 190px;
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+}
+
+.user-photo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.user-name {
+    color: var(--black);
+    font-size: 16px;
+    font-family: var(--text-font);
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.btn-telegram {
+    background: var(--button-gradient);
+    color: var(--black);
+    border: none;
+    height: 52px;
+    padding: 0 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 20px;
+    font-family: var(--text-font);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-telegram:hover {
+    background: var(--button-gradient-hover);
+}
+
+.btn-telegram:active {
+    background: var(--button-gradient-active);
+}
+
+/* div.user-photo-placeholder {
+    add style to user placeholder
+} */

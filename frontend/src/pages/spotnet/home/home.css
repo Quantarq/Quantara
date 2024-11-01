@@ -1,222 +1,239 @@
-@import url('https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap');
-:root{
-    --text-font:'Rethink Sans',sans-serif;
-    --gradient: linear-gradient(73deg, #74D6FD 1.13%, #E01DEE 103.45%);
-    --secondary-color:#1A1C24;
-    --blue-color:#74D6FD;
-    --primary-color:#0B0C10;
+@import url("https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap");
+:root {
+  --text-font: "Rethink Sans", sans-serif;
+  --gradient: linear-gradient(73deg, #74d6fd 1.13%, #e01dee 103.45%);
+  --secondary-color: #1a1c24;
+  --blue-color: #74d6fd;
+  --primary-color: #0b0c10;
+  --black: #000;
+  --primary: #fff;
+  --secondary: #e7ecf0;
+  --button-gradient: linear-gradient(55deg, #74d6fd 0%, #e01dee 100%);
+  --button-gradient-hover: linear-gradient(55deg, #74d6fd 0%, #74d6fd 100%);
+  --button-gradient-active: linear-gradient(55deg, #58c4ef 0%, #58c4ef 100%);
 }
 
-body{
-    background-color: var(--primary-color);
-    width: 100vw;
+body {
+  background-color: var(--primary-color);
+  width: 100vw;
 }
 
-.home{
-    position: relative;
-    width: 100%;
-    display: flex;
-    right: 10px;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    height: calc(100vh - 160px);
+.home {
+  position: relative;
+  width: 100%;
+  display: flex;
+  right: 10px;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  height: calc(100vh - 160px);
 }
 
-.center-text{
-    font-size: 70px;
-    font-weight: 600;
-    font-family: var(--text-font);
-    width: 800px;
-    margin: 0 auto;
-    color: white;
-    background-color: transparent;
-    text-align: center;
+.center-text {
+  font-size: 70px;
+  font-weight: 600;
+  font-family: var(--text-font);
+  width: 800px;
+  margin: 0 auto;
+  color: var(--primary);
+  background-color: transparent;
+  text-align: center;
 }
 
-.blue-color{
-    color: var(--blue-color);
+.blue-color {
+  color: var(--blue-color);
 }
 
-.gradient{
-    background: var(--gradient);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+.gradient {
+  background: var(--gradient);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.home h5{
-    color: darkgray;
-    width: 650px;
-    text-align: center;
-    font-size: 1em;
-    margin-top: 10px;
+.home {
+  color: var(--secondary);
+  width: 650px;
+  text-align: center;
+  font-size: 1em;
+  margin-top: 10px;
 }
 
-.launch-button{
-    background: var(--gradient);
-    border-radius: 8px;
-    height: 52px;
-    width: 400px;
-    font-size: 20px;
-    margin-top: 20px;
-    font-family: var(--text-font);
-    font-weight: 700;
+.launch-button {
+  background: var(--button-gradient);
+  border: none;
+  border-radius: 8px;
+  height: 52px;
+  width: 400px;
+  font-size: 20px;
+  margin-top: 20px;
+  font-family: var(--text-font);
+  font-weight: 700;
+  transition: background 1.3s ease;
 }
 
-.top-gradient, .bottom-gradient{
-    background: var(--gradient);
-    height: 100px;
-    width: 60%;
-    margin: 0;
-    border-radius:2000px 2000px 0 0;
-    filter:blur(100px);
-    z-index: -1;
+.launch-button:hover {
+  background: var(--button-gradient-hover);
 }
 
-.top-gradient{
-    position: absolute;
-    top: -50px;
-    left: 50%;
-    transform: translateX(-50%);
+.launch-button:active {
+  background: var(--button-gradient-active);
 }
 
-.bottom-gradient{
-    position: absolute;
-    bottom: -50px;
-    left: 50%;
-    transform: translateX(-50%);
+.top-gradient,
+.bottom-gradient {
+  background: var(--gradient);
+  height: 100px;
+  width: 60%;
+  margin: 0;
+  border-radius: 2000px 2000px 0 0;
+  filter: blur(100px);
+  z-index: -1;
+}
+
+.top-gradient {
+  position: absolute;
+  top: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.bottom-gradient {
+  position: absolute;
+  bottom: -50px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 @media (min-width: 1800px) {
-    .home{
-        background-color: transparent;
-        width: 100%;
-        position: relative;
-    }
-    .center-text {
-        font-size: 100px;
-        width: 1200px;
-    }
-    .launch-button {
-        width: 650px;
-        font-size: 26px;
-        height: 70px;
-    }
-    .home h5 {
-        font-size: 1.4em;
-        width: 800px;
-    }
+  .home {
+    background-color: transparent;
+    width: 100%;
+    position: relative;
+  }
+  .center-text {
+    font-size: 100px;
+    width: 1200px;
+  }
+  .launch-button {
+    width: 650px;
+    font-size: 26px;
+    height: 70px;
+  }
+  .home h5 {
+    font-size: 1.4em;
+    width: 800px;
+  }
 }
 
 @media (max-width: 1800px) {
-    .home{
-        background-color: transparent;
-        width: 100%;
-        position: relative;
-    }
+  .home {
+    background-color: transparent;
+    width: 100%;
+    position: relative;
+  }
 
-    .center-text {
-        font-size: 80px;
-        width: 1000px;
-    }
+  .center-text {
+    font-size: 80px;
+    width: 1000px;
+  }
 
-    .launch-button {
-        width: 550px;
-        font-size: 26px;
-        height: 60px;
-    }
+  .launch-button {
+    width: 550px;
+    font-size: 26px;
+    height: 60px;
+  }
 
-    .home h5 {
-        font-size: 1.2em;
-        width: 700px;
-    }
+  .home h5 {
+    font-size: 1.2em;
+    width: 700px;
+  }
 }
 
 @media (max-width: 1710px) {
-    .home{
-        width: 100%;
-        position: relative;
-        right: 20px;
-    }
+  .home {
+    width: 100%;
+    position: relative;
+    right: 20px;
+  }
 }
 
 @media (max-width: 1440px) {
-    .home{
-        position: relative;
-        left: 10px;
-        width: 97%;
-    }
-    .center-text {
-        font-size: 70px;
-        max-width: 750px;
-    }
+  .home {
+    position: relative;
+    left: 10px;
+    width: 97%;
+  }
+  .center-text {
+    font-size: 70px;
+    max-width: 750px;
+  }
 
-    .launch-button {
-        width: 350px;
-        font-size: 18px;
-    }
+  .launch-button {
+    width: 350px;
+    font-size: 18px;
+  }
 
-    .home h5 {
-        font-size: 0.9em;
-        width: 600px;
-    }
+  .home h5 {
+    font-size: 0.9em;
+    width: 600px;
+  }
 }
 
-@media (max-width:1550px){
-    .home{
-        width: 100%;
-    }
-    .center-text {
-        font-size: 70px;
-        max-width: 750px;
-    }
+@media (max-width: 1550px) {
+  .home {
+    width: 100%;
+  }
+  .center-text {
+    font-size: 70px;
+    max-width: 750px;
+  }
 }
 
 @media (max-width: 1400px) {
-    .home {
-        position: relative;
-        width: 105%;
-        background-color: transparent;
-        left: -10px;
-    }
+  .home {
+    position: relative;
+    width: 105%;
+    background-color: transparent;
+    left: -10px;
+  }
 }
 
 @media (max-width: 1280px) {
-    .home{
-        width: 95%;
-        left: 15px;
-    }
+  .home {
+    width: 95%;
+    left: 15px;
+  }
 
-    .center-text {
-        font-size: 50px;
-        max-width: 600px;
-    }
+  .center-text {
+    font-size: 50px;
+    max-width: 600px;
+  }
 
-    .launch-button {
-        width: 300px;
-        font-size: 16px;
-    }
+  .launch-button {
+    width: 300px;
+    font-size: 16px;
+  }
 
-    .home h5 {
-        font-size: 0.85em;
-        width: 500px;
-    }
+  .home h5 {
+    font-size: 0.85em;
+    width: 500px;
+  }
 }
 
 @media (max-width: 1024px) {
-    .center-text {
-        font-size: 35px;
-        max-width: 500px;
-    }
+  .center-text {
+    font-size: 35px;
+    max-width: 500px;
+  }
 
-    .launch-button {
-        width: 250px;
-        font-size: 14px;
-    }
+  .launch-button {
+    width: 250px;
+    font-size: 14px;
+  }
 
-    .home h5 {
-        font-size: 0.8em;
-        width: 450px;
-    }
+  .home h5 {
+    font-size: 0.8em;
+    width: 450px;
+  }
 }
