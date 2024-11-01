@@ -16,7 +16,7 @@ mod Deposit {
         },
         types::{
             SwapData, SwapResult, DepositData, Claim, EkuboSlippageLimits, TokenAmount, TokenPrice,
-            Decimals
+            DecimalScale
         }
     };
 
@@ -48,13 +48,13 @@ mod Deposit {
     fn get_borrow_amount(
         borrow_capacity: TokenAmount,
         token_price: TokenPrice,
-        decimals_difference: Decimals,
-        total_borrowed: TokenAmount
+        decimals_difference: DecimalScale,
+        total_borrowed: TokenAmount,
+        borrow_const: u8
     ) -> felt252 {
-        let borrow_const = 60;
         let amount_base_token = token_price.into() * borrow_capacity;
         let amount_quote_token = amount_base_token / decimals_difference.into();
-        ((amount_quote_token - total_borrowed) / 100_u256 * borrow_const).try_into().unwrap()
+        ((amount_quote_token - total_borrowed) / 100_u256 * borrow_const.into()).try_into().unwrap()
     }
 
     fn get_withdraw_amount(
@@ -64,8 +64,8 @@ mod Deposit {
         borrow_factor: felt252,
         supply_token_price: TokenPrice,
         debt_token_price: TokenPrice,
-        supply_decimals: Decimals,
-        debt_decimals: Decimals
+        supply_decimals: DecimalScale,
+        debt_decimals: DecimalScale
     ) -> u256 {
         let deposited = (total_deposited * supply_token_price.into()).into()
             / supply_decimals.into();
@@ -111,7 +111,6 @@ mod Deposit {
     }
 
     #[abi(embed_v0)]
-    // TODO: Change types to aliases
     impl Deposit of IDeposit<ContractState> {
         /// Loops collateral token on ZKlend.
         ///
@@ -126,8 +125,7 @@ mod Deposit {
         /// * `pool_key`: PoolKey - Ekubo type which represents data about pool.
         /// * `ekubo_limits`: EkuboSlippageLimits - Represents upper and lower sqrt_ratio values on
         /// Ekubo. Used to control slippage while swapping.
-        /// * `pool_price`: TokenPrice - Price of `deposit` token in terms of `debt` token in Ekubo
-        /// pool.
+        /// * `pool_price`: TokenPrice - Price of `deposit` token in terms of `debt` token.
         fn loop_liquidity(
             ref self: ContractState,
             deposit_data: DepositData,
@@ -138,17 +136,18 @@ mod Deposit {
             let user_acount = get_tx_info().unbox().account_contract_address;
             assert(user_acount == self.owner.read(), 'Caller is not the owner');
             assert(!self.is_position_open.read(), 'Open position already exists');
-            let DepositData { token, amount, multiplier } = deposit_data;
-            let token_dispatcher = ERC20ABIDispatcher { contract_address: token };
-            let deposit_token_decimals = fast_power(10_u64, token_dispatcher.decimals().into());
-
-            assert(multiplier < 5 && multiplier > 1, 'Multiplier not supported');
+            let DepositData { token, amount, multiplier, borrow_const } = deposit_data;
+            assert(borrow_const > 0 && borrow_const < 100, 'Cannot calculate borrow amount');
+            assert(multiplier < 6 && multiplier > 1, 'Multiplier not supported');
             assert(amount != 0 && pool_price != 0, 'Parameters cannot be zero');
 
+            let token_dispatcher = ERC20ABIDispatcher { contract_address: token };
+            let deposit_token_decimals = fast_power(10_u64, token_dispatcher.decimals().into());
+            
             let curr_contract_address = get_contract_address();
             assert(
                 token_dispatcher.allowance(user_acount, curr_contract_address) >= amount,
-                'Approved amount incuficient'
+                'Approved amount insufficient'
             );
             assert(token_dispatcher.balanceOf(user_acount) >= amount, 'Insufficient balance');
 
@@ -174,7 +173,9 @@ mod Deposit {
 
             token_dispatcher.approve(zk_market.contract_address, amount);
             zk_market.deposit(token, amount.try_into().expect('Overflow'));
-            let (mut total_borrowed, mut accumulated, mut deposited) = (0, 0, amount);
+            let mut total_borrowed = 0;
+            let mut accumulated = 0;
+            let mut deposited = amount;
 
             while (amount + accumulated) / amount < multiplier.into() {
                 let borrow_capacity = ((deposited * collateral_factor / ZK_SCALE_DECIMALS)
@@ -184,7 +185,8 @@ mod Deposit {
                     borrow_capacity.try_into().unwrap(),
                     pool_price,
                     deposit_token_decimals.into(),
-                    total_borrowed
+                    total_borrowed,
+                    borrow_const
                 );
                 total_borrowed += to_borrow.into();
                 zk_market.borrow(borrowing_token, to_borrow);
@@ -207,7 +209,6 @@ mod Deposit {
                 deposited += amount_swapped.into();
                 accumulated += amount_swapped.into();
             };
-
             self.is_position_open.write(true);
             self
                 .emit(
@@ -241,10 +242,8 @@ mod Deposit {
         /// tokens.
         /// * `ekubo_limits`: EkuboSlippageLimits - Represents upper and lower sqrt_ratio values on
         /// Ekubo. Used to control slippage while swapping.
-        /// * `supply_price`: TokenPrice - Price of `supply` token in terms of `debt` token in Ekubo
-        /// pool.
-        /// * `debt_price`: TokenPrice - Price of `debt` token in terms of `supply` token in Ekubo
-        /// pool.
+        /// * `supply_price`: TokenPrice - Price of `supply` token in terms of `debt` token.
+        /// * `debt_price`: TokenPrice - Price of `debt` token in terms of `supply` token.
         fn close_position(
             ref self: ContractState,
             supply_token: ContractAddress,
@@ -371,8 +370,6 @@ mod Deposit {
             proof: Span<felt252>,
             airdrop_addr: ContractAddress
         ) {
-            assert(self.is_position_open.read(), 'Open position not exists');
-            assert(proof.len() != 0, 'Proof Span cannot be empty');
             assert(
                 IAirdropDispatcher { contract_address: airdrop_addr }.claim(claim_data, proof),
                 'Claim failed'

@@ -1,12 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap");
-
-:root {
-  --text-font: "Rethink Sans", sans-serif;
-  --spinner-bgn: rgba(0, 0, 0, 0.5);
-  --spinner-content: #393939;
-  --text-color: #ffffff;
-}
-
 .spinner-wrapper {
   position: fixed;
   top: 0;
@@ -40,5 +31,5 @@
   font-family: var(--text-font);
   font-weight: 600;
   font-size: 28px;
-  color: var(--text-color);
+  color: var(--primary);
 }

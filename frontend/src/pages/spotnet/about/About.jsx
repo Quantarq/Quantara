@@ -10,8 +10,7 @@ const CardData = [
   {
     number: '1',
     title: 'ZkLend ETH collateral',
-    description:
-      'ETH/STRK from your wallet is deposited as collateral on ZkLend.',
+    description: 'ETH/STRK from your wallet is deposited as collateral on ZkLend.',
     icon: ZkLend,
   },
   {
@@ -41,37 +40,36 @@ const About = () => {
     { top: 7, left: 80, size: 8 },
   ];
   return (
-    <div className='about-container'>
+    <div className="about-container">
       {starData.map((star, index) => (
         <Star
           key={index}
+          className="about-star"
           style={{
-            position: 'absolute',
-            top: `${star.top}%`,
-            left: `${star.left}%`,
-            width: `${star.size}%`,
-            height: `${star.size}%`,
+            '--star-top': `${star.top}%`,
+            '--star-left': `${star.left}%`,
+            '--star-size': `${star.size}%`,
           }}
         />
       ))}
-      <h1 className='about-title'>How it works</h1>
-      <div className='card-container flex'>
-        <div className='card-gradients'>
-          <div className='card-gradient'></div>
-          <div className='card-gradient'></div>
+      <h1 className="about-title">How it works</h1>
+      <div className="card-container flex">
+        <div>
+          <div className="card-gradient"></div>
+          <div className="card-gradient"></div>
         </div>
         {CardData.map((card, index) => (
-          <div key={index} className='card-about flex'>
-            <div className='card-number flex'>
+          <div key={index} className="card-about flex">
+            <div className="card-number flex">
               <h2>{card.number}</h2>
             </div>
-            <div className='card-icon'>
+            <div className="card-icon">
               <card.icon />
             </div>
-            <div className='card-title'>
+            <div className="card-title">
               <h4>{card.title}</h4>
             </div>
-            <div className='card-description'>
+            <div className="card-description">
               <h6>{card.description}</h6>
             </div>
           </div>

@@ -1,5 +1,5 @@
-import './partnership.css';
 import React from 'react';
+import './partnership.css';
 import { ReactComponent as ZklendLogo } from 'assets/images/zklend_logo.svg';
 import { ReactComponent as EkuboLogo } from 'assets/images/ekubo_logo.svg';
 import { ReactComponent as Star } from 'assets/particles/star.svg';
@@ -16,7 +16,7 @@ const Partnership = () => {
   const starData = [{ top: 10, left: 75, size: 15 }];
 
   return (
-    <div className='partnership-container'>
+    <div className="partnership-container">
       {starData.map((star, index) => (
         <Star
           key={index}
@@ -29,9 +29,9 @@ const Partnership = () => {
           }}
         />
       ))}
-      <h1 className='about-title'>Partnership</h1>
-      <div className='partnership-content'>
-        <div className='partnership-logo'>{logos}</div>
+      <h1 className="about-title">Partnership</h1>
+      <div className="partnership-content">
+        <div className="partnership-logo">{logos}</div>
       </div>
     </div>
   );

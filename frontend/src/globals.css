@@ -1,0 +1,44 @@
+@import url('https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap');
+:root {
+  --text-font: 'Rethink Sans', sans-serif;
+  --primary: #fff;
+  --primary-color: #0b0c10;
+  --black: #000;
+  --brand: #74d6fd;
+  --secondary: #e7ecf0;
+  --secondary-color: #1a1c24;
+  --collateral-color: #1d9259;
+  --borrow-color: #f42222;
+  --spinner-bgn: rgba(0, 0, 0, 0.5);
+  --spinner-content: #393939;
+  --footer-bg-color: #1a1c24;
+  --footer-text-color: #e7ebf5;
+  --footer-line-color: rgba(231, 235, 245, 0.2);
+  --gradient: linear-gradient(73deg, #74d6fd 1.13%, #e01dee 103.45%);
+  --button-gradient: linear-gradient(55deg, #74d6fd 0%, #e01dee 100%);
+  --button-gradient-hover: linear-gradient(55deg, #74d6fd 0%, #74d6fd 100%);
+  --button-gradient-active: linear-gradient(55deg, #58c4ef 0%, #58c4ef 100%);
+  --dashboard-bg: rgba(11, 12, 16, 1);
+  --card-bg-filter: blur(42.1875px);
+  --card-box-shadow: inset 4px 4px 9px 0 rgba(153, 234, 255, 0.25), 0 4px 4px 0 rgba(0, 0, 0, 0.15);
+  --card-bg-gradient: linear-gradient(135deg, rgba(116, 214, 253, 0.5) 0%, rgba(11, 12, 16, 0.5) 100%);
+  --card-border: 0.5px solid #4e7787;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+a {
+  text-decoration: none;
+}
+
+li {
+  list-style-type: none;
+}

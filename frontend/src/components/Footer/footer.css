@@ -1,31 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap");
-:root {
-  --text-font: "Rethink Sans", sans-serif;
-  --primary: #fff;
-  --footer-bg-color: #1a1c24;
-  --footer-text-color: #e7ebf5;
-  --card-bg-color: #0b0c10;
-  --footer-line-color: rgba(231, 235, 245, 0.2);
-}
-
-body {
-  overflow-x: hidden;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-a {
-  text-decoration: none;
-}
-
-li {
-  list-style-type: none;
-}
-
 .footer-container {
   padding: 24px 0;
   background-color: var(--footer-bg-color);
@@ -47,9 +19,6 @@ li {
   text-align: center;
   color: var(--footer-text-color);
   margin-top: 16px;
-}
-
-.follow-us-text {
   margin-bottom: 0;
 }
 
@@ -71,8 +40,14 @@ li {
   align-items: center;
   gap: 6px;
   cursor: pointer;
-  background-color: var(--card-bg-color);
+  background-color: var(--primary-color);
   transition: background-color 0.3s ease;
+  margin: 0;
+  font-family: var(--text-font);
+  font-weight: 500;
+  font-size: 28px;
+  text-align: center;
+  color: var(--primary);
 }
 
 .social-card:hover {
@@ -80,16 +55,7 @@ li {
 }
 
 .social-card:active {
-  background-color: var(--card-bg-color);
-}
-
-.social-card {
-  margin: 0;
-  font-family: var(--text-font);
-  font-weight: 500;
-  font-size: 28px;
-  text-align: center;
-  color: var(--primary);
+  background-color: var(--primary-color);
 }
 
 .social-card a {

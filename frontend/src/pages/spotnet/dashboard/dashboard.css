@@ -1,27 +1,7 @@
-@import url("https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap");
-
-:root {
-  --text-font: "Rethink Sans", sans-serif;
-  --gradient: linear-gradient(73deg, #74d6fd 1.13%, #e01dee 103.45%);
-  --primary-color: #0b0c10;
-  --collateral-color: #1d9259;
-  --borrow-color: #f42222;
-  --card-box-shadow: 0px 3.75px 3.75px 0px rgba(0, 0, 0, 0.15),
-    3.75px 3.75px 9.375px 0px rgba(153, 234, 255, 0.25) inset;
-  --background-main: rgba(11, 12, 16, 1);
-  --primary-color: #0b0c10;
-  --black: #000;
-  --primary: #fff;
-  --secondary: #e7ecf0;
-  --button-gradient: linear-gradient(55deg, #74d6fd 0%, #e01dee 100%);
-  --button-gradient-hover: linear-gradient(55deg, #74d6fd 0%, #74d6fd 100%);
-  --button-gradient-active: linear-gradient(55deg, #58c4ef 0%, #58c4ef 100%);
-}
-
 body {
-  background-color: var(--background-main);
+  background-color: var(--dashboard-bg);
   font-family:
-    "Rethink Sans",
+    'Rethink Sans',
     -apple-system,
     Roboto,
     Helvetica,
@@ -38,6 +18,14 @@ body {
 
 .dashboard-text-color {
   color: var(--secondary);
+}
+
+.dashboard-star {
+  position: absolute;
+  top: var(--star-top);
+  left: var(--star-left);
+  width: var(--star-size);
+  height: var(--star-size);
 }
 
 /* DESKTOP */
@@ -70,15 +58,11 @@ body {
 }
 
 .card-health-factor {
-  background: linear-gradient(
-    to bottom right,
-    rgba(116, 214, 253, 0.5) 0%,
-    rgba(11, 12, 16, 0.5) 100%
-  );
+  background: var(--card-bg-gradient);
   padding: 36px;
   border-radius: 6px;
   width: 100%;
-  border: 0.5px solid #74d6fd;
+  border: var(--card-border);
   height: 146px;
 }
 
@@ -123,12 +107,8 @@ body {
 
 .card-custom-styles {
   flex: 1;
-  background: linear-gradient(
-    to bottom right,
-    rgba(116, 214, 253, 0.5) 0%,
-    rgba(11, 12, 16, 0.5) 100%
-  );
-  border: 0.5px solid #74d6fd;
+  background: var(--card-bg-gradient);
+  border: var(--card-border);
 }
 
 .card-custom-styles:first-child {
@@ -185,10 +165,7 @@ body {
   height: 128px;
   flex-shrink: 0;
   border-radius: 2000px;
-  background: var(
-    --gradient,
-    linear-gradient(73deg, #74d6fd 1.13%, #e01dee 103.45%)
-  );
+  background: var(--gradient);
   filter: blur(80px);
 }
 
