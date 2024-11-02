@@ -362,23 +362,32 @@ class PositionDBConnector(UserDBConnector):
             logger.error(f"Position with ID {position_id} not found")
             return None
 
-    def get_total_amounts_for_open_positions(self) -> Decimal:
-        """
-        Calculates the total amount for all positions where status is 'OPENED'.
-
-        :return: Total amount for all opened positions
+    def get_total_amounts_for_open_positions(self) -> dict[str, Decimal]: 
+        """ 
+        Calculates the amounts for all positions where status is 'OPENED', 
+        grouped by token symbol. 
+        
+        :return: Dictionary of total amounts for each token in opened positions 
         """
         with self.Session() as db:
             try:
-                total_opened_amount = (
-                    db.query(func.sum(cast(Position.amount, Numeric)))
+                # Group by token symbol and sum amounts
+                token_amounts = (
+                    db.query(
+                        Position.token, 
+                        func.sum(cast(Position.amount, Numeric)).label('total_amount')
+                    )
                     .filter(Position.status == Status.OPENED.value)
-                    .scalar()
+                    .group_by(Position.token)
+                    .all()
                 )
-                return total_opened_amount
+                
+                # Convert to dictionary
+                return {token: Decimal(str(amount)) for token, amount in token_amounts}
+            
             except SQLAlchemyError as e:
-                logger.error(f"Error calculating total amount for open positions: {e}")
-                return Decimal(0.0)
+                logger.error(f"Error calculating amounts for open positions: {e}")
+                return {}
 
     def save_current_price(self, position: Position, price_dict: dict) -> None:
         """

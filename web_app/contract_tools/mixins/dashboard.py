@@ -28,33 +28,33 @@ class DashboardMixin:
     """
 
     @classmethod
-    async def get_current_prices(cls) -> Dict[str, str]:
-        """
-        Fetch current token prices from AVNU API.
-        :return: Returns dictionary mapping token symbols to their current prices.
+    async def get_current_prices(cls) -> Dict[str, Decimal]: 
+        """ 
+        Fetch current token prices from AVNU API. 
+        :return: Returns dictionary mapping token symbols to their current prices as Decimal. 
         """
         prices = {}
-
-        response = await APIRequest(base_url=AVNU_PRICE_URL).fetch("")
-        if not response:
+        try:
+            response = await APIRequest(base_url=AVNU_PRICE_URL).fetch("")
+            if not response:
+                return prices
+            
+            for token_data in response:
+                try:
+                    address = token_data.get("address")
+                    current_price = token_data.get("currentPrice")
+                    if address and current_price is not None:
+                        symbol = TokenParams.get_token_symbol(address)
+                        if symbol:
+                            # Convert to Decimal for precise calculations
+                            prices[symbol] = Decimal(str(current_price))
+                except (AttributeError, TypeError, ValueError) as e:
+                    logger.info(f"Error parsing price for {address}: {str(e)}")
+            
             return prices
-
-        for token_data in response:
-            try:
-                address = token_data.get("address")
-                current_price = token_data.get("currentPrice")
-                if address and current_price is not None:
-                    symbol = TokenParams.get_token_symbol(address)
-                    if symbol:
-                        prices[symbol] = str(Decimal(current_price))
-            except AttributeError as e:
-                logger.info(f"AttributeError while parsing price for {address}: {str(e)}")
-            except TypeError as e:
-                logger.info(f"TypeError while parsing price for {address}: {str(e)}")
-            except ValueError as e:
-                logger.info(f"ValueError while parsing price for {address}: {str(e)}")
-
-        return prices
+        except Exception as e:
+            logger.error(f"Error fetching current prices: {e}")
+            return prices
 
     @classmethod
     async def get_wallet_balances(cls, holder_address: str) -> Dict[str, str]:
