@@ -23,7 +23,8 @@
   --card-box-shadow: inset 4px 4px 9px 0 rgba(153, 234, 255, 0.25), 0 4px 4px 0 rgba(0, 0, 0, 0.15);
   --card-bg-gradient: linear-gradient(135deg, rgba(116, 214, 253, 0.5) 0%, rgba(11, 12, 16, 0.5) 100%);
   --card-border: 0.5px solid #4e7787;
-  
+  --success-color: #4CAF50;
+  --error-color: #FF5A5F;
 }
 
 body {

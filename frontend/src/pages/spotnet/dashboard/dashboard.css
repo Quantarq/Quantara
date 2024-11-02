@@ -4,10 +4,10 @@ body {
 }
 
 .dashboard-container {
-  margin-top: 4rem !important;
-  margin-bottom: 12rem !important;
+  margin-top: 4rem;
+  margin-bottom: 12rem;
   min-height: 100vh;
-  position: relative !important;
+  position: relative;
   width: 100%;
 }
 
@@ -72,13 +72,22 @@ body {
 
 .cards-custom {
   margin-top: 29px;
+  display: flex;
+  gap: 1.5rem; 
 }
 
-.coll-earn-text {
+.card-custom-styles {
+  flex: 1;
+  background: var(--card-bg-gradient);
+  border: var(--card-border);
+  border-radius: 6px; 
+}
+
+.collateral-text {
   color: var(--collateral-color);
 }
 
-.borr-text {
+.borrow-text {
   color: var(--borrow-color);
 }
 
@@ -97,25 +106,11 @@ body {
   padding-bottom: 36px;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* Centra en el eje Y */
-}
-
-.card-custom-styles {
-  flex: 1;
-  background: var(--card-bg-gradient);
-  border: var(--card-border);
-}
-
-.card-custom-styles:first-child {
-  margin-right: 13px;
-}
-
-.card-custom-styles:last-child {
-  margin-left: 13px;
+  justify-content: center;
 }
 
 .icon-text-gap {
-  margin-left: 4px !important;
+  margin-left: 4px;
 }
 
 .balance-text-size {
@@ -128,7 +123,7 @@ body {
 }
 
 .mb-3 {
-  margin-bottom: 2rem !important;
+  margin-bottom: 2rem;
 }
 
 /* Button "Redeem" styles */
@@ -152,7 +147,7 @@ body {
 }
 
 /* Background styles */
-.backdround-gradient {
+.background-gradient {
   position: absolute;
   width: 332px;
   height: 128px;
@@ -162,12 +157,12 @@ body {
   filter: blur(80px);
 }
 
-.backdround-gradient:nth-child(1) {
+.background-gradient:nth-child(1) {
   top: 250px;
   left: -250px;
 }
 
-.backdround-gradient:nth-child(2) {
+.background-gradient:nth-child(2) {
   bottom: -160px;
   right: -180px;
 }
@@ -190,21 +185,21 @@ body {
 .current-sum {
   font-size: 21px;
   font-weight: 500;
-  color: white; /* "Current sum" text in white */
+  color: white;
 }
 
-.current-sum .current-sum-green {
-  color: #4CAF50; /* Green for positive values */
+.current-sum-green {
+  color: var(--success-color); 
 }
 
-.current-sum .current-sum-red {
-  color: #FF5A5F; /* Red for negative values */
+.current-sum-red {
+  color: var(--error-color); 
 }
 
 /* Responsive adjustments */
 @media (min-width: 992px) and (max-width: 1400px) {
   .dashboard-container {
-    max-width: 960px !important;
+    max-width: 960px;
   }
 
   .health-text-size {
@@ -248,16 +243,8 @@ body {
     padding: 16px 10px 22px;
   }
 
-  .card-custom-styles:first-child {
-    margin-right: 8px;
-  }
-
-  .card-custom-styles:last-child {
-    margin-left: 8px;
-  }
-
   .icon-text-gap {
-    margin-left: 3px !important;
+    margin-left: 3px;
   }
 
   .balance-text-size {
@@ -268,18 +255,14 @@ body {
   .redeem-btn {
     padding: 14px 18px;
     font-size: 20px;
-    align-self: stretch;
-    border-radius: 6px;
-    font: 700 20px/1 Rethink Sans;
-    width: 100%;
   }
 }
 
 @media (min-width: 768px) and (max-width: 991px) {
   .dashboard-container {
-    margin-top: 1.5rem !important;
-    margin-bottom: 4rem !important;
-    width: 100% !important;
+    margin-top: 1.5rem;
+    margin-bottom: 4rem;
+    width: 100%;
   }
 
   .health-text-size {
@@ -327,16 +310,8 @@ body {
     padding: 12px 8px 18px;
   }
 
-  .card-custom-styles:first-child {
-    margin-right: 6px;
-  }
-
-  .card-custom-styles:last-child {
-    margin-left: 6px;
-  }
-
   .icon-text-gap {
-    margin-left: 3px !important;
+    margin-left: 3px;
   }
 
   .balance-text-size {
@@ -344,29 +319,21 @@ body {
     font-weight: 400;
   }
 
-  .mb-4 {
-    margin-bottom: 1rem !important;
-  }
-
   .redeem-btn {
     padding: 14px 18px;
     font-size: 20px;
-    align-self: stretch;
-    border-radius: 6px;
-    font: 700 20px/1 Rethink Sans;
-    width: 100%;
   }
 }
 
 @media (max-width: 767px) {
   .cards-custom {
-    display: block !important;
+    display: block;
   }
 
   .dashboard-container {
-    margin-top: 1.5rem !important;
-    margin-bottom: 4rem !important;
-    width: 100% !important;
+    margin-top: 1.5rem;
+    margin-bottom: 4rem;
+    width: 100%;
   }
 
   .health-text-size {
@@ -414,34 +381,13 @@ body {
     padding: 12px 8px 18px;
   }
 
-  .card-custom-styles:first-child {
-    margin-right: auto;
-    margin-bottom: 10px;
-  }
-
-  .card-custom-styles:last-child {
-    margin-left: auto;
-  }
-
   .balance-text-size {
     font-size: 16px;
     font-weight: 400;
   }
 
-  .mb-3 {
-    margin-bottom: 1.3rem !important;
-  }
-
-  .mb-4 {
-    margin-bottom: 1rem !important;
-  }
-
   .redeem-btn {
     padding: 12px 16px;
     font-size: 18px;
-    align-self: stretch;
-    border-radius: 6px;
-    font: 700 18px/1 Rethink Sans;
-    width: 100%;
   }
 }

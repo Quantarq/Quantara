@@ -61,9 +61,10 @@ const Dashboard = ({ walletId }) => {
   ]);
 
   const [startSum] = useState(0);
-  const [currentSum, setCurrentSum] = useState(0);
+  const [currentSum, setCurrentSum] = useState(0); 
   const [healthFactor, setHealthFactor] = useState('0.00');
   const [loading, setLoading] = useState(true);
+
   const starData = [
     { top: 1, left: 0, size: 1.5 },
     { top: 75, left: 35, size: 2.5 },
@@ -90,7 +91,7 @@ const Dashboard = ({ walletId }) => {
           if (isFirstCard) {
             const isEthereum = tokenAddress === ZETH_ADDRESS;
             const balance = parseFloat(position.totalBalances[Object.keys(position.totalBalances)[0]]);
-            setCurrentSum(balance); 
+            setCurrentSum(balance);
 
             return {
               title: 'Collateral & Earnings',
@@ -121,6 +122,11 @@ const Dashboard = ({ walletId }) => {
     getData();
   }, [walletId]);
 
+  const getCurrentSumColor = () => {
+    if (startSum === currentSum) return '';
+    return currentSum < startSum ? 'current-sum-red' : 'current-sum-green';
+  };
+
   return (
     <div className="dashboard-container position-relative container">
       {loading && <Spinner loading={loading} />}
@@ -137,8 +143,8 @@ const Dashboard = ({ walletId }) => {
         />
       ))}
       <div className="position-relative">
-        <div className="backdround-gradient"></div>
-        <div className="backdround-gradient"></div>
+        <div className="background-gradient"></div>
+        <div className="background-gradient"></div>
       </div>
       <h1 className="text-white text-center zkLend-text">zkLend Position</h1>
       <div className="card card-health-factor mx-auto d-flex flex-column align-items-center justify-content-center card-shadow">
@@ -154,10 +160,7 @@ const Dashboard = ({ walletId }) => {
               <div className="d-flex align-items-center justify-content-center">
                 <card.icon className="card-icons rounded-circle" />
                 <h1
-                  className="ms-2 icon-text-gap mb-0 text-style"
-                  style={{
-                    color: card.title === 'Borrow' ? '#FF5A5F' : '#4CAF50', // Direct color values
-                  }}
+                  className={`ms-2 icon-text-gap mb-0 text-style ${card.title === 'Borrow' ? 'borrow-text' : 'collateral-text'}`}
                 >
                   {card.title}
                 </h1>
@@ -172,10 +175,7 @@ const Dashboard = ({ walletId }) => {
                 <div className="d-flex align-items-center">
                   <span className="dashboard-text-color balance-text-size">Balance:</span>
                   <span
-                    className="ms-2 borr-text icon-text-gap text-style"
-                    style={{
-                      color: card.title === 'Borrow' ? '#FF5A5F' : '#4CAF50', // Direct color values
-                    }}
+                    className={`ms-2 icon-text-gap text-style ${card.title === 'Borrow' ? 'borrow-text' : 'collateral-text'}`}
                   >
                     {card.balance}
                   </span>
@@ -184,7 +184,7 @@ const Dashboard = ({ walletId }) => {
                   <div className="sum-info">
                     <span className="start-sum">Start sum: {startSum} $</span>
                     <span className="current-sum">
-                      Current sum: <span style={{ color: currentSum < startSum ? '#FF5A5F' : '#4CAF50' }}>{currentSum} $</span>
+                      Current sum: <span className={getCurrentSumColor()}>{currentSum} $</span>
                     </span>
                   </div>
                 )}
