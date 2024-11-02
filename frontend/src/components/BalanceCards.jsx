@@ -3,6 +3,7 @@ import { ReactComponent as ETH } from '../assets/icons/ethereum.svg';
 import { ReactComponent as USDC } from '../assets/icons/borrow_usdc.svg';
 import { ReactComponent as STRK } from '../assets/icons/strk.svg';
 import { ReactComponent as DAI } from '../assets/icons/dai.svg';
+import { useMatchMedia } from 'hooks/useMatchMedia';
 import { getBalances } from '../utils/wallet';
 
 const BalanceCards = ({ walletId }) => {
@@ -13,24 +14,12 @@ const BalanceCards = ({ walletId }) => {
     { icon: <DAI />, title: 'DAI', balance: '0.00' },
   ]);
 
-  const [isMobile, setIsMobile] = useState(window.matchMedia('(max-width: 768px)').matches);
+  const isMobile = useMatchMedia('(max-width: 768px)');
+
   useEffect(() => {
     getBalances(walletId, setBalances);
   }, [walletId]);
 
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(max-width: 768px)');
-
-    const handleMediaQueryChange = (e) => {
-      setIsMobile(e.matches);
-    };
-
-    mediaQuery.addEventListener('change', handleMediaQueryChange);
-
-    return () => {
-      mediaQuery.removeEventListener('change', handleMediaQueryChange);
-    };
-  }, []);
   return (
     <div className="balance-container">
       {balances.map((balance) =>

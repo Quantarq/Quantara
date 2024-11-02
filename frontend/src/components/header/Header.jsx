@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { ReactComponent as Logo } from 'assets/images/logo.svg';
-import { ReactComponent as Menu } from 'assets/images/menu.svg';
-import { ReactComponent as Close } from 'assets/images/close.svg';
+import { ReactComponent as Menu } from 'assets/icons/menu.svg';
+import { ReactComponent as Close } from 'assets/icons/close.svg';
 import { NavLink } from 'react-router-dom';
 import TelegramLogin from '../Telegram/TelegramLogin';
+import { useClickOutside } from 'hooks/useClickOutside';
 import './header.css';
 
 function Header({ walletId, onConnectWallet, onLogout, tgUser, setTgUser }) {
@@ -11,23 +12,9 @@ function Header({ walletId, onConnectWallet, onLogout, tgUser, setTgUser }) {
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
 
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(event.target) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(event.target)
-      ) {
-        setIsMenuOpen(false);
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+  useClickOutside([menuRef, buttonRef], () => {
+    setIsMenuOpen(false);
+  });
 
   const toggleMenu = () => {
     setIsMenuOpen((prevState) => !prevState);

@@ -344,12 +344,12 @@ input[type='number'].error {
     gap: 1rem;
   }
 .balance-item .balance-title {
-  font-size: 1.2rem!important;
+  font-size: 1.2rem;
   display: flex;
   align-items: center;
 }
 .balance-item label {
-  font-size: 1rem!important;
+  font-size: 1rem;
 }
 .title-container {
   display: flex;
