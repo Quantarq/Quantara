@@ -1,11 +1,10 @@
 import { connect } from 'get-starknet';
-import axios from 'axios';
-import { deployContract, checkAndDeployContract } from '../../src/utils/contract';
+import { axiosInstance } from '../../src/utils/axios';
+import { deployContract, checkAndDeployContract } from '../../src/services/contract';
 import { getDeployContractData } from '../../src/utils/constants';
-import { mockBackendUrl } from '../constants';
 
 jest.mock('get-starknet');
-jest.mock('axios');
+jest.mock('../../src/utils/axios');
 jest.mock('../../src/utils/constants');
 
 describe('Contract Deployment Tests', () => {
@@ -15,8 +14,6 @@ describe('Contract Deployment Tests', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    process.env.REACT_APP_BACKEND_URL = mockBackendUrl;
 
     getDeployContractData.mockReturnValue({
       contractData: 'mockContractData',
@@ -71,7 +68,7 @@ describe('Contract Deployment Tests', () => {
 
   describe('checkAndDeployContract', () => {
     it('should deploy contract if not already deployed', async () => {
-      axios.get.mockResolvedValue({
+      axiosInstance.get.mockResolvedValue({
         data: { is_contract_deployed: false },
       });
 
@@ -87,36 +84,36 @@ describe('Contract Deployment Tests', () => {
       };
       connect.mockResolvedValue(mockStarknet);
 
-      axios.post.mockResolvedValue({ data: 'success' });
+      axiosInstance.post.mockResolvedValue({ data: 'success' });
 
       await checkAndDeployContract(mockWalletId);
 
-      expect(axios.get).toHaveBeenCalledWith(`${mockBackendUrl}/api/check-user?wallet_id=${mockWalletId}`);
+      expect(axiosInstance.get).toHaveBeenCalledWith(`/api/check-user?wallet_id=${mockWalletId}`);
       expect(connect).toHaveBeenCalled();
       expect(mockStarknet.account.deployContract).toHaveBeenCalledWith({
         contractData: 'mockContractData',
       });
-      expect(axios.post).toHaveBeenCalledWith(`${mockBackendUrl}/api/update-user-contract`, {
+      expect(axiosInstance.post).toHaveBeenCalledWith(`/api/update-user-contract`, {
         wallet_id: mockWalletId,
         contract_address: mockContractAddress,
       });
     });
 
     it('should skip deployment if contract already exists', async () => {
-      axios.get.mockResolvedValue({
+      axiosInstance.get.mockResolvedValue({
         data: { is_contract_deployed: true },
       });
 
       await checkAndDeployContract(mockWalletId);
 
-      expect(axios.get).toHaveBeenCalled();
+      expect(axiosInstance.get).toHaveBeenCalled();
       expect(connect).not.toHaveBeenCalled();
-      expect(axios.post).not.toHaveBeenCalled();
+      expect(axiosInstance.post).not.toHaveBeenCalled();
     });
 
     it('should handle backend check errors correctly', async () => {
       const mockError = new Error('Backend error');
-      axios.get.mockRejectedValue(mockError);
+      axiosInstance.get.mockRejectedValue(mockError);
 
       console.error = jest.fn();
 
@@ -126,7 +123,7 @@ describe('Contract Deployment Tests', () => {
     });
 
     it('should handle contract update error correctly after deployment', async () => {
-      axios.get.mockResolvedValue({
+      axiosInstance.get.mockResolvedValue({
         data: { is_contract_deployed: false },
       });
 
@@ -143,7 +140,7 @@ describe('Contract Deployment Tests', () => {
       connect.mockResolvedValue(mockStarknet);
 
       const mockUpdateError = new Error('Update failed');
-      axios.post.mockRejectedValue(mockUpdateError);
+      axiosInstance.post.mockRejectedValue(mockUpdateError);
 
       console.error = jest.fn();
 

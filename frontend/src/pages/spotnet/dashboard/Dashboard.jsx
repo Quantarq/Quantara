@@ -1,18 +1,15 @@
-import React from 'react';
-import { useQuery } from 'react-query';
-import axios from 'axios';
+import React, { useEffect, useState } from 'react';
 import { ReactComponent as Star } from 'assets/particles/star.svg';
 import { ReactComponent as CollateralIcon } from 'assets/icons/collateral.svg';
 import { ReactComponent as EthIcon } from 'assets/icons/ethereum.svg';
 import { ReactComponent as UsdIcon } from 'assets/icons/usd_coin.svg';
 import { ReactComponent as BorrowIcon } from 'assets/icons/borrow.svg';
 import { ReactComponent as StrkIcon } from 'assets/icons/strk.svg';
-import { closePosition } from 'utils/transaction';
+import { closePosition } from 'services/transaction';
 import { ZETH_ADDRESS } from 'utils/constants';
 import Spinner from 'components/spinner/Spinner';
 import './dashboard.css';
-
-const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://0.0.0.0:8000';
+import { axiosInstance } from 'utils/axios';
 
 const fetchCardData = async ({ queryKey }) => {
   const walletId = queryKey[1];
@@ -21,7 +18,7 @@ const fetchCardData = async ({ queryKey }) => {
     return null;
   }
   try {
-    const response = await axios.get(`${backendUrl}/api/dashboard?wallet_id=${walletId}`);
+    const response = await axiosInstance.get(`/api/dashboard?wallet_id=${walletId}`);
     return response.data;
   } catch (error) {
     console.error('Error during getting the data from API', error);
@@ -40,9 +37,10 @@ const Dashboard = ({ walletId }) => {
       return;
     }
     try {
-      const response = await axios.get(`${backendUrl}/api/get-repay-data?supply_token=ETH&wallet_id=${walletId}`);
+      const response = await axiosInstance.get(`/api/get-repay-data?supply_token=ETH&wallet_id=${walletId}`);
       await closePosition(response.data);
-      await axios.get(`${backendUrl}/api/close-position?position_id=${response.data.position_id}`);
+
+      await axiosInstance.get(`/api/close-position?position_id=${response.data.position_id}`);
     } catch (e) {
       console.error('Error during closePositionEvent', e);
     }

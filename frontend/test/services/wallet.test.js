@@ -1,5 +1,5 @@
 import { connect } from 'get-starknet';
-import { connectWallet, getTokenBalances, getBalances, logout } from '../../src/utils/wallet';
+import { connectWallet, getTokenBalances, getBalances, logout } from '../../src/services/wallet';
 import { ETH_ADDRESS, STRK_ADDRESS, USDC_ADDRESS } from '../../src/utils/constants';
 
 jest.mock('../assets/icons/ethereum.svg', () => ({
@@ -109,7 +109,7 @@ describe('Wallet Functions', () => {
         { name: 'STRK', balance: '3.0000', icon: 'STRK-icon' },
       ];
 
-      jest.spyOn(require('../../src/utils/wallet'), 'getTokenBalances').mockResolvedValue(mockTokenBalances);
+      jest.spyOn(require('../../src/services/wallet'), 'getTokenBalances').mockResolvedValue(mockTokenBalances);
 
       await getBalances(mockWalletId, mockSetBalances);
       await mockSetBalances(mockTokenBalances);
@@ -119,7 +119,7 @@ describe('Wallet Functions', () => {
 
     it('should not fetch balances if wallet ID is not provided', async () => {
       const mockSetBalances = jest.fn();
-      const mockGetTokenBalances = jest.spyOn(require('../../src/utils/wallet'), 'getTokenBalances');
+      const mockGetTokenBalances = jest.spyOn(require('../../src/services/wallet'), 'getTokenBalances');
 
       await getBalances(null, mockSetBalances);
 

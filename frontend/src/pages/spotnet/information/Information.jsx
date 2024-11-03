@@ -1,29 +1,30 @@
 import './information.css';
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import StarMaker from '../../../components/StarMaker';
+import React, { useEffect, useState } from "react";
+import StarMaker from "../../../components/StarMaker"; 
+import { axiosInstance } from 'utils/axios';
 
 const Information = () => {
   const [data, setData] = useState({ total_opened_amount: 0, unique_users: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/get_stats`);
-        setData({
-          total_opened_amount: response.data.total_opened_amount,
-          unique_users: response.data.unique_users,
-        });
-      } catch (error) {
-        setError(error.response ? error.response.data.message : error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await axiosInstance.get(`/api/get_stats`);
+                setData({
+                    total_opened_amount: response.data.total_opened_amount,
+                    unique_users: response.data.unique_users,
+                });
+            } catch (error) {
+                setError(error.response ? error.response.data.message : error.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
 
   const starData = [
     { top: 9, left: -6.2, size: 20 },

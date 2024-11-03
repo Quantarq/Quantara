@@ -1,10 +1,8 @@
-import axios from 'axios';
-
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
+import { axiosInstance } from '../utils/axios';
 
 export const saveTelegramUser = async (telegramUser, walletId) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/api/telegram/save-user`, {
+    const response = await axiosInstance.post(`/api/telegram/save-user`, {
       telegram_id: telegramUser.id,
       username: telegramUser.username,
       first_name: telegramUser.first_name,
@@ -21,7 +19,7 @@ export const saveTelegramUser = async (telegramUser, walletId) => {
 
 export const getTelegramUserWalletId = async (tg_user) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/api/telegram/get-wallet-id/${tg_user.id}`, {
+    const response = await axiosInstance.post(`/api/telegram/get-wallet-id/${tg_user.id}`, {
       raw: window.Telegram.initData || tg_user,
       is_webapp: !!window.Telegram.initData
     });

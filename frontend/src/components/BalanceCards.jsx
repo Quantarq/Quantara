@@ -4,7 +4,7 @@ import { ReactComponent as USDC } from '../assets/icons/borrow_usdc.svg';
 import { ReactComponent as STRK } from '../assets/icons/strk.svg';
 import { ReactComponent as DAI } from '../assets/icons/dai.svg';
 import { useMatchMedia } from 'hooks/useMatchMedia';
-import { getBalances } from '../utils/wallet';
+import { getBalances } from '../services/wallet';
 
 const BalanceCards = ({ walletId }) => {
   const [balances, setBalances] = useState([

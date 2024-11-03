@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getTokenBalances, sendTransaction } from 'utils/wallet';
+import { getTokenBalances, sendTransaction } from 'services/wallet';
 import { Notifier } from 'components/Notifier/Notifier';
 import { notifyError } from 'utils/notification';
+import { axiosInstance } from 'utils/axios';
 
 const LendingForm = ({ walletId }) => {
   const navigate = useNavigate();
@@ -61,30 +62,22 @@ const LendingForm = ({ walletId }) => {
       const backendUrl = process.env.BACKEND_URL || 'http://127.0.0.1:8000';
       console.log('BACKENDURL', backendUrl); // Replace with your backend URL
       console.log('Query Params:', queryParams);
-      const response = await fetch(`${backendUrl}/transaction-data?${queryParams}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
 
-      console.log('Response:', response);
-      if (response.ok) {
-        const data = await response.json();
-        console.log(data);
+      const res = axiosInstance.get(`/transaction-data?${queryParams}`)
+      if (res.status === 200) {
+        const data = res.data
         setTransactionData(data);
         console.log('Transaction data fetched successfully:', data);
 
         try {
           const txResult = await sendTransaction(data);
-          console.log('Transaction result:', txResult);
           setTransactionStatus('Transaction sent successfully!');
         } catch (txError) {
-          console.error('Error sending transaction:', txError);
+          console.error('Error sending transaction:', txError.response?.data);
           setTransactionStatus('Failed to send transaction. Please try again.');
         }
       } else {
-        const errorData = await response.text();
+        const errorData = res.response?.data;
         console.error('Failed to fetch transaction data:', errorData);
         setTransactionStatus('Failed to fetch transaction data. Please try again.');
       }

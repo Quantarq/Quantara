@@ -1,8 +1,8 @@
-import axios from 'axios';
 import { connect } from 'get-starknet';
 import { CallData } from 'starknet';
 import { erc20abi } from '../abis/erc20';
 import { abi } from '../abis/abi';
+import { axiosInstance } from '../utils/axios';
 
 export async function sendTransaction(loopLiquidityData, contractAddress) {
   try {
@@ -67,26 +67,22 @@ export async function closePosition(transactionData) {
 }
 
 export const handleTransaction = async (connectedWalletId, formData, setError, setTokenAmount, setLoading, setSuccessful) => {
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://0.0.0.0:8000';
 
   setLoading(true);
   setError('');
 
   try {
-    const response = await axios.post(`${backendUrl}/api/create-position`, formData);
-    console.log('Position created successfully:', response.data);
+    const response = await axiosInstance.post(`/api/create-position`, formData);
 
     const transactionData = response.data;
     await sendTransaction(transactionData, transactionData.contract_address);
     console.log('Transaction executed successfully');
 
-    const openPositionResponse = await axios.get(`${backendUrl}/api/open-position`, {
+    const openPositionResponse = await axiosInstance.get(`/api/open-position`, {
       params: { position_id: transactionData.position_id },
     });
 
-    setSuccessful(true)
-
-    console.log('Position status updated successfully:', openPositionResponse.data);
+    openPositionResponse == openPositionResponse
 
     // Reset form data
     setTokenAmount('');
