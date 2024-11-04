@@ -45,7 +45,7 @@ function Home({ walletId }) {
 
   const decorationData = [
     { top: -5, left: -30 },
-    { top: 5, left: 3 },
+    { top: -1, left: 3 },
     { top: -15, left: 60 },
     { top: -14, left: 55 },
   ];
