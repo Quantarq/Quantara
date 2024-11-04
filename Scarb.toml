@@ -25,10 +25,15 @@ sort-module-level-items = true
 
 [[tool.snforge.fork]]
 name = "SEPOLIA"
-url = "http://178.32.172.148:6062/v0_7"
+url = "http://51.195.57.196:6062/v0_7"
 block_id.tag = "latest"
 
 [[tool.snforge.fork]]
 name = "MAINNET"
 url = "http://127.0.0.1:5050"
 block_id.tag = "latest"
+
+[[tool.snforge.fork]]
+name = "MAINNET_FIXED_BLOCK"
+url = "http://127.0.0.1:5050"
+block_id.number = "863242"

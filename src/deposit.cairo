@@ -9,7 +9,7 @@ mod Deposit {
 
     use openzeppelin_token::erc20::interface::{ERC20ABIDispatcher, ERC20ABIDispatcherTrait};
     use spotnet::{
-        constants::ZK_SCALE_DECIMALS,
+        constants::{ZK_SCALE_DECIMALS, STRK_ADDRESS},
         interfaces::{
             IMarketDispatcher, IMarketDispatcherTrait, IAirdropDispatcher, IAirdropDispatcherTrait,
             IDeposit
@@ -30,6 +30,7 @@ mod Deposit {
         owner: ContractAddress,
         ekubo_core: ICoreDispatcher,
         zk_market: IMarketDispatcher,
+        treasury: ContractAddress,
         is_position_open: bool
     }
 
@@ -38,11 +39,13 @@ mod Deposit {
         ref self: ContractState,
         owner: ContractAddress,
         ekubo_core: ICoreDispatcher,
-        zk_market: IMarketDispatcher
+        zk_market: IMarketDispatcher,
+        treasury: ContractAddress
     ) {
         self.owner.write(owner);
         self.ekubo_core.write(ekubo_core);
         self.zk_market.write(zk_market);
+        self.treasury.write(treasury);
     }
 
     fn get_borrow_amount(
@@ -133,8 +136,8 @@ mod Deposit {
             ekubo_limits: EkuboSlippageLimits,
             pool_price: TokenPrice
         ) {
-            let user_acount = get_tx_info().unbox().account_contract_address;
-            assert(user_acount == self.owner.read(), 'Caller is not the owner');
+            let user_account = get_tx_info().unbox().account_contract_address;
+            assert(user_account == self.owner.read(), 'Caller is not the owner');
             assert(!self.is_position_open.read(), 'Open position already exists');
             let DepositData { token, amount, multiplier, borrow_const } = deposit_data;
             assert(borrow_const > 0 && borrow_const < 100, 'Cannot calculate borrow amount');
@@ -146,10 +149,10 @@ mod Deposit {
             
             let curr_contract_address = get_contract_address();
             assert(
-                token_dispatcher.allowance(user_acount, curr_contract_address) >= amount,
+                token_dispatcher.allowance(user_account, curr_contract_address) >= amount,
                 'Approved amount insufficient'
             );
-            assert(token_dispatcher.balanceOf(user_acount) >= amount, 'Insufficient balance');
+            assert(token_dispatcher.balanceOf(user_account) >= amount, 'Insufficient balance');
 
             let zk_market = self.zk_market.read();
 
@@ -355,6 +358,11 @@ mod Deposit {
 
         /// Claims STRK airdrop on ZKlend
         ///
+        /// Can be called by anyone, e.g. a keeper
+        /// 
+        /// If the treasury address is zero, the funds are not sent to treasury to avoid burning them.
+        /// This does mean that a sophisticated user could deploy their own contract with a zero treasury address to avoid sending on fees.
+        /// 
         /// # Panics
         /// `is_position_open` storage variable is set to false('Open position not exists')
         /// `proof` span is empty
@@ -374,10 +382,28 @@ mod Deposit {
                 IAirdropDispatcher { contract_address: airdrop_addr }.claim(claim_data, proof),
                 'Claim failed'
             );
-            // TODO: Add transfer to the Treasury
+
+            let strk = ERC20ABIDispatcher { contract_address: STRK_ADDRESS.try_into().unwrap() };
+            let zk_market = self.zk_market.read();
+            let part_for_treasury = claim_data.amount - claim_data.amount / 5; // u128 integer division, rounds down
+
+            let treasury_addr = self.treasury.read();
+            let remainder = if(treasury_addr.into() != 0) { // Zeroable not publicly accessible in this Cairo version AFAIK
+               strk.transfer(treasury_addr, part_for_treasury.into());
+               claim_data.amount - part_for_treasury
+            } else {
+                claim_data.amount
+            };
+
+            
+            strk.approve(zk_market.contract_address, remainder.into());
+            zk_market.deposit(STRK_ADDRESS.try_into().unwrap(), remainder.into());
+            zk_market.enable_collateral(STRK_ADDRESS.try_into().unwrap());
         }
 
         /// Makes a deposit into open zkLend position to control stability
+        /// 
+        /// Anyone can deposit theoretically
         ///
         /// # Panics
         /// `is_position_open` variable is set to false
@@ -401,14 +427,12 @@ mod Deposit {
         ///
         /// # Panics
         /// address of account that started the transaction is not equal to `owner` storage variable
-        /// if trying to withdraw from open position, so `is_position_open` is set to true
         ///
         /// # Parameters
         /// `token`: TokenAddress - token address to withdraw from zkLend
         /// `amount`: TokenAmount - amount to withdraw. Pass `0` to withdraw all
         fn withdraw(ref self: ContractState, token: ContractAddress, amount: TokenAmount) {
             assert(get_caller_address() == self.owner.read(), 'Caller is not the owner');
-            assert(!self.is_position_open.read(), 'Tokens are locked');
             let zk_market = self.zk_market.read();
             let token_dispatcher = ERC20ABIDispatcher { contract_address: token };
             if amount == 0 {
