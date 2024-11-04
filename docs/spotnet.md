@@ -23,7 +23,7 @@ This method has next parameters:
 * `ekubo_limits`: EkuboSlippageLimits - Object of internal type which represents upper and lower sqrt_ratio values on Ekubo. Used to control slippage while swapping.
 * `pool_price`: felt252 - Price of `deposit` token in terms of `debt` token(so for ex. 2400000000 USDC for ETH when depositing ETH).
 
-It's flow can be described as follows:
+Its flow can be described as follows:
 
 ```
 assertions
@@ -60,7 +60,7 @@ The method has next parameters:
 * `supply_price`: TokenPrice - Price of `supply` token in terms of `debt` token(so for ex. 2400000000 USDC for ETH).
 * `debt_price`: TokenPrice - Price of `debt` token in terms of `supply` token(for ex. 410000000000000 ETH for USDC).
 
-It's flow can be described as follows:
+Its flow can be described as follows:
 ```
 assertions
 
@@ -89,13 +89,45 @@ This method has next parameters:
 * `proof`: Span<felt252> - proof used to validate the claim
 * `airdrop_addr`: ContractAddress - address of a contract responsible for claim
 
-Ir's flow can be described as follow
+Its flow can be described as follows:
+
 ```
 assertions
 
-airdrop claim
+claim tokens from airdrop contract
 
-transfer half of reward to the treasury
+if treasury address is non-zero {
+    calculate and transfer 80% to treasury
+}
+
+approve zkLend to spend remaining tokens
+
+deposit remaining tokens into zkLend
+
+enable STRK as collateral
+```
+
+The method can be called by anyone (e.g., a keeper) to claim rewards. If the treasury address is set to zero when deploying the contract, all claimed rewards will be deposited into zkLend on behalf of the user instead of being split with the treasury.
+
+
+### extra_deposit
+
+The `extra_deposit` method allows depositing additional tokens into an open zkLend position for increased stability. This method can be called by anyone, not just the position owner.
+
+Parameters:
+* `token`: ContractAddress - Address of the token to deposit 
+* `amount`: TokenAmount - Amount of tokens to deposit
+
+It's flow can be described as follows:
+
+```
+assertions (position must be open, amount must be non-zero)
+
+transfer tokens from caller to contract
+
+approve zkLend to spend the tokens
+
+deposit tokens into zkLend position
 ```
 
 ## Important types, events and constants
@@ -138,3 +170,4 @@ struct PositionClosed {
 
 ### Constants
 * ZK_SCALE_DECIMALS is used for scaling down values obtained by multiplying on zklend collateral and borrow factors.
+* STRK_ADDRESS is the same across Sepolia and Mainnet.
