@@ -360,6 +360,9 @@ mod Deposit {
         ///
         /// Can be called by anyone, e.g. a keeper
         /// 
+        /// If the treasury address is zero, the funds are not sent to treasury to avoid burning them.
+        /// This does mean that a sophisticated user could deploy their own contract with a zero treasury address to avoid sending on fees.
+        /// 
         /// # Panics
         /// `is_position_open` storage variable is set to false('Open position not exists')
         /// `proof` span is empty
@@ -382,11 +385,17 @@ mod Deposit {
 
             let strk = ERC20ABIDispatcher { contract_address: STRK_ADDRESS.try_into().unwrap() };
             let zk_market = self.zk_market.read();
-            let half_of_claim = claim_data.amount / 2; // u128 integer division, rounds down
-            
-            strk.transfer(self.treasury.read(), half_of_claim.into());
+            let part_for_treasury = claim_data.amount - claim_data.amount / 5; // u128 integer division, rounds down
 
-            let remainder = claim_data.amount - half_of_claim;
+            let treasury_addr = self.treasury.read();
+            let remainder = if(treasury_addr.into() == 0) { // Zeroable not publicly accessible in this Cairo version AFAIK
+               strk.transfer(treasury_addr, part_for_treasury.into());
+               claim_data.amount - part_for_treasury
+            } else {
+                claim_data.amount
+            };
+
+            
             strk.approve(zk_market.contract_address, remainder.into());
             zk_market.deposit(STRK_ADDRESS.try_into().unwrap(), remainder.into());
             zk_market.enable_collateral(STRK_ADDRESS.try_into().unwrap());
