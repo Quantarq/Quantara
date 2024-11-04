@@ -6,6 +6,7 @@ from decimal import Decimal
 from faker import Faker
 from web_app.db.models import Status, User, Position, AirDrop, TelegramUser
 from web_app.db.database import SessionLocal
+from web_app.contract_tools.constants import TokenParams
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -47,7 +48,7 @@ def create_positions(session: SessionLocal, users: list[User]) -> None:
         for _ in range(2):
             position = Position(
                 user_id=user.id,
-                token_symbol=fake.word(),
+                token_symbol=fake.random_choices(elements=[token.name for token in TokenParams.tokens()]),
                 amount=fake.random_number(digits=5),
                 multiplier=fake.random_int(min=1, max=10),
                 start_price=Decimal(
