@@ -23,6 +23,8 @@ This method has next parameters:
 * `ekubo_limits`: EkuboSlippageLimits - Object of internal type which represents upper and lower sqrt_ratio values on Ekubo. Used to control slippage while swapping.
 * `pool_price`: felt252 - Price of `deposit` token in terms of `debt` token(so for ex. 2400000000 USDC for ETH when depositing ETH).
 
+We can trust the passed values, such as pool_price, because this function can be only called by the owner of the contract.
+
 Its flow can be described as follows:
 
 ```
@@ -108,7 +110,7 @@ deposit remaining tokens into zkLend
 enable STRK as collateral
 ```
 
-The method can be called by anyone (e.g., a keeper) to claim rewards. If the treasury address is set to zero when deploying the contract, all claimed rewards will be deposited into zkLend on behalf of the user instead of being split with the treasury.
+The method can be called by anyone (e.g., a keeper) to claim rewards. If the treasury address is set to zero when deploying the contract, all claimed rewards will be deposited into zkLend on behalf of the user instead of being split with the treasury. This is intended behavior; sophisticated users wanting to bypass the functionality could deploy their modified contract anyway. This serves to avoid burning the STRK.
 
 
 ### extra_deposit
