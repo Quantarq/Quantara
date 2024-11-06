@@ -240,7 +240,7 @@
 
   .card-number h2 {
     padding: 5px;
-    width: 70px;
+    width: 60px;
     font-weight: 600;
     font-size: 25px;
   }
@@ -295,10 +295,9 @@
 
   .card-number h2 {
     position: absolute;
-    top: 6px;
-    padding: 8px;
-    width: 40px;
-    height: auto;
+    top: 8px;
+    padding: 6px;
+    width: 45px;
     font-weight: 600;
     font-size: 18px;
   }
