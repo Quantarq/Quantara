@@ -29,7 +29,7 @@ const Partnership = () => {
           }}
         />
       ))}
-      <h1 className="about-title">Partnership</h1>
+      <h1 className="partner-title">Partnership</h1>
       <div className="partnership-content">
         <div className="partnership-logo">{logos}</div>
       </div>
