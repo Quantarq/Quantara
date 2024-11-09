@@ -2,7 +2,7 @@ nav {
   height: 80px;
   display: flex;
   align-items: center;
-  width: 100vw;
+  width: 100%;
   justify-content: center;
   background-color: var(--secondary-color);
   position: relative;
@@ -40,8 +40,6 @@ nav {
 
 .nav-items a:hover {
   color: var(--brand);
-  /* font-weight: 700; */
-  /* font-weight: bold; */
 }
 
 .nav-items a.active-link {

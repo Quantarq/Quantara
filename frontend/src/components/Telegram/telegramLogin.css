@@ -1,5 +1,6 @@
 .telegram-login {
-  display: flex;
+  display: none;
+  /* display: flex; */ /* need to get it back when telegram functionality works */
   align-items: center;
 }
 
