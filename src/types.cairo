@@ -40,7 +40,7 @@ pub struct Claim {
 
 #[derive(Drop, Serde, starknet::Store)]
 pub struct MarketReserveData {
-    enabled: bool,
+    pub enabled: bool,
     pub decimals: felt252,
     pub z_token_address: ContractAddress,
     interest_rate_model: ContractAddress,

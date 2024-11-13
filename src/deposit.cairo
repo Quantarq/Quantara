@@ -8,10 +8,11 @@ mod Deposit {
         types::{i129::i129, keys::PoolKey}
     };
 
-    use openzeppelin_security::ReentrancyGuardComponent;
-
-    use openzeppelin_token::erc20::interface::{ERC20ABIDispatcher, ERC20ABIDispatcherTrait};
-    use openzeppelin_upgrades::{UpgradeableComponent, interface::IUpgradeable};
+    use openzeppelin::{
+        security::ReentrancyGuardComponent,
+        token::erc20::interface::{ERC20ABIDispatcher, ERC20ABIDispatcherTrait},
+        upgrades::{UpgradeableComponent, interface::IUpgradeable}, access::ownable::OwnableComponent
+    };
     use spotnet::{
         constants::{ZK_SCALE_DECIMALS, STRK_ADDRESS},
         interfaces::{
@@ -33,17 +34,24 @@ mod Deposit {
         path: ReentrancyGuardComponent, storage: reentrancy_guard, event: ReentrancyGuardEvent
     );
     component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
+    component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
+
+    impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
+    #[abi(embed_v0)]
+    impl OwnableTwoStepMixinImpl =
+        OwnableComponent::OwnableTwoStepMixinImpl<ContractState>;
 
     impl ReentrancyInternalImpl = ReentrancyGuardComponent::InternalImpl<ContractState>;
     impl UpgradeableInternalImpl = UpgradeableComponent::InternalImpl<ContractState>;
 
     #[storage]
     struct Storage {
-        owner: ContractAddress,
         ekubo_core: ICoreDispatcher,
         zk_market: IMarketDispatcher,
         treasury: ContractAddress,
         is_position_open: bool,
+        #[substorage(v0)]
+        ownable: OwnableComponent::Storage,
         #[substorage(v0)]
         reentrancy_guard: ReentrancyGuardComponent::Storage,
         #[substorage(v0)]
@@ -59,7 +67,7 @@ mod Deposit {
         treasury: ContractAddress
     ) {
         assert(owner.is_non_zero(), 'Owner address is zero');
-        self.owner.write(owner);
+        self.ownable.initializer(owner);
         self.ekubo_core.write(ekubo_core);
         self.zk_market.write(zk_market);
         self.treasury.write(treasury);
@@ -93,7 +101,8 @@ mod Deposit {
         supply_decimals: DecimalScale,
         debt_decimals: DecimalScale
     ) -> u256 {
-        let deposited = ((total_deposited * ZK_SCALE_DECIMALS * supply_token_price.into()) / supply_decimals.into());
+        let deposited = ((total_deposited * ZK_SCALE_DECIMALS * supply_token_price.into())
+            / supply_decimals.into());
         let free_amount = (((deposited * collateral_factor.into() / ZK_SCALE_DECIMALS)
             * borrow_factor.into()
             / ZK_SCALE_DECIMALS))
@@ -121,11 +130,27 @@ mod Deposit {
         repaid_amount: TokenAmount
     }
 
+    #[derive(starknet::Event, Drop)]
+    struct Withdraw {
+        token: ContractAddress,
+        amount: TokenAmount
+    }
+
+    #[derive(starknet::Event, Drop)]
+    struct ExtraDeposit {
+        token: ContractAddress,
+        amount: TokenAmount
+    }
+
     #[event]
     #[derive(Drop, starknet::Event)]
     enum Event {
         LiquidityLooped: LiquidityLooped,
         PositionClosed: PositionClosed,
+        Withdraw: Withdraw,
+        ExtraDeposit: ExtraDeposit,
+        #[flat]
+        OwnableEvent: OwnableComponent::Event,
         #[flat]
         ReentrancyGuardEvent: ReentrancyGuardComponent::Event,
         #[flat]
@@ -165,7 +190,7 @@ mod Deposit {
             pool_price: TokenPrice
         ) {
             let user_account = get_tx_info().unbox().account_contract_address;
-            assert(user_account == self.owner.read(), 'Caller is not the owner');
+            assert(user_account == self.ownable.owner(), 'Caller is not the owner');
             assert(!self.is_position_open.read(), 'Open position already exists');
             let DepositData { token, amount, multiplier, borrow_portion_percent } = deposit_data;
             assert(
@@ -193,7 +218,7 @@ mod Deposit {
                 (false, pool_key.token0, ekubo_limits.lower)
             };
 
-            token_dispatcher.transferFrom(self.owner.read(), curr_contract_address, amount);
+            token_dispatcher.transferFrom(self.ownable.owner(), curr_contract_address, amount);
             let (deposit_reserve_data, debt_reserve_data) = (
                 zk_market.get_reserve_data(token), zk_market.get_reserve_data(borrowing_token)
             );
@@ -201,6 +226,11 @@ mod Deposit {
             let (collateral_factor, borrow_factor) = (
                 deposit_reserve_data.collateral_factor.into(),
                 debt_reserve_data.borrow_factor.into()
+            );
+
+            assert(
+                deposit_reserve_data.enabled && debt_reserve_data.enabled,
+                'Reserves must be enabled'
             );
 
             zk_market.enable_collateral(token);
@@ -293,7 +323,7 @@ mod Deposit {
             debt_price: TokenPrice
         ) {
             assert(
-                get_tx_info().unbox().account_contract_address == self.owner.read(),
+                get_tx_info().unbox().account_contract_address == self.ownable.owner(),
                 'Caller is not the owner'
             );
             assert(self.is_position_open.read(), 'Open position not exists');
@@ -307,6 +337,11 @@ mod Deposit {
             let (collateral_factor, borrow_factor) = (
                 deposit_reserve_data.collateral_factor.into(),
                 debt_reserve_data.borrow_factor.into()
+            );
+
+            assert(
+                deposit_reserve_data.enabled && debt_reserve_data.enabled,
+                'Reserves must be enabled'
             );
 
             let z_token_disp = ERC20ABIDispatcher {
@@ -386,7 +421,7 @@ mod Deposit {
             zk_market.disable_collateral(supply_token);
             self.is_position_open.write(false);
             let withdrawn_amount = token_disp.balanceOf(contract_address);
-            token_disp.transfer(self.owner.read(), withdrawn_amount);
+            token_disp.transfer(self.ownable.owner(), withdrawn_amount);
             self
                 .emit(
                     PositionClosed {
@@ -465,10 +500,11 @@ mod Deposit {
             token_dispatcher.approve(zk_market.contract_address, amount);
             zk_market.enable_collateral(token);
             zk_market.deposit(token, amount.try_into().unwrap());
+            self.emit(ExtraDeposit { token, amount });
             self.reentrancy_guard.end();
         }
 
-        /// Withdraws tokens from zkLend if looped tokens are repaid
+        /// Withdraws tokens from zkLend
         ///
         /// # Panics
         /// address of account that started the transaction is not equal to `owner` storage variable
@@ -477,19 +513,25 @@ mod Deposit {
         /// `token`: TokenAddress - token address to withdraw from zkLend
         /// `amount`: TokenAmount - amount to withdraw. Pass `0` to withdraw all
         fn withdraw(ref self: ContractState, token: ContractAddress, amount: TokenAmount) {
-            assert(get_caller_address() == self.owner.read(), 'Caller is not the owner');
+            self.ownable.assert_only_owner();
             let zk_market = self.zk_market.read();
+
             let token_dispatcher = ERC20ABIDispatcher { contract_address: token };
+            let mut withdrawn_amount = amount;
             if amount == 0 {
+                let current_contract = get_contract_address();
+                let initial_balance = ERC20ABIDispatcher { contract_address: token }
+                    .balanceOf(current_contract);
                 zk_market.withdraw_all(token);
-                token_dispatcher
-                    .transfer(
-                        self.owner.read(), token_dispatcher.balanceOf(get_contract_address())
-                    );
+                let new_balance = ERC20ABIDispatcher { contract_address: token }
+                    .balanceOf(current_contract);
+                withdrawn_amount = new_balance - initial_balance;
+                token_dispatcher.transfer(self.ownable.owner(), new_balance);
             } else {
                 zk_market.withdraw(token, amount.try_into().unwrap());
-                token_dispatcher.transfer(self.owner.read(), amount);
+                token_dispatcher.transfer(self.ownable.owner(), amount);
             };
+            self.emit(Withdraw { token, amount: withdrawn_amount });
         }
     }
 
@@ -520,7 +562,7 @@ mod Deposit {
     impl UpgradeableImpl of IUpgradeable<ContractState> {
         fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
             // This function can only be called by the owner
-            assert(get_caller_address() == self.owner.read(), 'Caller is not the owner');
+            self.ownable.assert_only_owner();
 
             self.upgradeable.upgrade(new_class_hash);
         }
