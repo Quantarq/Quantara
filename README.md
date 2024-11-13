@@ -133,3 +133,18 @@ docker-compose -f docker-compose.dev.yaml up --build
 ```
 docker exec -ti backend_dev python -m web_app.db.seed_data
 ```
+
+
+## How to create migration file:
+Run up docker containers
+```bash
+docker-compose -f docker-compose.dev.yaml up --build
+```
+Go to backend container in new terminal window
+```bash
+docker exec -ti backend_dev bash
+```
+Run command to create migration file
+```bash
+alembic -c web_app/alembic.ini revision --autogenerate -m "migration message"
+```
