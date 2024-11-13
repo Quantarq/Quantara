@@ -2,7 +2,10 @@ use alexandria_math::fast_power::fast_power;
 use core::panic_with_felt252;
 use ekubo::interfaces::core::{ICoreDispatcher, ICoreDispatcherTrait};
 use ekubo::types::keys::{PoolKey};
-use openzeppelin_token::erc20::interface::{ERC20ABIDispatcher, ERC20ABIDispatcherTrait};
+use openzeppelin::access::ownable::interface::{
+    OwnableTwoStepABIDispatcherTrait, OwnableTwoStepABIDispatcher
+};
+use openzeppelin::token::erc20::interface::{ERC20ABIDispatcher, ERC20ABIDispatcherTrait};
 
 use pragma_lib::abi::{IPragmaABIDispatcher, IPragmaABIDispatcherTrait};
 use pragma_lib::types::{AggregationMode, DataType, PragmaPricesResponse};
@@ -263,7 +266,13 @@ fn test_loop_unauthorized() {
             + ERC20ABIDispatcher { contract_address: usdc_addr }.decimals())
             .into()
     );
-    let pool_price = ((1 * ZK_SCALE_DECIMALS * decimals_sum_power.into() / get_asset_price_pragma('ETH/USD').into()) / ZK_SCALE_DECIMALS).try_into().unwrap();
+    let pool_price = ((1
+        * ZK_SCALE_DECIMALS
+        * decimals_sum_power.into()
+        / get_asset_price_pragma('ETH/USD').into())
+        / ZK_SCALE_DECIMALS)
+        .try_into()
+        .unwrap();
 
     let disp = get_deposit_dispatcher(user);
 
@@ -308,7 +317,13 @@ fn test_loop_position_exists() {
         (ERC20ABIDispatcher { contract_address: eth_addr }.decimals() + token_disp.decimals())
             .into()
     );
-    let pool_price = ((1 * ZK_SCALE_DECIMALS * decimals_sum_power.into() / get_asset_price_pragma('ETH/USD').into()) / ZK_SCALE_DECIMALS).try_into().unwrap();
+    let pool_price = ((1
+        * ZK_SCALE_DECIMALS
+        * decimals_sum_power.into()
+        / get_asset_price_pragma('ETH/USD').into())
+        / ZK_SCALE_DECIMALS)
+        .try_into()
+        .unwrap();
     let deposit_disp = get_deposit_dispatcher(user);
     start_cheat_caller_address(usdc_addr.try_into().unwrap(), user);
     token_disp.approve(deposit_disp.contract_address, 60000000);
@@ -429,7 +444,13 @@ fn test_close_position_usdc_valid_time_passed() {
         (ERC20ABIDispatcher { contract_address: eth_addr }.decimals() + token_disp.decimals())
             .into()
     );
-    let pool_price = ((1 * ZK_SCALE_DECIMALS * decimals_sum_power.into() / get_asset_price_pragma('ETH/USD').into()) / ZK_SCALE_DECIMALS).try_into().unwrap();
+    let pool_price = ((1
+        * ZK_SCALE_DECIMALS
+        * decimals_sum_power.into()
+        / get_asset_price_pragma('ETH/USD').into())
+        / ZK_SCALE_DECIMALS)
+        .try_into()
+        .unwrap();
     let deposit_disp = get_deposit_dispatcher(user);
 
     start_cheat_caller_address(usdc_addr.try_into().unwrap(), user);
@@ -500,7 +521,8 @@ fn test_close_position_amounts_cleared() {
         (ERC20ABIDispatcher { contract_address: eth_addr }.decimals() + token_disp.decimals())
             .into()
     );
-    let pool_price = (1 * ZK_SCALE_DECIMALS * decimals_sum_power.into() / quote_token_price.into()) / ZK_SCALE_DECIMALS;
+    let pool_price = (1 * ZK_SCALE_DECIMALS * decimals_sum_power.into() / quote_token_price.into())
+        / ZK_SCALE_DECIMALS;
     let deposit_disp = get_deposit_dispatcher(user);
 
     start_cheat_caller_address(usdc_addr.try_into().unwrap(), user);
@@ -575,7 +597,10 @@ fn test_close_position_partial_debt_utilization() {
         (ERC20ABIDispatcher { contract_address: usdc_addr }.decimals() + token_disp.decimals())
             .into()
     );
-    let quote_token_price = ((1 * ZK_SCALE_DECIMALS * decimals_sum_power.into() / pool_price.into()) / ZK_SCALE_DECIMALS).try_into().unwrap();
+    let quote_token_price = ((1 * ZK_SCALE_DECIMALS * decimals_sum_power.into() / pool_price.into())
+        / ZK_SCALE_DECIMALS)
+        .try_into()
+        .unwrap();
 
     let deposit_disp = get_deposit_dispatcher(user);
 
@@ -651,7 +676,10 @@ fn test_extra_deposit_valid() {
         (ERC20ABIDispatcher { contract_address: eth_addr }.decimals() + token_disp.decimals())
             .into()
     );
-    let pool_price = ((1 * ZK_SCALE_DECIMALS * decimals_sum_power.into() / quote_token_price) / ZK_SCALE_DECIMALS).try_into().unwrap();
+    let pool_price = ((1 * ZK_SCALE_DECIMALS * decimals_sum_power.into() / quote_token_price)
+        / ZK_SCALE_DECIMALS)
+        .try_into()
+        .unwrap();
     let deposit_disp = get_deposit_dispatcher(user);
 
     start_cheat_caller_address(usdc_addr.try_into().unwrap(), user);
@@ -662,7 +690,7 @@ fn test_extra_deposit_valid() {
     deposit_disp
         .loop_liquidity(
             DepositData {
-                token: usdc_addr, amount: 1000000000, multiplier: 4, borrow_portion_percent: 98
+                token: usdc_addr, amount: 1000000000, multiplier: 4, borrow_portion_percent: 95
             },
             pool_key,
             get_slippage_limits(pool_key),
@@ -721,7 +749,10 @@ fn test_extra_deposit_supply_token_close_position_fuzz(extra_amount: u32) {
         (ERC20ABIDispatcher { contract_address: eth_addr }.decimals() + token_disp.decimals())
             .into()
     );
-    let pool_price = 1 * decimals_sum_power.into() / quote_token_price;
+    let pool_price = ((1 * ZK_SCALE_DECIMALS * decimals_sum_power.into() / quote_token_price)
+        / ZK_SCALE_DECIMALS)
+        .try_into()
+        .unwrap();
     let deposit_disp = get_deposit_dispatcher(user);
 
     start_cheat_caller_address(usdc_addr.try_into().unwrap(), user);
@@ -767,7 +798,7 @@ fn test_extra_deposit_supply_token_close_position_fuzz(extra_amount: u32) {
             get_slippage_limits(pool_key),
             95,
             pool_price,
-            quote_token_price
+            quote_token_price.try_into().unwrap()
         );
     stop_cheat_account_contract_address(deposit_disp.contract_address);
 
@@ -810,7 +841,13 @@ fn test_withdraw_valid_fuzz(amount: u32) {
         (ERC20ABIDispatcher { contract_address: eth_addr }.decimals() + token_disp.decimals())
             .into()
     );
-    let pool_price = ((1 * ZK_SCALE_DECIMALS * decimals_sum_power.into() / get_asset_price_pragma('ETH/USD').into()) / ZK_SCALE_DECIMALS).try_into().unwrap();
+    let pool_price = ((1
+        * ZK_SCALE_DECIMALS
+        * decimals_sum_power.into()
+        / get_asset_price_pragma('ETH/USD').into())
+        / ZK_SCALE_DECIMALS)
+        .try_into()
+        .unwrap();
     let deposit_disp = get_deposit_dispatcher(user);
 
     start_cheat_caller_address(usdc_addr.try_into().unwrap(), user);
@@ -1000,4 +1037,49 @@ fn test_withdraw_position_open() {
     start_cheat_caller_address(deposit_disp.contract_address, user);
     deposit_disp.withdraw(eth_addr, 100000000000000);
     stop_cheat_caller_address(deposit_disp.contract_address);
+}
+
+#[test]
+fn test_transfer_ownership_valid() {
+    let user = 0x123.try_into().unwrap();
+    let new_owner = 0x456.try_into().unwrap();
+    let deposit_disp = get_deposit_dispatcher(user);
+    let ownable_disp = OwnableTwoStepABIDispatcher {
+        contract_address: deposit_disp.contract_address
+    };
+    start_cheat_caller_address(deposit_disp.contract_address, user);
+    ownable_disp.transfer_ownership(new_owner);
+    stop_cheat_caller_address(deposit_disp.contract_address);
+
+    start_cheat_caller_address(deposit_disp.contract_address, new_owner);
+    ownable_disp.accept_ownership();
+    stop_cheat_caller_address(deposit_disp.contract_address);
+
+    assert(ownable_disp.owner() == new_owner, 'Owner did not change');
+}
+
+#[test]
+#[should_panic(expected: 'Caller is not the pending owner')]
+fn test_transfer_renounced_ownership() {
+    let user = 0x123.try_into().unwrap();
+    let new_owner = 0x456.try_into().unwrap();
+    let deposit_disp = get_deposit_dispatcher(user);
+    let ownable_disp = OwnableTwoStepABIDispatcher {
+        contract_address: deposit_disp.contract_address
+    };
+    start_cheat_caller_address(deposit_disp.contract_address, user);
+    ownable_disp.transfer_ownership(new_owner);
+    stop_cheat_caller_address(deposit_disp.contract_address);
+
+    assert(ownable_disp.pending_owner() == new_owner, 'Pending owner is incorrect');
+
+    start_cheat_caller_address(deposit_disp.contract_address, user);
+    ownable_disp.transfer_ownership(user);
+    stop_cheat_caller_address(deposit_disp.contract_address);
+
+    start_cheat_caller_address(deposit_disp.contract_address, new_owner);
+    ownable_disp.accept_ownership();
+    stop_cheat_caller_address(deposit_disp.contract_address);
+
+    assert(ownable_disp.owner() == new_owner, 'Owner did not change');
 }

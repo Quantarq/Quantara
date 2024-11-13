@@ -92,7 +92,7 @@ fn test_claim_and_withdraw() {
     let storage_entry_for_hypothetical_owner = array![HYPOTHETICAL_OWNER_ADDR].span();
     store(
         address_eligible_for_zklend_rewards,
-        selector!("owner"),
+        selector!("Ownable_owner"),
         storage_entry_for_hypothetical_owner
     );
 
