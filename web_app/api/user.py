@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()  # Initialize the router
 
 user_db = UserDBConnector()
+
 position_db = PositionDBConnector()
 
 
@@ -42,9 +43,10 @@ async def get_user_contract(wallet_id: str) -> str:
     user = user_db.get_user_by_wallet_id(wallet_id)
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
-    if not user.is_contract_deployed:
+    elif not user.is_contract_deployed:
         raise HTTPException(status_code=404, detail="Contract not deployed")
-    return user.contract_address
+    else:
+        return user.contract_address
 
 
 @router.get(
@@ -69,10 +71,11 @@ async def check_user(wallet_id: str) -> CheckUserResponse:
     user = user_db.get_user_by_wallet_id(wallet_id)
     if user and not user.is_contract_deployed:
         return {"is_contract_deployed": False}
-    if not user:
+    elif not user:
         user_db.create_user(wallet_id)
         return {"is_contract_deployed": False}
-    return {"is_contract_deployed": True}
+    else:
+        return {"is_contract_deployed": True}
 
 
 @router.post(
@@ -100,7 +103,8 @@ async def update_user_contract(
     if user:
         user_db.update_user_contract(user, data.contract_address)
         return {"is_contract_deployed": True}
-    return {"is_contract_deployed": False}
+    else:
+        return {"is_contract_deployed": False}
 
 
 @router.post(
@@ -117,8 +121,8 @@ async def subscribe_to_notification(
     This endpoint subscribes a user to notifications by linking their telegram ID to their wallet.
 
     ### Parameters:
-    - **telegram_id**: The Telegram ID of the user.
-    - **wallet_id**: The wallet ID of the user.
+    - **telegram_id**: The Telegram id of the user.
+    - **wallet_id**: The wallet id of the user.
 
     ### Returns:
     Success status of the subscription.
@@ -156,7 +160,8 @@ async def get_user_contract_address(wallet_id: str) -> GetUserContractAddressRes
     contract_address = user_db.get_contract_address_by_wallet_id(wallet_id)
     if contract_address:
         return {"contract_address": contract_address}
-    return {"contract_address": None}
+    else:
+        return {"contract_address": None}
 
 
 @router.get(
@@ -165,49 +170,49 @@ async def get_user_contract_address(wallet_id: str) -> GetUserContractAddressRes
     summary="Get total opened amounts and number of unique users",
     response_model=GetStatsResponse,
     response_description="Total amount for all open positions across all users & \
-                          Number of unique users in the database.",
+                              Number of unique users in the database.",
 )
-async def get_stats() -> GetStatsResponse:
-    """
-    Retrieves the total amount for open positions converted to USDC
-    and the count of unique users.
-
+async def get_stats() -> GetStatsResponse: 
+    """ 
+    Retrieves the total amount for open positions converted to USDC 
+    and the count of unique users. 
+    
     ### Returns:
-    - total_opened_amount: Sum of amounts for all open positions in USDC.
-    - unique_users: Total count of unique users.
+    - total_opened_amount: Sum of amounts for all open positions in USDC. 
+    - unique_users: Total count of unique users. 
     """
     try:
         # Fetch open positions amounts by token
         token_amounts = position_db.get_total_amounts_for_open_positions()
-
+        
         # Fetch current prices
         current_prices = await DashboardMixin.get_current_prices()
-
+        
         # Convert all token amounts to USDC
         total_opened_amount = Decimal('0')
         for token, amount in token_amounts.items():
             # Skip if no price available for the token
             if token not in current_prices or 'USDC' not in current_prices:
-                logger.warning("No price data available for %s", token)
+                logger.warning(f"No price data available for {token}")
                 continue
-
+            
             # If the token is USDC, use it directly
             if token == 'USDC':
                 total_opened_amount += amount
                 continue
-
+            
             # Convert other tokens to USDC
             # Price is typically in USDC per token
             usdc_price = current_prices[token]
             usdc_equivalent = amount * Decimal(usdc_price)
             total_opened_amount += usdc_equivalent
-
+        
         unique_users = user_db.get_unique_users_count()
         return GetStatsResponse(
-            total_opened_amount=total_opened_amount,
+            total_opened_amount=total_opened_amount, 
             unique_users=unique_users
         )
-
+    
     except Exception as e:
-        logger.error("Error in get_stats: %s", e)
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}") from e
+        logger.error(f"Error in get_stats: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
