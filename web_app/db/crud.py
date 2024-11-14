@@ -512,3 +512,42 @@ class TelegramUserDBConnector(DBConnector):
         user = self.get_user_by_telegram_id(telegram_id)
         if user:
             self.delete_object(user, user.id)
+
+    def set_notification_allowed(
+        self, 
+        telegram_id: str = None, 
+        wallet_id: str = None
+    ) -> TelegramUser:
+        """
+        Toggles or sets is_allowed_notification for a TelegramUser, 
+        creating a new user if none exists.
+        Either telegram_id or wallet_id must be provided.
+        
+        :param telegram_id: str, optional
+        :param wallet_id: str, optional
+        :return: TelegramUser
+        """
+        if not telegram_id and not wallet_id:
+            raise ValueError("Either telegram_id or wallet_id must be provided")
+
+        with self.Session() as session:
+            user = None
+            if telegram_id:
+                user = self.get_user_by_telegram_id(telegram_id)
+            if not user and wallet_id:
+                user = session.query(
+                    TelegramUser
+                ).filter_by(wallet_id=wallet_id).first()
+
+            if user:
+                user.is_allowed_notification = not user.is_allowed_notification
+                session.commit()
+                session.refresh(user)
+                return user
+            else:
+                user_data = {
+                    "telegram_id": telegram_id,
+                    "wallet_id": wallet_id,
+                    "is_allowed_notification": True
+                }
+                return self.create_telegram_user(user_data)

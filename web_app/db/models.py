@@ -108,6 +108,7 @@ class TelegramUser(Base):
     last_name = Column(String)
     wallet_id = Column(String, ForeignKey("user.wallet_id"))
     photo_url = Column(String)
+    is_allowed_notification = Column(Boolean, default=False)
 
     created_at = Column(DateTime, nullable=False, default=func.now())
     updated_at = Column(
