@@ -7,6 +7,7 @@ It also includes routers for the dashboard, position, and user endpoints.
 """
 
 import os
+
 from uuid import uuid4
 
 from fastapi import FastAPI
@@ -17,6 +18,19 @@ from web_app.api.dashboard import router as dashboard_router
 from web_app.api.position import router as position_router
 from web_app.api.user import router as user_router
 from web_app.api.telegram import router as telegram_router
+
+# Initialize Sentry SDK if in production
+if os.getenv("ENV_VERSION") == "PROD":
+    import sentry_sdk
+
+    sentry_sdk.init(
+    dsn=os.getenv("SENTRY_DSN"),
+    traces_sample_rate=1.0,
+    _experiments={
+        "continuous_profiling_auto_start": True,
+    },
+    )
+
 
 app = FastAPI(
     title="SPOTNET API",
