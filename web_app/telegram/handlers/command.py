@@ -4,7 +4,7 @@ This module handles command-related functionality for the Telegram bot.
 It defines the command router and the behavior for the /start command.
 """
 
-from aiogram import Router
+from aiogram import Router, F
 from aiogram.filters import CommandObject, CommandStart
 from aiogram.types import Message
 
@@ -22,7 +22,7 @@ cmd_router = Router()
     CommandStart(
         deep_link=True,
         deep_link_encoded=True,
-        magic=command.args.startswith("subscribe:"),
+        magic=F.args.startswith("subscribe:"),
     )
 )
 async def start_cmd(message: Message, command: CommandObject):
