@@ -32,13 +32,13 @@ export default function Component({ walletId }) {
     {
       title: "Borrow",
       icon: BorrowIcon,
-      balance: "0.00",
+      balance: "0.0",
       currencyName: "USD Coin",
       currencyIcon: UsdIcon,
     },
   ]);
 
-  const [healthFactor, setHealthFactor] = useState("0.00");
+  const [healthFactor, setHealthFactor] = useState("0.0");
   const [startSum, setStartSum] = useState(0);
   const [currentSum, setCurrentSum] = useState(0);
 
