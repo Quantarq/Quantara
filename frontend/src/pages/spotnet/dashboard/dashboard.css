@@ -170,20 +170,34 @@ body {
   font-size: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  width: 594px;
+  height: 190px;
+  padding: 24px;
 }
 
 .balance-label {
-  color: #8b8a91;
+  color: #9AA7B4;
 }
 
 .balance-value {
   color: white;
+  margin-left: 2px;
 }
 
 .balance-value.negative {
   color: rgba(255, 53, 211, 1);
 }
+
+.current-sum-white {
+  color: white;
+}
+
+.currency-symbol {
+  margin-right: 4px; 
+  font-size: inherit; 
+  color: inherit; 
+}
+
 
 .redeem-button {
   width: 100%;
@@ -237,11 +251,11 @@ body {
 }
 
 .current-sum-green {
-  color: #00ff00; 
+  color: #60AF77; 
   font-weight: bold;
 }
 
 .current-sum-red {
-  color: #ff0000; 
+  color: #F42222; 
   font-weight: bold;
 }

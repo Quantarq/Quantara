@@ -6,7 +6,7 @@ import { ReactComponent as HealthIcon } from "assets/icons/health.svg";
 import { ReactComponent as CollateralIcon } from "assets/icons/collateral_dynamic.svg";
 import { ReactComponent as BorrowIcon } from "assets/icons/borrow_dynamic.svg";
 import { ReactComponent as TelegramIcon } from "assets/icons/telegram_dashboard.svg";
-import { TrendingDown } from 'lucide-react';
+import { TrendingDown, TrendingUp } from "lucide-react";
 import Spinner from "components/spinner/Spinner";
 import { ZETH_ADDRESS } from "utils/constants";
 import useDashboardData from "hooks/useDashboardData";
@@ -32,7 +32,7 @@ export default function Component({ walletId }) {
     {
       title: "Borrow",
       icon: BorrowIcon,
-      balance: "2.00",
+      balance: "0.00",
       currencyName: "USD Coin",
       currencyIcon: UsdIcon,
     },
@@ -48,20 +48,20 @@ export default function Component({ walletId }) {
         console.error("getData: walletId is undefined");
         return;
       }
-  
+
       if (!data || !data.zklend_position) {
         console.error("Data is missing or incorrectly formatted");
         return;
       }
-  
+
       if (data.zklend_position.products) {
         const positions = data.zklend_position.products[0].positions || [];
         const healthRatio = data.zklend_position.products[0].health_ratio;
-  
+
         const updatedCardData = positions.map((position, index) => {
           const isFirstCard = index === 0;
           const tokenAddress = position.tokenAddress;
-  
+
           if (isFirstCard) {
             const isEthereum = tokenAddress === ZETH_ADDRESS;
             const balance = parseFloat(
@@ -69,7 +69,7 @@ export default function Component({ walletId }) {
             );
             setCurrentSum(data.current_sum);
             setStartSum(data.start_sum);
-  
+
             return {
               title: "Collateral & Earnings",
               icon: CollateralIcon,
@@ -78,7 +78,7 @@ export default function Component({ walletId }) {
               currencyIcon: isEthereum ? EthIcon : BorrowIcon,
             };
           }
-  
+
           return {
             title: "Borrow",
             icon: BorrowIcon,
@@ -87,15 +87,15 @@ export default function Component({ walletId }) {
             currencyIcon: UsdIcon,
           };
         });
-  
+
         setCardData(updatedCardData);
         setHealthFactor(healthRatio);
       }
     };
-  
+
     getData();
   }, [walletId, data]);
-  
+
   const getCurrentSumColor = () => {
     if (currentSum > startSum) return "current-sum-green";
     if (currentSum < startSum) return "current-sum-red";
@@ -114,15 +114,20 @@ export default function Component({ walletId }) {
               <HealthIcon className="icon" />
               <span className="label">Health Factor</span>
             </div>
-            <div className="card-value">{healthFactor}</div>
+            <div className="card-value">
+              {healthFactor}
+            </div>
           </div>
 
           <div className="card">
             <div className="card-header">
-              <EthIcon className="icon"/>
+              <EthIcon className="icon" />
               <span className="label">Borrow Balance</span>
             </div>
-            <div className="card-value">${cardData[1].balance}</div>
+            <div className="card-value">
+              <span className="currency-symbol">$</span>
+              {cardData[1].balance}
+            </div>
           </div>
         </div>
 
@@ -146,49 +151,73 @@ export default function Component({ walletId }) {
               Borrow
             </button>
             <div className="tab-indicator-container">
-              <div className={`tab-indicator ${isCollateralActive ? 'collateral' : 'borrow'}`} />
+              <div
+                className={`tab-indicator ${isCollateralActive ? "collateral" : "borrow"}`}
+              />
             </div>
           </div>
 
           {isCollateralActive ? (
             <div className="tab-content">
-              <div className="currency-info">
-                {React.createElement(cardData[0].currencyIcon, { className: "icon" })}
-                <span className="currency-name">{cardData[0].currencyName}</span>
-              </div>
-
               <div className="balance-info">
+                <div className="currency-info">
+                  {React.createElement(cardData[0].currencyIcon, { className: "icon" })}
+                  <span className="currency-name">{cardData[0].currencyName}</span>
+                </div>
                 <span>
                   <span className="balance-label">Balance: </span>
-                  <span className="balance-value">${cardData[0].balance}</span>
+                  <span className="balance-value">
+                    {cardData[0].balance}
+                  </span>
                 </span>
                 <span>
                   <span className="balance-label">Start sum: </span>
-                  <span className="balance-value">${startSum}</span>
+                  <span className="balance-value">
+                    <span className="currency-symbol">$</span>
+                    {startSum}
+                  </span>
                 </span>
                 <span>
                   <span className="balance-label">Current sum: </span>
-                  <span className={getCurrentSumColor()}>
-                    ${currentSum}
+                  <span
+                    className={
+                      currentSum === 0 ? "current-sum-white" : getCurrentSumColor()
+                    }
+                  >
+                    <span className="currency-symbol">$</span>
+                    {currentSum}
+                    {currentSum > startSum && currentSum !== 0 && (
+                      <TrendingUp
+                        color="#60AF77"
+                        size={23}
+                        style={{ marginLeft: "8px" }}
+                      />
+                    )}
+                    {currentSum < startSum && currentSum !== 0 && (
+                      <TrendingDown
+                        color="#F42222"
+                        size={22}
+                        style={{ marginLeft: "8px" }}
+                      />
+                    )}
                   </span>
-                  {currentSum < startSum && (
-                    <TrendingDown
-                      color="red"
-                      size={22}
-                      style={{ marginLeft: "8px" }}
-                    />
-                  )}
                 </span>
               </div>
             </div>
           ) : (
             <div className="tab-content">
-              <div className="currency-info">
-                {React.createElement(cardData[1].currencyIcon, { className: "icon" })}
-                <span className="currency-name">{cardData[1].currencyName}</span>
+              <div className="balance-info">
+                <div className="currency-info">
+                  {React.createElement(cardData[1].currencyIcon, { className: "icon" })}
+                  <span className="currency-name">{cardData[1].currencyName}</span>
+                </div>
+                <span>
+                  <span className="balance-label">Balance: </span>
+                  <span className="balance-value">
+                    {cardData[1].balance}
+                  </span>
+                </span>
               </div>
-
-              <span className="balance-value">Balance: ${cardData[1].balance}</span>
             </div>
           )}
         </div>
@@ -200,9 +229,7 @@ export default function Component({ walletId }) {
         >
           {isClosing ? "Closing..." : "Redeem"}
         </button>
-        {closePositionError && (
-          <div>Error: {closePositionError.message}</div>
-        )}
+        {closePositionError && <div>Error: {closePositionError.message}</div>}
 
         <button className="telegram-button">
           <TelegramIcon className="tab-icon" />
