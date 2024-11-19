@@ -127,5 +127,5 @@ class PositionCreationTest:
         ), "Position status should be 'opened' after updating"
         print(f"Position {position.id} successfully opened.")
 
-        position_db.delete_position(position.id)
+        position_db.delete_position(position)
         position_db.delete_user_by_wallet_id(wallet_id)
