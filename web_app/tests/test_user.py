@@ -2,12 +2,13 @@
 This module contains the tests for the user endpoints.
 """
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from web_app.api.serializers.transaction import UpdateUserContractRequest
 from web_app.tests.conftest import client, mock_user_db_connector
+from web_app.api.serializers.user import SubscribeToNotificationResponse
 
 
 @pytest.mark.asyncio
@@ -180,3 +181,81 @@ async def test_get_user_contract_address(
 
     contract_address = response_json.get("contract_address")
     assert str(contract_address) == str(expected_contract_address)
+
+
+@pytest.mark.asyncio
+@patch("web_app.db.crud.TelegramUserDBConnector.allow_notification")
+@patch("web_app.db.crud.UserDBConnector.get_user_by_wallet_id")
+@pytest.mark.parametrize(
+    "telegram_id, wallet_id, expected_status_code, expected_response, is_allowed_notification",
+    [
+        (
+            "123456789",
+            "0x27994c503bd8c32525fbdaf9d398bdd4e86757988c64581b055a06c5955ea49",
+            200,
+            {"detail": "User subscribed to notifications successfully"},
+            True,
+        ),
+        ("123456789", "invalid_wallet_id", 404, {"detail": "User not found"}, False),
+        (
+            None,
+            "0x27994c503bd8c32525fbdaf9d398bdd4e86757988c64581b055a06c5955ea49",
+            422,
+            None,
+            False,
+        ),
+    ],
+)
+async def test_subscribe_to_notification(
+    mock_get_user_by_wallet_id: MagicMock,
+    mock_allow_notification: MagicMock,
+    client,
+    telegram_id: str,
+    wallet_id: str,
+    expected_status_code: int,
+    expected_response: dict | None,
+    is_allowed_notification: bool,
+) -> None:
+    """
+    Test subscribe_to_notification endpoint with both positive and negative cases.
+
+    :param client: fastapi.testclient.TestClient
+    :param mock_get_user_by_wallet_id: unittest.mock.MagicMock for get_user_by_wallet_id
+    :param mock_allow_notification: unittest.mock.MagicMock for allow_notification
+    :param telegram_id: str[Telegram ID of the user]
+    :param wallet_id: str[Wallet ID of the user]
+    :param expected_status_code: int[Expected HTTP status code]
+    :param expected_response: dict | None[Expected JSON response]
+    :return: None
+    """
+    # Define the behavior of the mocks
+    mock_allow_notification.return_value = is_allowed_notification
+
+    if wallet_id == "invalid_wallet_id":
+        mock_get_user_by_wallet_id.return_value = None
+    else:
+        mock_get_user_by_wallet_id.return_value = {"wallet_id": wallet_id}
+
+    if telegram_id and wallet_id:
+        data = {
+            "telegram_id": telegram_id,
+            "wallet_id": wallet_id,
+        }
+    else:
+        data = {"telegram_id": telegram_id, "wallet_id": wallet_id}
+
+    response = client.post(
+        url="/api/subscribe-to-notification",
+        json=data,
+    )
+    response_json = response.json()
+    assert response.status_code == expected_status_code
+
+    if expected_response:
+        assert response_json == expected_response
+    elif expected_status_code == 422:
+        assert "detail" in response_json
+        assert isinstance(response_json["detail"], list)
+    elif expected_status_code == 404:
+        assert "detail" in response_json
+        assert response_json["detail"] == "User not found"
