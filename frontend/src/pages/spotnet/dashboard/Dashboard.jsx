@@ -7,6 +7,7 @@ import { ReactComponent as HealthIcon } from "assets/icons/health.svg";
 import { ReactComponent as CollateralIcon } from "assets/icons/collateral_dynamic.svg";
 import { ReactComponent as BorrowIcon } from "assets/icons/borrow_dynamic.svg";
 import { ReactComponent as TelegramIcon } from "assets/icons/telegram_dashboard.svg";
+import { TrendingDown } from "lucide-react";
 import Spinner from "components/spinner/Spinner";
 import useDashboardData from "hooks/useDashboardData";
 import { useClosePosition } from "hooks/useClosePosition";
@@ -38,7 +39,7 @@ export default function Component({ walletId }) {
   ]);
   const [healthFactor, setHealthFactor] = useState("0.00");
   const [startSum, setStartSum] = useState(2);
-  const [currentSum, setCurrentSum] = useState(4);
+  const [currentSum, setCurrentSum] = useState(1);
 
   useEffect(() => {
     const getData = async () => {
@@ -61,7 +62,7 @@ export default function Component({ walletId }) {
           const tokenAddress = position.tokenAddress;
 
           if (isFirstCard) {
-            const isEthereum = tokenAddress === "ZETH_ADDRESS"; 
+            const isEthereum = tokenAddress === "ZETH_ADDRESS"; // Replace with actual ZETH_ADDRESS constant
             const balance = parseFloat(position.totalBalances[Object.keys(position.totalBalances)[0]]);
             setCurrentSum(data.current_sum);
             setStartSum(data.start_sum);
@@ -103,7 +104,6 @@ export default function Component({ walletId }) {
       <div className="dashboard-container">
         <h1 className="dashboard-title">zkLend Position</h1>
 
-        {/* Top Cards */}
         <div className="top-cards">
           <div className="card">
             <div className="card-header">
@@ -122,7 +122,6 @@ export default function Component({ walletId }) {
           </div>
         </div>
 
-        {/* Main Card */}
         <div className="main-card">
           <div className="tabs">
             <button
@@ -157,7 +156,17 @@ export default function Component({ walletId }) {
                 <span>Balance: $0.00</span>
                 <span>Start sum: ${startSum}</span>
                 <span>
-                  Current sum: <text className={getCurrentSumColor()}>${currentSum}</text>
+                  Current sum:{" "}
+                  <span className={getCurrentSumColor()}>
+                    ${currentSum}
+                  </span>
+                  {currentSum < startSum && (
+                    <TrendingDown
+                      color="red"
+                      size={22}
+                      style={{ marginLeft: "8px" }}
+                    />
+                  )}
                 </span>
               </div>
             </div>
@@ -172,7 +181,6 @@ export default function Component({ walletId }) {
           )}
         </div>
 
-        {/* Buttons */}
         <button
           className="redeem-button"
           onClick={() => closePositionEvent()}
@@ -180,7 +188,9 @@ export default function Component({ walletId }) {
         >
           {isClosing ? "Closing..." : "Redeem"}
         </button>
-        {closePositionError && <div>Error: {closePositionError.message}</div>}
+        {closePositionError && (
+          <div>Error: {closePositionError.message}</div>
+        )}
 
         <button className="telegram-button">
           <TelegramIcon className="tab-icon" />
