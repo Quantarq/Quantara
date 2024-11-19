@@ -1,3 +1,22 @@
+"""
+Module: Position Creation Tests
+
+This module contains integratin tests for the creation and management
+of user positions within the webapp
+
+Key Components:
+- **TestClient**: Simulates API requests.
+- **PositionDBConnector**: Manages database operations for positions.
+- **DepositMixin**: Processes transaction data.
+- **DashboardMixin**: Retrieves current token prices.
+
+Test Class:
+- **PositionCreationTest**: Validates position workflows:
+  1. Fetching transaction data.
+  2. Creating and verifying positions.
+  3. Updating position statuses.
+"""
+
 import pytest
 from fastapi.testclient import TestClient
 from typing import Dict, Any
@@ -23,7 +42,7 @@ class PositionCreationTest:
     5. Update position status and validate changes.
     """
 
-    mock_user_1: Dict[str, Any] = {
+    form_data_1: Dict[str, Any] = {
         "wallet_id": "0x011F0c180b9EbB2B3F9601c41d65AcA110E48aec0292c778f41Ae286C78Cc374",
         "token_symbol": "STRK",
         "amount": "2",
@@ -31,7 +50,7 @@ class PositionCreationTest:
         "borrowing_token": "STRK",
     }
 
-    mock_user_2: Dict[str, Any] = {
+    form_data_2: Dict[str, Any] = {
         "wallet_id": "id",
         "token_symbol": "ETH",
         "amount": "5",
@@ -39,7 +58,7 @@ class PositionCreationTest:
         "borrowing_token": "STRK",
     }
 
-    mock_user_3: Dict[str, Any] = {
+    form_data_3: Dict[str, Any] = {
         "wallet_id": "id",
         "token_symbol": "USDC",
         "amount": "1",
@@ -47,20 +66,20 @@ class PositionCreationTest:
         "borrowing_token": "ETH",
     }
 
-    @pytest.mark.parametrize("mock_user", [mock_user_1, mock_user_2, mock_user_3])
-    def test_create_position(self, mock_user: Dict[str, Any]) -> None:
+    @pytest.mark.parametrize("form_data", [form_data_1, form_data_2, form_data_3])
+    def test_create_position(self, form_data: Dict[str, Any]) -> None:
         """
         Args:
-            mock_user (Dict[str, Any]): Position data.
+        form_data (Dict[str, Any]): Position data.
 
         Returns:
             None
         """
-        wallet_id = mock_user["wallet_id"]
-        token_symbol = mock_user["token_symbol"]
-        amount = mock_user["amount"]
-        multiplier = mock_user["multiplier"]
-        borrowing_token = mock_user["borrowing_token"]
+        wallet_id = form_data["wallet_id"]
+        token_symbol = form_data["token_symbol"]
+        amount = form_data["amount"]
+        multiplier = form_data["multiplier"]
+        borrowing_token = form_data["borrowing_token"]
 
         position_db.create_user(wallet_id)
 
