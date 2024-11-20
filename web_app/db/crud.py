@@ -204,7 +204,29 @@ class UserDBConnector(DBConnector):
             except SQLAlchemyError as e:
                 logger.error(f"Failed to retrieve unique users count: {str(e)}")
                 return 0
-
+    
+    def delete_user_by_wallet_id(self, wallet_id: str) -> None:
+        """
+        Deletes a user from the database by their wallet ID.
+        Rolls back the transaction if the operation fails.
+        
+        :param wallet_id: str
+        :return: None
+        :raises SQLAlchemyError: If the operation fails
+        """
+        with self.Session() as session:
+            try:
+                user = session.query(User).filter(User.wallet_id == wallet_id).first()
+                if user:
+                    session.delete(user)
+                    session.commit()
+                    logger.info(f"User with wallet_id {wallet_id} deleted successfully.")
+                else:
+                    logger.warning(f"No user found with wallet_id {wallet_id}.")
+            except SQLAlchemyError as e:
+                session.rollback()
+                logger.error(f"Failed to delete user with wallet_id {wallet_id}: {e}")
+                raise e
 
 class PositionDBConnector(UserDBConnector):
     """
