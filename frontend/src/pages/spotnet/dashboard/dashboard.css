@@ -98,6 +98,7 @@ body {
   border-radius: 48px;
   width: 642px;
   height: 318px;
+  padding: 16px 24px 16px 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -190,6 +191,7 @@ body {
 }
 
 .currency-info {
+  margin-top: 1rem;
   display: flex;
   align-items: center;
 }
@@ -200,12 +202,13 @@ body {
 }
 
 .balance-info {
-  font-size: 1rem;
+  font-size: 16px;
   gap: 8px;
   display: flex;
   flex-direction: column;
   width: 594px;
   height: 190px;
+  margin-top: 12px;
 }
 
 .label {
