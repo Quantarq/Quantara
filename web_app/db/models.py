@@ -5,20 +5,22 @@ table in the database and defines the structure and relationships
 between the data entities.
 """
 
+from enum import Enum as PyEnum
 from uuid import uuid4
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.sql import func
+
 from sqlalchemy import (
     DECIMAL,
-    Column,
-    String,
     Boolean,
-    Integer,
-    ForeignKey,
+    Column,
     DateTime,
     Enum,
+    ForeignKey,
+    Integer,
+    String,
 )
-from enum import Enum as PyEnum
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.sql import func
+
 from web_app.db.database import Base
 
 
@@ -110,6 +112,25 @@ class TelegramUser(Base):
     photo_url = Column(String)
     is_allowed_notification = Column(Boolean, default=False)
 
+    created_at = Column(DateTime, nullable=False, default=func.now())
+    updated_at = Column(
+        DateTime, nullable=False, default=func.now(), onupdate=func.now()
+    )
+
+
+class Vault(Base):
+    """
+    SQLAlchemy model for the vault table.
+    """
+
+    __tablename__ = "vault"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("user.id"), index=True, nullable=False
+    )
+    symbol = Column(String)
+    amount = Column(String)
     created_at = Column(DateTime, nullable=False, default=func.now())
     updated_at = Column(
         DateTime, nullable=False, default=func.now(), onupdate=func.now()
