@@ -8,12 +8,12 @@ from datetime import datetime
 from decimal import Decimal
 from typing import List, Type, TypeVar
 
-from sqlalchemy import create_engine, update, func, cast, Numeric
+from sqlalchemy import Numeric, cast, create_engine, func, update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from web_app.db.database import SQLALCHEMY_DATABASE_URL
-from web_app.db.models import AirDrop, Base, Position, Status, User, TelegramUser
+from web_app.db.models import AirDrop, Base, Position, Status, TelegramUser, User, Vault
 
 logger = logging.getLogger(__name__)
 ModelType = TypeVar("ModelType", bound=Base)
@@ -89,7 +89,6 @@ class DBConnector:
         finally:
             db.close()
 
-
     def delete_object(self, model: Type[Base] = None, obj_id: uuid = None) -> None:
         """
         Delete an object by its ID from the database. Rolls back if the operation fails.
@@ -135,7 +134,7 @@ class UserDBConnector(DBConnector):
         """
         Retrieves all users with an OPENED position status from the database.
         First queries Position table for OPENED positions, then gets the associated users.
-        
+
         :return: List[User]
         """
         with self.Session() as db:
@@ -159,7 +158,7 @@ class UserDBConnector(DBConnector):
         :return: User | None
         """
         return self.get_object_by_field(User, "wallet_id", wallet_id)
-    
+
     def get_contract_address_by_wallet_id(self, wallet_id: str) -> str:
         """
         Retrieves the contract address of a user by their wallet ID.
@@ -204,12 +203,12 @@ class UserDBConnector(DBConnector):
             except SQLAlchemyError as e:
                 logger.error(f"Failed to retrieve unique users count: {str(e)}")
                 return 0
-    
+
     def delete_user_by_wallet_id(self, wallet_id: str) -> None:
         """
         Deletes a user from the database by their wallet ID.
         Rolls back the transaction if the operation fails.
-        
+
         :param wallet_id: str
         :return: None
         :raises SQLAlchemyError: If the operation fails
@@ -220,13 +219,16 @@ class UserDBConnector(DBConnector):
                 if user:
                     session.delete(user)
                     session.commit()
-                    logger.info(f"User with wallet_id {wallet_id} deleted successfully.")
+                    logger.info(
+                        f"User with wallet_id {wallet_id} deleted successfully."
+                    )
                 else:
                     logger.warning(f"No user found with wallet_id {wallet_id}.")
             except SQLAlchemyError as e:
                 session.rollback()
                 logger.error(f"Failed to delete user with wallet_id {wallet_id}: {e}")
                 raise e
+
 
 class PositionDBConnector(UserDBConnector):
     """
@@ -433,12 +435,12 @@ class PositionDBConnector(UserDBConnector):
             logger.error(f"Position with ID {position_id} not found")
             return None
 
-    def get_total_amounts_for_open_positions(self) -> dict[str, Decimal]: 
-        """ 
-        Calculates the amounts for all positions where status is 'OPENED', 
-        grouped by token symbol. 
-        
-        :return: Dictionary of total amounts for each token in opened positions 
+    def get_total_amounts_for_open_positions(self) -> dict[str, Decimal]:
+        """
+        Calculates the amounts for all positions where status is 'OPENED',
+        grouped by token symbol.
+
+        :return: Dictionary of total amounts for each token in opened positions
         """
         with self.Session() as db:
             try:
@@ -446,7 +448,7 @@ class PositionDBConnector(UserDBConnector):
                 token_amounts = (
                     db.query(
                         Position.token_symbol,
-                        func.sum(cast(Position.amount, Numeric)).label('total_amount')
+                        func.sum(cast(Position.amount, Numeric)).label("total_amount"),
                     )
                     .filter(Position.status == Status.OPENED.value)
                     .group_by(Position.token_symbol)
@@ -454,7 +456,7 @@ class PositionDBConnector(UserDBConnector):
                 )
                 # Convert to dictionary
                 return {token: Decimal(str(amount)) for token, amount in token_amounts}
-            
+
             except SQLAlchemyError as e:
                 logger.error(f"Error calculating amounts for open positions: {e}")
                 return {}
@@ -584,15 +586,13 @@ class TelegramUserDBConnector(DBConnector):
             self.delete_object(user, user.id)
 
     def set_notification_allowed(
-        self, 
-        telegram_id: str = None, 
-        wallet_id: str = None
+        self, telegram_id: str = None, wallet_id: str = None
     ) -> TelegramUser:
         """
-        Toggles or sets is_allowed_notification for a TelegramUser, 
+        Toggles or sets is_allowed_notification for a TelegramUser,
         creating a new user if none exists.
         Either telegram_id or wallet_id must be provided.
-        
+
         :param telegram_id: str, optional
         :param wallet_id: str, optional
         :return: TelegramUser
@@ -605,9 +605,9 @@ class TelegramUserDBConnector(DBConnector):
             if telegram_id:
                 user = self.get_user_by_telegram_id(telegram_id)
             if not user and wallet_id:
-                user = session.query(
-                    TelegramUser
-                ).filter_by(wallet_id=wallet_id).first()
+                user = (
+                    session.query(TelegramUser).filter_by(wallet_id=wallet_id).first()
+                )
 
             if user:
                 user.is_allowed_notification = not user.is_allowed_notification
@@ -618,25 +618,94 @@ class TelegramUserDBConnector(DBConnector):
                 user_data = {
                     "telegram_id": telegram_id,
                     "wallet_id": wallet_id,
-                    "is_allowed_notification": True
+                    "is_allowed_notification": True,
                 }
                 return self.create_telegram_user(user_data)
-            
+
     def allow_notification(self, telegram_id: int) -> bool:
         """
         Update is_allowed_notification field to True for a specific telegram user
-        
+
         Args:
             telegram_id: Telegram user ID
-            
+
         Raises:
             ValueError: If the user with the given telegram_id is not found
         """
         with self.Session() as session:
-            user = session.query(TelegramUser).filter_by(telegram_id=telegram_id).first()
+            user = (
+                session.query(TelegramUser).filter_by(telegram_id=telegram_id).first()
+            )
             if not user:
                 raise ValueError(f"User with telegram_id {telegram_id} not found")
-            
+
             user.is_allowed_notification = True
             session.commit()
             return True
+
+
+class DepositDBConnector(DBConnector):
+    """
+    Provides database connection and operations management for the Vault model.
+    """
+
+    def create_vault(self, user: User, symbol: str, amount: str) -> Vault:
+        """
+        Creates a new vault instance
+
+        :param user: A user model instance
+        :param symbol: Token symbol or address
+        :param amount: An amount in string
+
+        :return: Vault
+        """
+        vault = Vault(user_id=user.id, symbol=symbol, amount=amount)
+        self.write_to_db(vault)
+        return vault
+
+    def get_vault(self, wallet_id: str, symbol: str) -> Vault | None:
+        """
+        Gets a user vault instance for a symbol
+
+        :param wallet_id: Wallet id of user
+        :param symbol: Token symbol or address
+
+        :return: Vault or None
+        """
+        with self.Session() as db:
+            user = self.get_object_by_field(User, "wallet_id", wallet_id)
+            if not user:
+                logger.error(f"User with wallet id {wallet_id} not found")
+                return None
+            vault = db.query(Vault).filter_by(user_id=user.id, symbol=symbol).first()
+        return vault
+
+    def add_vault_balance(self, wallet_id: str, symbol: str, amount: str) -> None:
+        """
+        Adds balance to user vault for token symbol
+
+        :param wallet_id: Wallet id of user
+        :param symbol: Token symbol or address
+        :param amount: An amount in string
+
+        :return: None
+        """
+        vault = self.get_vault(wallet_id, symbol)
+        if not vault:
+            return
+        with self.Session() as db:
+            new_amount = Decimal(vault.amount) + Decimal(amount)
+            db.query(Vault).filter_by(id=vault.id).update(amount=str(new_amount))
+            db.commit()
+
+    def get_vault_balance(self, wallet_id: str, symbol: str) -> str | None:
+        """
+        Get the balance of a vault for a particular token symbol
+
+        :param wallet_id: The wallet id of the user
+        :param symbol: Token symbol or address
+
+        :returns: str or None
+        """
+        vault = self.get_vault(wallet_id, symbol)
+        return vault.amount if vault else None
