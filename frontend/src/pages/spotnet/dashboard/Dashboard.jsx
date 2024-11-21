@@ -1,60 +1,60 @@
-import React, { useEffect, useState } from 'react';
-import { ReactComponent as Star } from 'assets/particles/star.svg';
-import { ReactComponent as CollateralIcon } from 'assets/icons/collateral.svg';
-import { ReactComponent as EthIcon } from 'assets/icons/ethereum.svg';
-import { ReactComponent as UsdIcon } from 'assets/icons/usd_coin.svg';
-import { ReactComponent as BorrowIcon } from 'assets/icons/borrow.svg';
+import React, { useEffect, useState } from "react";
+import "./dashboard.css";
+import { ReactComponent as EthIcon } from "assets/icons/ethereum.svg";
 import { ReactComponent as StrkIcon } from 'assets/icons/strk.svg';
-import { ZETH_ADDRESS } from 'utils/constants';
-import Spinner from 'components/spinner/Spinner';
-import './dashboard.css';
-import useDashboardData from '../../../hooks/useDashboardData';
-import { useClosePosition } from 'hooks/useClosePosition';
+import { ReactComponent as UsdIcon } from "assets/icons/usd_coin.svg";
+import { ReactComponent as HealthIcon } from "assets/icons/health.svg";
+import { ReactComponent as CollateralIcon } from "assets/icons/collateral_dynamic.svg";
+import { ReactComponent as BorrowIcon } from "assets/icons/borrow_dynamic.svg";
+import { ReactComponent as TelegramIcon } from "assets/icons/telegram_dashboard.svg";
+import { TrendingDown, TrendingUp } from "lucide-react";
+import Spinner from "components/spinner/Spinner";
+import { ZETH_ADDRESS } from "utils/constants";
+import useDashboardData from "hooks/useDashboardData";
+import { useClosePosition } from "hooks/useClosePosition";
 
-const Dashboard = ({ walletId }) => {
-  const { data, isLoading, error } = useDashboardData(walletId);
+export default function Component({ walletId }) {
+  const [isCollateralActive, setIsCollateralActive] = useState(true);
+  const { data, isLoading } = useDashboardData(walletId);
   const { mutate: closePositionEvent, isLoading: isClosing, error: closePositionError } = useClosePosition(walletId);
 
   const [cardData, setCardData] = useState([
     {
-      title: 'Collateral & Earnings',
+      title: "Collateral & Earnings",
       icon: CollateralIcon,
-      balance: '0.00',
-      currencyName: 'Ethereum',
+      balance: "0.00",
+      currencyName: "Ethereum",
       currencyIcon: EthIcon,
     },
     {
-      title: 'Borrow',
+      title: "Borrow",
       icon: BorrowIcon,
-      balance: '0.00',
-      currencyName: 'USD Coin',
+      balance: "0.0",
+      currencyName: "USD Coin",
       currencyIcon: UsdIcon,
     },
   ]);
-  const [healthFactor, setHealthFactor] = useState('0.00');
+
+  const [healthFactor, setHealthFactor] = useState("0.00");
   const [startSum, setStartSum] = useState(0);
   const [currentSum, setCurrentSum] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const starData = [
-    { top: 1, left: 0, size: 1.5 },
-    { top: 75, left: 35, size: 2.5 },
-    { top: -2, left: 94, size: 5.5 },
-  ];
 
   useEffect(() => {
     const getData = async () => {
       if (!walletId) {
-        console.error('getData: walletId is undefined');
+        console.error("getData: walletId is undefined");
         setLoading(false);
         return;
       }
 
       if (!data || !data.zklend_position) {
-        console.error('Data is missing or incorrectly formatted');
+        console.error("Data is missing or incorrectly formatted");
         setLoading(false);
         return;
       }
+
       if (data && data.zklend_position && data.zklend_position.products) {
         const positions = data.zklend_position.products[0].positions || [];
         const healthRatio = data.zklend_position.products[0].health_ratio;
@@ -95,89 +95,148 @@ const Dashboard = ({ walletId }) => {
     };
 
     getData();
-  }, [walletId, data, isLoading, error]);
+  }, [walletId, data, isLoading]);
 
   const getCurrentSumColor = () => {
-    if (startSum === currentSum) return '';
-    return currentSum < startSum ? 'current-sum-red' : 'current-sum-green';
+    if (currentSum > startSum) return "current-sum-green";
+    if (currentSum < startSum) return "current-sum-red";
+    return "";
   };
 
   return (
-    <div className="dashboard-container position-relative container">
-      {loading && <Spinner loading={loading} />}
-
-      {starData.map((star, index) => (
-        <Star
-          key={index}
-          className="dashboard-star"
-          style={{
-            '--star-top': `${star.top}%`,
-            '--star-left': `${star.left}%`,
-            '--star-size': `${star.size}%`,
-          }}
-        />
-      ))}
-      <div className="position-relative">
-        <div className="background-gradient"></div>
-        <div className="background-gradient"></div>
-      </div>
-      <h1 className="text-white text-center zkLend-text">zkLend Position</h1>
-      <div className="card card-health-factor mx-auto d-flex flex-column align-items-center justify-content-center card-shadow">
-        <div className="bg-custom-health d-flex align-items-center px-4 py-3 rounded bg-card-health">
-          <span className="dashboard-text-color health-text-size">Health factor:</span>
-          <span className="text-white text-style">{healthFactor}</span>
-        </div>
-      </div>
-      <div className="mb-4 d-flex flex-row justify-content-center cards-custom">
-        {cardData.map((card, index) => (
-          <div key={index} className="card card-custom-styles d-flex flex-column align-item-center card-shadow">
-            <header className="card-header bg-custom-color text-light text-center card-shadow">
-              <div className="d-flex align-items-center justify-content-center">
-                <card.icon className="card-icons rounded-circle" />
-                <h1
-                  className={`ms-2 icon-text-gap mb-0 text-style ${card.title === 'Borrow' ? 'borrow-text' : 'collateral-text'}`}
-                >
-                  {card.title}
-                </h1>
+    <div className="dashboard-wrapper">
+      <div className="dashboard-container">
+        {loading && <Spinner loading={loading} />}
+        <h1 className="dashboard-title">zkLend Position</h1>
+        <div className="main-container">
+          <div className="top-cards">
+            <div className="card">
+              <div className="card-header">
+                <HealthIcon className="icon" />
+                <span className="label">Health Factor</span>
               </div>
-            </header>
-            <div className="card-body card-body-custom">
-              <div className="d-flex flex-column align-items-center bg-custom-color rounded">
-                <div className="d-flex align-items-center mb-3">
-                  <card.currencyIcon className="card-icons rounded-circle" />
-                  <span className="ms-2 icon-text-gap text-style">{card.currencyName}</span>
-                </div>
-                <div className="d-flex align-items-center">
-                  <span className="dashboard-text-color balance-text-size">Balance:</span>
-                  <span
-                    className={`ms-2 icon-text-gap text-style ${card.title === 'Borrow' ? 'borrow-text' : 'collateral-text'}`}
-                  >
-                    {card.balance}
-                  </span>
-                </div>
-                {card.title === 'Collateral & Earnings' && (
-                  <div className="sum-info">
-                    <span className="start-sum">Start sum: {startSum} $</span>
-                    <span className="current-sum">
-                      Current sum: <span className={getCurrentSumColor()}>{currentSum} $</span>
-                    </span>
-                  </div>
-                )}
+              <div className="card-value">
+                <span className="top-card-value">{healthFactor}</span>
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card-header">
+                <EthIcon className="icon" />
+                <span className="label">Borrow Balance</span>
+              </div>
+              <div className="card-value">
+                <span className="currency-symbol">$</span>
+                <span className="top-card-value">{cardData[1]?.balance || "0.00"}</span>
               </div>
             </div>
           </div>
-        ))}
-      </div>
-      <div>
-        <div>
-          <button className="btn redeem-btn border-0" onClick={() => closePositionEvent()}>
-            {isClosing ? 'Closing...' : 'Redeem'}
+
+          <div className="main-card">
+            <div className="tabs">
+              <button
+                onClick={() => setIsCollateralActive(true)}
+                className={`tab ${isCollateralActive ? "active" : ""}`}
+              >
+                <CollateralIcon className="tab-icon" />
+                <span className="tab-title">Collateral & Earnings</span>
+              </button>
+
+              <div className="tab-divider" />
+
+              <button
+                onClick={() => setIsCollateralActive(false)}
+                className={`tab ${!isCollateralActive ? "active borrow" : ""}`}
+              >
+                <BorrowIcon className="tab-icon" />
+                <span className="tab-title">Borrow</span>
+              </button>
+              <div className="tab-indicator-container">
+                <div
+                  className={`tab-indicator ${isCollateralActive ? "collateral" : "borrow"}`}
+                />
+              </div>
+            </div>
+
+            {isCollateralActive ? (
+              <div className="tab-content">
+                <div className="balance-info">
+                  <div className="currency-info">
+                    {React.createElement(cardData[0]?.currencyIcon || CollateralIcon, {
+                      className: "icon",
+                    })}
+                    <span className="currency-name">{cardData[0]?.currencyName || "N/A"}</span>
+                  </div>
+                  <span>
+                    <span className="balance-label">Balance: </span>
+                    <span className="balance-value">{cardData[0]?.balance || "0.00"}</span>
+                  </span>
+                  <span>
+                    <span className="balance-label">Start sum: </span>
+                    <span className="balance-value">
+                      <span className="currency-symbol">$</span>
+                      {startSum}
+                    </span>
+                  </span>
+                  <span>
+                    <span className="balance-label">Current sum: </span>
+                    <span
+                      className={
+                        currentSum === 0 ? "current-sum-white" : getCurrentSumColor()
+                      }
+                    >
+                      <span className="currency-symbol">$</span>
+                      {currentSum}
+                      {currentSum > startSum && currentSum !== 0 && (
+                        <TrendingUp
+                          color="#60AF77"
+                          size={23}
+                          style={{ marginLeft: "8px" }}
+                        />
+                      )}
+                      {currentSum < startSum && currentSum !== 0 && (
+                        <TrendingDown
+                          color="#F42222"
+                          size={22}
+                          style={{ marginLeft: "8px" }}
+                        />
+                      )}
+                    </span>
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="tab-content">
+                <div className="balance-info">
+                  <div className="currency-info">
+                    {React.createElement(cardData[1]?.currencyIcon || BorrowIcon, {
+                      className: "icon",
+                    })}
+                    <span className="currency-name">{cardData[1]?.currencyName || "N/A"}</span>
+                  </div>
+                  <span>
+                    <span className="balance-label">Balance: </span>
+                    <span className="balance-value">{cardData[1]?.balance || "0.00"}</span>
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <button
+            className="redeem-button"
+            onClick={() => closePositionEvent()}
+            disabled={isClosing}
+          >
+            {isClosing ? "Closing..." : "Redeem"}
           </button>
-          {closePositionError && <div>Error during closing position: {closePositionError.message}</div>}
+          {closePositionError && <div>Error: {closePositionError.message}</div>}
+          <button className="telegram-button">
+            <TelegramIcon className="tab-icon" />
+            Enable telegram notification bot
+          </button>
         </div>
       </div>
     </div>
   );
-};
-
-export default Dashboard;
+}

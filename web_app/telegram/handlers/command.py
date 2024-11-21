@@ -3,6 +3,7 @@ This module handles command-related functionality for the Telegram bot.
 
 It defines the command router and the behavior for the /start command.
 """
+
 from aiogram import Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message

@@ -34,7 +34,7 @@ This guide explains how to start the development environment for the project usi
    cd <repository-folder>
    ```
 
-2**Build and Start Services**
+2. **Build and Start Services**
 
    To build and run the entire development environment, use the following command:
 
@@ -46,7 +46,7 @@ This guide explains how to start the development environment for the project usi
    - Build the backend and frontend Docker images.
    - Start the backend, frontend, and PostgreSQL database containers.
 
-3**Access the Application**
+3. **Access the Application**
 
    - **Backend API**: Accessible at [http://localhost:8000](http://localhost:8000).
    - **Frontend**: Accessible at [http://localhost:3000](http://localhost:3000).
