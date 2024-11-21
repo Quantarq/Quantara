@@ -663,9 +663,9 @@ class DepositDBConnector(DBConnector):
         self.write_to_db(vault)
         return vault
 
-    def get_or_create_vault(self, wallet_id: str, symbol: str) -> Vault | None:
+    def get_vault(self, wallet_id: str, symbol: str) -> Vault | None:
         """
-        Gets or create a new user vault instance
+        Gets a user vault instance for a symbol
 
         :param wallet_id: Wallet id of user
         :param symbol: Token symbol or address
@@ -678,8 +678,6 @@ class DepositDBConnector(DBConnector):
                 logger.error(f"User with wallet id {wallet_id} not found")
                 return None
             vault = db.query(Vault).filter_by(user_id=user.id, symbol=symbol).first()
-        if not vault:
-            vault = self.create_vault(user, symbol, str(Decimal("0.00")))
         return vault
 
     def add_vault_balance(self, wallet_id: str, symbol: str, amount: str) -> None:
