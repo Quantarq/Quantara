@@ -90,7 +90,7 @@ const Form = ({ walletId, setWalletId }) => {
           )}
           <label>Select Token</label>
           <TokenSelector setSelectedToken={setSelectedToken} />
-          <h5>Select Multiplier</h5>
+          <label>Select Multiplier</label>
           <MultiplierSelector
             setSelectedMultiplier={setSelectedMultiplier}
             selectedToken={selectedToken}
@@ -108,9 +108,11 @@ const Form = ({ walletId, setWalletId }) => {
             />
           </div>
           <div>
-            <button type="submit" className="form-button">
-              Submit
-            </button>
+            <div className="form-button-container">
+              <button type="submit" className="form-button">
+                Submit
+              </button>
+            </div>
           </div>
           <CardGradients additionalClassName={'forms-gradient'} />
           <StarMaker starData={starData} />

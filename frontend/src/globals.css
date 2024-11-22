@@ -37,6 +37,9 @@
   --card-border: 0.5px solid #4e7787;
   --success-color: #4caf50;
   --error-color: #ff5a5f;
+  --input-border: #36294E;
+  --gray: #83919F;
+  --dark-purple: #120721;
 }
 
 body {

@@ -13,61 +13,69 @@
 }
 
 .form-wrapper {
-  width: max-content;
+  width: 60%;
   margin: 0 auto;
 }
 
 .form-title h1 {
   text-align: center;
   font-weight: normal;
-  font-size: 1rem;
+  font-size: 1.75rem;
 }
 
 .token-card label {
-  border: 1px solid rgba(32, 19, 56, 1);
-  border-radius: 12px;
+  border-radius: 150px;
   padding: 4px 15px;
-  /* min-width: 120px; */
   display: flex;
   justify-content: center;
   align-items: center;
+  background-color: hsla(265, 65%, 8%, 1);
+}
+
+.token-container {
+  border-radius: 100px;
+  background: #36294E;
+  transition: background 1.3s ease;
+  padding: 1px;
 }
 
 .token-card label:hover {
   background: var(--secondary-color);
 }
 
-.token-card:has(input[type='radio']:checked) h5 {
+/* .token-card:has(input[type='radio']:checked) h5 {
   color: var(--black);
-}
+} */
 
-.token-card:has(input[type='radio']:checked) h5 svg path {
+/* .token-card:has(input[type='radio']:checked) h5 svg path {
   fill: var(--black);
-}
+} */
 
-.token-card label svg {
+/* .token-card label svg {
   fill: var(--black);
-}
+} */
 
-.token-card label:active svg {
+/* .token-card label:active svg {
   fill: var(--brand);
-}
+}  */
 
 .token-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px;
+  padding: 5px;
   border-radius: 2000px;
   background-color: rgb(31, 11, 32);
+  margin-right: 10px;
 }
 .balance-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px;
+  padding: 5px;
   border-radius: 2000px;
   background-color: hsla(261, 49%, 15%, 1);
+  margin-right: 10px;
 }
 
 .token-label {
@@ -78,9 +86,10 @@
 
 .token-label input {
   background-color: transparent;
-  border: 1px solid var(--brand);
-  border-radius: 8px;
-  padding: 10px;
+  border: 1px solid var(--input-border);
+  border-radius: 50px;
+  padding: 14px 20px;
+  color: var(--gray);
 }
 
 .token-label-component svg {
@@ -90,6 +99,11 @@
 .form-wrapper > * {
   color: var(--primary);
   margin-bottom: 10px;
+}
+
+.form-wrapper label {
+  color: var(--gray);
+  font-size: 1rem;
 }
 
 .token-card h5 {
@@ -111,6 +125,7 @@
   align-items: center;
   grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   justify-content: space-between;
+  gap: 24px;
 }
 
 .multiplier-card {
@@ -233,22 +248,32 @@ input[type='number'].error {
 
 .form-button {
   width: 100%;
-  border: none;
+  border: solid 5px transparent;
   height: 55px;
-  background: var(--button-gradient);
-  border-radius: 8px;
+  border-radius: inherit;
   font-size: 20px;
-  margin-top: 20px;
   font-family: var(--text-font);
   font-weight: 700;
-  transition: background 1.3s ease;
+  color: var(--primary);
+  background-color: hsla(265, 65%, 8%, 1);
 }
 
-.form-button:hover {
+.form-button-container {
+  margin-top: 20px;
+  border-radius: 100px;
+  background: var(--button-gradient);
+  transition: background 1.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px;
+}
+
+.form-button-container:hover {
   background: var(--button-gradient-hover);
 }
 
-.form-button:active {
+.form-button-container:active {
   background: var(--button-gradient-active);
 }
 
@@ -319,10 +344,12 @@ input[type='number'].error {
   height: 129px;
   width: 300px;
   align-items: center;
-  border-radius: 8px;
+  border-radius: 900px;
   border: 1px solid rgba(32, 19, 56, 1);
   justify-content: center;
   margin-right: 20px;
+  background-color: var(--dark-purple);
+  padding: 1rem 2rem;
 }
 
 .balance-item label:nth-child(1) {
@@ -342,7 +369,6 @@ input[type='number'].error {
 }
 
 .balance-title svg {
-  margin-right: 5px;
   height: 25px;
   width: 24px;
 }
@@ -353,11 +379,19 @@ input[type='number'].error {
     margin-top: 3rem !important;
     padding: 0 !important;
   }
+  .form-wrapper {
+    width: 100%;
+    margin: 0 auto;
+  }
+  .form-button-container {
+    border-radius: 16px;
+  }
   .balance-container {
     flex-direction: row;
     justify-content: center;
     gap: 1rem;
     align-items: center;
+    overflow: scroll;
   }
   .balance-item {
     height: fit-content;
@@ -368,18 +402,18 @@ input[type='number'].error {
     gap: 1rem;
     border-radius: 16px;
   }
-.balance-item .balance-title {
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-}
-.balance-item label {
-  font-size: 1rem;
-}
-.title-container {
-  display: flex;
-  flex-direction: row;
-}
+  .balance-item .balance-title {
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+  }
+  .balance-item label {
+    font-size: 1rem;
+  }
+  .title-container {
+    display: flex;
+    flex-direction: row;
+  }
   .form-token {
     gap: 3px;
   }
@@ -392,5 +426,15 @@ input[type='number'].error {
     color: var(--secondary);
     font-size: 1rem;
   }
-
+  .form-title h1 {
+    text-align: center;
+    font-weight: normal;
+    font-size: 1rem;
+  }
+  .token-card h5 {
+    margin: 0 20px;
+  }
+  .token-label input {
+    border-radius: 10px;
+  }
 }
