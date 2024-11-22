@@ -11,6 +11,7 @@
   --second-primary: #fdfdfd;
   --second-gradient: linear-gradient(55deg, #e01dee 0%, #49abd2 49%);
   --header-button-bg: #120721;
+  --plain-button-bg: #0E0A16;
   --border-gradient: linear-gradient(90deg, #49abd2 0%, #df1ced 99.5%);
   --mask-gradient: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   --primary: #fff;
