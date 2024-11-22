@@ -1,47 +1,44 @@
 """
 Module for handling vault deposit operations in the SPOTNET API.
-This module provides endpoints for creating and managing vault deposits.
 """
 
 import logging
-from decimal import Decimal
-from typing import Optional
-
-from fastapi import APIRouter, HTTPException
-
+from fastapi import APIRouter, HTTPException, Depends
+from web_app.db.crud import DepositDBConnector
+from web_app.db.models import User
 from web_app.schemas.vault import VaultDepositRequest, VaultDepositResponse
+from web_app.db.crud import UserDBConnector
 
 logger = logging.getLogger(__name__)
-
 router = APIRouter(prefix="/api/vault", tags=["vault"])
 
-
 @router.post("/deposit", response_model=VaultDepositResponse)
-def deposit_to_vault(request: VaultDepositRequest) -> VaultDepositResponse:
-    """
-    Created a new vault deposit record.
-
-    Args:
-        request (VaultDepositRequest): The deposit request containing wallet_id, amount, and symbol
-
-    Returns:
-        VaultDepositResponse: The created deposit record with status.
-
-    Raises:
-        HTTPException: If there is an error processing the deposit.
-    """
+async def deposit_to_vault(
+    request: VaultDepositRequest,
+    db: DepositDBConnector = Depends(DepositDBConnector)
+) -> VaultDepositResponse:
     try:
         logger.info(f"Processing deposit request for wallet {request.wallet_id}")
-
-        # Return mock response for now since DB integration will come later
+        
+       
+        user_db = UserDBConnector()
+        user = user_db.get_user_by_wallet_id(request.wallet_id)
+        if not user:
+            user = user_db.create_user(request.wallet_id)
+            
+        vault = db.create_vault(
+            user=user,
+            symbol=request.symbol,
+            amount=request.amount
+        )
+        
         return VaultDepositResponse(
-            deposit_id=1,  # Mock ID
+            deposit_id=vault.id,
             wallet_id=request.wallet_id,
             amount=request.amount,
             symbol=request.symbol,
             status="pending"
         )
-
     except Exception as e:
         logger.error(f"Error processing deposit: {str(e)}")
         raise HTTPException(
