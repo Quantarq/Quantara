@@ -14,7 +14,7 @@ import { ZETH_ADDRESS } from "utils/constants";
 import useDashboardData from "hooks/useDashboardData";
 import { useClosePosition } from "hooks/useClosePosition";
 
-export default function Component({ walletId }) {
+export default function Component({ walletId, telegramId }) {
   const [isCollateralActive, setIsCollateralActive] = useState(true);
   const [showModal, setShowModal] = useState(false);
 
@@ -248,6 +248,8 @@ export default function Component({ walletId }) {
           </button>
           {showModal && (
           <TelegramNotificationModal 
+            telegramId={telegramId?.id}
+            walletId={walletId}
             onClose={handleClose}
           />
           )

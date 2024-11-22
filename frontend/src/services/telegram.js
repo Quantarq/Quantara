@@ -29,3 +29,17 @@ export const getTelegramUserWalletId = async (tg_user) => {
     throw error;
   }
 };
+
+export const subscribeToNotification = async (telegram_id, wallet_id) => {
+  try {
+    const response = await axiosInstance.post("/api/subscribe-to-notification", {
+      telegram_id: telegram_id,
+      wallet_id: wallet_id,
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error subscribing to notifications:", error);
+    throw error;
+  }
+}
