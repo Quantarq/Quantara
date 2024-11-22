@@ -19,7 +19,7 @@ logger.setLevel(logging.INFO)
 @app.task(name="test_task")
 def test_task() -> None:
     """
-    A task cybled to test that all is working as expected.
+    A task to test that all is working as expected.
     :return: None
     """
     # TODO: remove on production
