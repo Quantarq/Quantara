@@ -30,6 +30,7 @@
   justify-content: center;
   align-items: center;
   background-color: hsla(265, 65%, 8%, 1);
+  cursor: pointer;
 }
 
 .token-container {
@@ -43,32 +44,11 @@
   background: var(--secondary-color);
 }
 
-/* .token-card:has(input[type='radio']:checked) h5 {
-  color: var(--black);
-} */
-
-/* .token-card:has(input[type='radio']:checked) h5 svg path {
-  fill: var(--black);
-} */
-
-/* .token-card label svg {
-  fill: var(--black);
-} */
-
-/* .token-card label:active svg {
-  fill: var(--brand);
-}  */
+.token-container:has(input[type='radio']:checked) {
+  background: var(--button-gradient);
+}
 
 .token-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 5px;
-  border-radius: 2000px;
-  background-color: rgb(31, 11, 32);
-  margin-right: 10px;
-}
-.balance-icon {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -92,9 +72,6 @@
   color: var(--gray);
 }
 
-.token-label-component svg {
-  fill: red;
-}
 
 .form-wrapper > * {
   color: var(--primary);
@@ -184,10 +161,6 @@ input[type='radio'] {
   border-radius: 4px;
   width: 100%;
   box-sizing: border-box;
-}
-
-.token-card input[type='radio']:checked + label {
-  background-color: var(--brand);
 }
 
 .multiplier-item input[type='radio']:checked + label {
@@ -415,7 +388,7 @@ input[type='number'].error {
     flex-direction: row;
   }
   .form-token {
-    gap: 3px;
+    gap: 6px;
   }
   .multiplier-card {
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
@@ -429,7 +402,8 @@ input[type='number'].error {
   .form-title h1 {
     text-align: center;
     font-weight: normal;
-    font-size: 1rem;
+    font-size: 1.25rem;
+    margin-bottom: 10px;
   }
   .token-card h5 {
     margin: 0 20px;

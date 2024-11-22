@@ -27,7 +27,7 @@ const BalanceCards = ({ walletId }) => {
           <div className="balance-item" key={balance.title}>
             <div className="title-container">
               <label htmlFor="icon" className="balance-title">
-              <span className="balance-icon">{balance.icon}</span>
+              <span className="token-icon">{balance.icon}</span>
               </label>
               <label htmlFor={balance.title}>{balance.title} Balance</label>
             </div>
@@ -36,7 +36,7 @@ const BalanceCards = ({ walletId }) => {
         ) : (
           <div className="balance-item" key={balance.title}>
             <label htmlFor={balance.title} className={'balance-title'}>
-            <span className="balance-icon">{balance.icon}</span>
+            <span className="token-icon">{balance.icon}</span>
               {balance.title} Balance
             </label>
             <label htmlFor={balance.title}>{balance.balance}</label>

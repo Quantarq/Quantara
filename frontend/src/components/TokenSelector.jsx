@@ -15,6 +15,7 @@ const TokenSelector = ({ setSelectedToken }) => (
   <div className='form-token'>
     {Tokens.map((token) => (
       <div className='token-card' key={token.id}>
+        <div className="token-container">
         <input
           type='radio'
           id={token.id}
@@ -22,7 +23,6 @@ const TokenSelector = ({ setSelectedToken }) => (
           value={token.label}
           onChange={() => setSelectedToken(token.label)}
         />
-        <div className="token-container">
           <label htmlFor={token.id}>
             <h5>
               <span className="token-icon">{token.component}</span> {token.label}
