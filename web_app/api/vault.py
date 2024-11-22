@@ -17,10 +17,22 @@ async def deposit_to_vault(
     request: VaultDepositRequest,
     db: DepositDBConnector = Depends(DepositDBConnector)
 ) -> VaultDepositResponse:
+    """
+    Process a vault deposit request.
+
+    Args:
+        request (VaultDepositRequest): The deposit request containing wallet_id, amount, and symbol
+        db (DepositDBConnector): Database connector for vault operations
+
+    Returns:
+        VaultDepositResponse: The deposit response containing deposit_id, wallet_id, amount, symbol, and status
+
+    Raises:
+        HTTPException: If the deposit operation fails
+    """
     try:
         logger.info(f"Processing deposit request for wallet {request.wallet_id}")
         
-       
         user_db = UserDBConnector()
         user = user_db.get_user_by_wallet_id(request.wallet_id)
         if not user:
