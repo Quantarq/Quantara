@@ -23,8 +23,8 @@ const TelegramNotificationModal = ({ onClose, telegramId, walletId }) => {
               notification bot?
             </h2>
             <p>
-              This will allow you to receive quick notifications on your telegram line in real-time. You can disable
-              this setting anytime.
+              This will allow you to receive quick notifications on your telegram line in realtime. You can disable this
+              setting anytime.
             </p>
           </div>
           <div className="notification-actions">
