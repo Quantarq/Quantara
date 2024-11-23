@@ -21,7 +21,7 @@
 
 .notification-wrapper {
   position: relative;
-  background-image: url('../../assets/images/background.png');
+  background-image: url('../../../public/background.png');
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
