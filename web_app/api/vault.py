@@ -76,13 +76,13 @@ async def add_vault_balance(
     Add balance to a user's vault for a specific token.
     """
     try:
-        deposit_connector.add_vault_balance(
+        updated_vault = deposit_connector.add_vault_balance(
             wallet_id=request.wallet_id, symbol=request.symbol, amount=request.amount
         )
         return UpdateVaultBalanceResponse(
             wallet_id=request.wallet_id,
             symbol=request.symbol,
-            amount=request.amount + vault_amount
+            amount=updated_vault.amount,
         )
     except (ValueError, TypeError) as e:
         raise HTTPException(

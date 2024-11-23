@@ -79,10 +79,8 @@ class UpdateVaultBalanceResponse(BaseModel):
         wallet_id (str): The StarkNet wallet address.
         symbol (str): Token symbol or address
         amount (str): The new balance of the vault for the specified token.
-        message (str): A status message confirming the operation.
     """
 
     wallet_id: str
     symbol: str
     amount: str
-    message: str
