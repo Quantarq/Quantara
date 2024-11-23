@@ -74,7 +74,7 @@ const Form = ({ walletId, setWalletId }) => {
   };
 
   return (
-    <div className="form-container container">
+    <div className="form-container">
       {successful && createPortal(<CongratulationsModal />, document.body)}
       {/* The rest of the UI stays largely unchanged */}
       <BalanceCards walletId={walletId} />
