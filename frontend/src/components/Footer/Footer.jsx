@@ -34,7 +34,18 @@ function Footer() {
         <p>Copyright© Spotnet {new Date().getFullYear()}</p>
       </div>
       <nav className="footer-docs">
-        <Link to="/documentation">Documentation</Link>
+        <NavLink
+          to="/documentation"
+          className={({ isActive }) => (isActive ? 'footer-link-active' : '')}
+          onClick={(e) => {
+            if (window.location.pathname === '/documentation') {
+              e.preventDefault();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+        >
+          Documentation
+        </NavLink>
         <Link to="/overview">Overview</Link>
         <Link to="/terms">Terms & Conditions</Link>
         <Link to="/defi">Defi Spring Rewards</Link>

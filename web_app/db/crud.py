@@ -680,7 +680,7 @@ class DepositDBConnector(DBConnector):
             vault = db.query(Vault).filter_by(user_id=user.id, symbol=symbol).first()
         return vault
 
-    def add_vault_balance(self, wallet_id: str, symbol: str, amount: str) -> None:
+    def add_vault_balance(self, wallet_id: str, symbol: str, amount: str) -> Vault:
         """
         Adds balance to user vault for token symbol
 
@@ -688,15 +688,17 @@ class DepositDBConnector(DBConnector):
         :param symbol: Token symbol or address
         :param amount: An amount in string
 
-        :return: None
+        :return: Updated Vault instance
         """
         vault = self.get_vault(wallet_id, symbol)
         if not vault:
-            return
+            raise ValueError("Vault not found")
         with self.Session() as db:
             new_amount = Decimal(vault.amount) + Decimal(amount)
             db.query(Vault).filter_by(id=vault.id).update(amount=str(new_amount))
             db.commit()
+            vault = self.get_vault(wallet_id, symbol)
+        return vault
 
     def get_vault_balance(self, wallet_id: str, symbol: str) -> str | None:
         """

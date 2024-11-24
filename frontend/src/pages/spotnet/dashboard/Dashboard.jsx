@@ -9,12 +9,23 @@ import { ReactComponent as BorrowIcon } from "assets/icons/borrow_dynamic.svg";
 import { ReactComponent as TelegramIcon } from "assets/icons/telegram_dashboard.svg";
 import { TrendingDown, TrendingUp } from "lucide-react";
 import Spinner from "components/spinner/Spinner";
+import TelegramNotificationModal from "components/TelegramNotificationModal/TelegramNotificationModal";
 import { ZETH_ADDRESS } from "utils/constants";
 import useDashboardData from "hooks/useDashboardData";
 import { useClosePosition } from "hooks/useClosePosition";
 
-export default function Component({ walletId }) {
+export default function Component({ walletId, telegramId }) {
   const [isCollateralActive, setIsCollateralActive] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+
+  const handleOpen = () => {
+    setShowModal(true); 
+  };
+
+  const handleClose = () => {
+    setShowModal(false); 
+  };
+
   const { data, isLoading } = useDashboardData(walletId);
   const { mutate: closePositionEvent, isLoading: isClosing, error: closePositionError } = useClosePosition(walletId);
 
@@ -231,10 +242,18 @@ export default function Component({ walletId }) {
             {isClosing ? "Closing..." : "Redeem"}
           </button>
           {closePositionError && <div>Error: {closePositionError.message}</div>}
-          <button className="telegram-button">
+          <button className="telegram-button" onClick={handleOpen}>
             <TelegramIcon className="tab-icon" />
             Enable telegram notification bot
           </button>
+          {showModal && (
+          <TelegramNotificationModal 
+            telegramId={telegramId?.id}
+            walletId={walletId}
+            onClose={handleClose}
+          />
+          )
+          }
         </div>
       </div>
     </div>
