@@ -16,143 +16,111 @@ from web_app.db.crud import DepositDBConnector, UserDBConnector
 
 client = TestClient(app)
 
+
+@pytest.fixture
+async def async_client():
+    """Fixture that provides an async client for testing."""
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        yield ac
+
+
 @pytest.mark.anyio
-async def test_deposit_to_vault_success(mock_user_db_connector):
-    """
-    Test successful vault deposit with valid data.
-    """
-    test_data = {
-        "wallet_id": "test_wallet",
-        "symbol": "ETH",
-        "amount": "1.0"
-    }
-    
+@pytest.mark.parametrize("test_data, expected_status, expected_response", [
+    (
+        {"wallet_id": "test_wallet", "symbol": "ETH", "amount": "1.0"},
+        200,
+        lambda vault_id: {
+            "deposit_id": vault_id,
+            "wallet_id": "test_wallet",
+            "amount": "1.0",
+            "symbol": "ETH"
+        }
+    ),
+    (
+        {"wallet_id": "invalid_wallet", "symbol": "ETH", "amount": "1.0"},
+        404,
+        {"detail": "User not found"}
+    ),
+])
+async def test_deposit_to_vault(test_data, expected_status, expected_response, mock_user_db_connector, async_client):
+    """Test vault deposit with different scenarios."""
     mock_user = MagicMock()
     mock_vault = MagicMock()
     mock_vault.id = str(uuid.uuid4())
-    mock_vault.amount = "1.0"
-    
-    with (
-        patch.object(UserDBConnector, "__new__", return_value=mock_user_db_connector),
-        patch("web_app.db.crud.DepositDBConnector.create_vault", return_value=mock_vault),
-    ):
-        mock_user_db_connector.get_user_by_wallet_id.return_value = mock_user
-        
-        async with AsyncClient(app=app, base_url="http://test") as ac:
-            response = await ac.post("/api/vault/deposit", json=test_data)
-        
-        assert response.status_code == 200
-        assert response.json() == {
-            "deposit_id": mock_vault.id,
-            "wallet_id": test_data["wallet_id"],
-            "amount": test_data["amount"],
-            "symbol": test_data["symbol"]
-        }
-
-
-@pytest.mark.anyio
-async def test_deposit_to_vault_user_not_found(mock_user_db_connector):
-    """
-    Test vault deposit with non-existent user.
-    """
-    test_data = {
-        "wallet_id": "invalid_wallet",
-        "symbol": "ETH",
-        "amount": "1.0"
-    }
+    mock_vault.amount = test_data["amount"]
     
     with patch.object(UserDBConnector, "__new__", return_value=mock_user_db_connector):
-        mock_user_db_connector.get_user_by_wallet_id.return_value = None
+        mock_user_db_connector.get_user_by_wallet_id.return_value = \
+            mock_user if test_data["wallet_id"] == "test_wallet" else None
         
-        async with AsyncClient(app=app, base_url="http://test") as ac:
-            response = await ac.post("/api/vault/deposit", json=test_data)
-        
-        assert response.status_code == 404
-        assert response.json() == {"detail": "User not found"}
+        if test_data["wallet_id"] == "test_wallet":
+            with patch("web_app.db.crud.DepositDBConnector.create_vault", return_value=mock_vault):
+                response = await async_client.post("/api/vault/deposit", json=test_data)
+        else:
+            response = await async_client.post("/api/vault/deposit", json=test_data)
+    
+    assert response.status_code == expected_status
+    expected = expected_response(mock_vault.id) if callable(expected_response) else expected_response
+    assert response.json() == expected
 
 
 @pytest.mark.anyio
-async def test_get_vault_balance_success():
-    """
-    Test successful retrieval of vault balance.
-    """
-    wallet_id = "test_wallet"
-    symbol = "ETH"
-    expected_balance = "1.5"
-    
-    with patch("web_app.db.crud.DepositDBConnector.get_vault_balance", return_value=expected_balance):
-        async with AsyncClient(app=app, base_url="http://test") as ac:
-            response = await ac.get(f"/api/vault/api/balance?wallet_id={wallet_id}&symbol={symbol}")
+@pytest.mark.parametrize("wallet_id, symbol, balance, expected_status, expected_response", [
+    (
+        "test_wallet",
+        "ETH",
+        "1.5",
+        200,
+        lambda w, s, b: {"wallet_id": w, "symbol": s, "amount": b}
+    ),
+    (
+        "invalid_wallet",
+        "ETH",
+        None,
+        404,
+        {"detail": "Vault not found or user does not exist"}
+    ),
+])
+async def test_get_vault_balance(wallet_id, symbol, balance, expected_status, expected_response, async_client):
+    """Test vault balance retrieval with different scenarios."""
+    with patch("web_app.db.crud.DepositDBConnector.get_vault_balance", return_value=balance):
+        response = await async_client.get(f"/api/vault/api/balance?wallet_id={wallet_id}&symbol={symbol}")
         
-        assert response.status_code == 200
-        assert response.json() == {
-            "wallet_id": wallet_id,
-            "symbol": symbol,
-            "amount": expected_balance
-        }
+        assert response.status_code == expected_status
+        expected = expected_response(wallet_id, symbol, balance) if callable(expected_response) else expected_response
+        assert response.json() == expected
 
 
 @pytest.mark.anyio
-async def test_get_vault_balance_not_found():
-    """
-    Test retrieval of non-existent vault balance.
-    """
-    wallet_id = "invalid_wallet"
-    symbol = "ETH"
-    
-    with patch("web_app.db.crud.DepositDBConnector.get_vault_balance", return_value=None):
-        async with AsyncClient(app=app, base_url="http://test") as ac:
-            response = await ac.get(f"/api/vault/api/balance?wallet_id={wallet_id}&symbol={symbol}")
-        
-        assert response.status_code == 404
-        assert response.json() == {"detail": "Vault not found or user does not exist"}
-
-
-@pytest.mark.anyio
-async def test_add_vault_balance_success():
-    """
-    Test successful addition to vault balance.
-    """
-    test_data = {
-        "wallet_id": "test_wallet",
-        "symbol": "ETH",
-        "amount": "0.5"
-    }
-    
+@pytest.mark.parametrize("test_data, expected_status, expected_response", [
+    (
+        {"wallet_id": "test_wallet", "symbol": "ETH", "amount": "0.5"},
+        200,
+        lambda amount: {"wallet_id": "test_wallet", "symbol": "ETH", "amount": amount}
+    ),
+    (
+        {"wallet_id": "test_wallet", "symbol": "ETH", "amount": "-1.0"},
+        400,
+        {"detail": "Failed to update vault balance: Amount must be positive"}
+    ),
+])
+async def test_add_vault_balance(test_data, expected_status, expected_response, async_client):
+    """Test adding to vault balance with different scenarios."""
     mock_vault = MagicMock()
     mock_vault.amount = "2.0"
     
-    with patch("web_app.db.crud.DepositDBConnector.add_vault_balance", return_value=mock_vault):
-        async with AsyncClient(app=app, base_url="http://test") as ac:
-            response = await ac.post("/api/vault/api/add_balance", json=test_data)
-        
-        assert response.status_code == 200
-        assert response.json() == {
-            "wallet_id": test_data["wallet_id"],
-            "symbol": test_data["symbol"],
-            "amount": mock_vault.amount
+    if test_data["amount"].startswith("-"):
+        patch_kwargs = {
+            "side_effect": ValueError("Amount must be positive")
         }
-
-
-@pytest.mark.anyio
-async def test_add_vault_balance_invalid_amount():
-    """
-    Test adding invalid amount to vault balance.
-    """
-    test_data = {
-        "wallet_id": "test_wallet",
-        "symbol": "ETH",
-        "amount": "-1.0"
-    }
+    else:
+        patch_kwargs = {
+            "return_value": mock_vault
+        }
     
-    with patch(
-        "web_app.db.crud.DepositDBConnector.add_vault_balance",
-        side_effect=ValueError("Amount must be positive")
-    ):
-        async with AsyncClient(app=app, base_url="http://test") as ac:
-            response = await ac.post("/api/vault/api/add_balance", json=test_data)
+    with patch("web_app.db.crud.DepositDBConnector.add_vault_balance", **patch_kwargs):
+        response = await async_client.post("/api/vault/api/add_balance", json=test_data)
         
-        assert response.status_code == 400
-        assert response.json() == {
-            "detail": "Failed to update vault balance: Amount must be positive"
-        }
+        assert response.status_code == expected_status
+        expected = expected_response(mock_vault.amount) if callable(expected_response) else expected_response
+        assert response.json() == expected
