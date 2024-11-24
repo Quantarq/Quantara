@@ -5,7 +5,7 @@ import MultiplierSelector from 'components/MultiplierSelector';
 import { connectWallet } from 'services/wallet';
 import { handleTransaction } from 'services/transaction';
 import Spinner from 'components/spinner/Spinner';
-import StarMaker from 'components/StarMaker';
+// import StarMaker from 'components/StarMaker';
 import CardGradients from 'components/CardGradients';
 import { ReactComponent as AlertHexagon } from 'assets/icons/alert_hexagon.svg';
 import './form.css';
@@ -14,14 +14,14 @@ import useLockBodyScroll from 'hooks/useLockBodyScroll';
 import CongratulationsModal from 'components/congratulationsModal/CongratulationsModal';
 
 const Form = ({ walletId, setWalletId }) => {
-  const starData = [
-    { top: 35, left: 12, size: 12 },
-    { top: 90, left: 7, size: 7 },
-    { top: 40, left: 80, size: 7 },
-    { top: 75, left: 90, size: 9 },
-  ];
+  // const starData = [
+  //   { top: 35, left: 12, size: 12 },
+  //   { top: 90, left: 7, size: 7 },
+  //   { top: 40, left: 80, size: 7 },
+  //   { top: 75, left: 90, size: 9 },
+  // ];
   const [tokenAmount, setTokenAmount] = useState('');
-  const [selectedToken, setSelectedToken] = useState('');
+  const [selectedToken, setSelectedToken] = useState('STRK');
   const [selectedMultiplier, setSelectedMultiplier] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -89,7 +89,7 @@ const Form = ({ walletId, setWalletId }) => {
             </p>
           )}
           <label>Select Token</label>
-          <TokenSelector setSelectedToken={setSelectedToken} />
+          <TokenSelector currentToken={selectedToken} setSelectedToken={setSelectedToken} />
           <h5>Select Multiplier</h5>
           <MultiplierSelector setSelectedMultiplier={setSelectedMultiplier} selectedToken={selectedToken} />
           <div className="token-label">
@@ -109,7 +109,7 @@ const Form = ({ walletId, setWalletId }) => {
             </button>
           </div>
           <CardGradients additionalClassName={'forms-gradient'} />
-          <StarMaker starData={starData} />
+          {/* <StarMaker starData={starData} /> */}
         </div>
       </form>
       <Spinner loading={loading} />

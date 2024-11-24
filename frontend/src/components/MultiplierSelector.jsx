@@ -7,7 +7,7 @@ const MultiplierSelector = ({ setSelectedMultiplier, selectedToken }) => {
   const [actualValue, setActualValue] = useState(1.0);
 
   const maxMultiplier = useMemo(() => {
-    return data?.[selectedToken] || 5.0;
+    return data?.[selectedToken] || 11.0;
   }, [data, selectedToken]);
 
   const TOTAL_MARKS = 11;
@@ -36,7 +36,7 @@ const MultiplierSelector = ({ setSelectedMultiplier, selectedToken }) => {
     const invertedValue = maxMultiplier - actualValue + 1;
     const markIndex = Math.round((invertedValue - 1) * (TOTAL_MARKS - 1) / (maxMultiplier - 1));
     return Math.min(Math.max(0, markIndex), TOTAL_MARKS - 1);
-}, [actualValue, maxMultiplier, TOTAL_MARKS]);
+  }, [actualValue, maxMultiplier, TOTAL_MARKS]);
 
   if (isLoading) return <div className="slider-skeleton">Loading multiplier data...</div>;
   if (error) return <div className="error-message">Error loading multiplier data: {error.message}</div>;
@@ -74,8 +74,8 @@ const MultiplierSelector = ({ setSelectedMultiplier, selectedToken }) => {
         </div>
         <div className="range-meter">
           {Array.from({ length: TOTAL_MARKS }).map((_, index) => (
-            <div 
-              key={index} 
+            <div
+              key={index}
               className={`meter-inner ${index === currentMark ? 'active' : ''}`}
             >
               <div className={`meter-marks ${index === currentMark ? 'active' : ''}`}></div>

@@ -1,8 +1,8 @@
 .form-container {
   background: url('../../../public/Form-bg.png') no-repeat;
-  background-size: cover;
-  /* background-position: center 39%; */
-  padding-top: 10rem !important;
+  background-size: 100% 100%;
+  background-position: center 39%;
+  padding-top: 2rem !important;
   padding-bottom: 12rem !important;
   min-height: 100vh;
   position: relative !important;
@@ -32,9 +32,9 @@
 
 .token-card label {
   border: var(--midnight-purple-border);
-  border-radius: 48px;
+  border-radius: 64px;
   padding: 5px;
-  width: 120px;
+  width: 148.5px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -50,7 +50,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  padding: 2px;
+  padding: 1px;
   background: var(--blue-pink-gradient);
   border-radius: inherit;
   -webkit-mask:
@@ -105,13 +105,17 @@
 
 .token-card h5 {
   margin-top: 9px;
-  font-size: 20px;
+  font-size: 16px;
   color: var(--primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
 
 .token-card svg {
-  width: 25px;
-  height: 25px;
+  width: 20px;
+  height: 20px;
 }
 
 .form-token {
@@ -191,7 +195,7 @@ input[type='radio'] {
   content: '';
   position: absolute;
   inset: 0;
-  padding: 2px;
+  padding: 1px;
   background: var(--blue-pink-gradient);
   border-radius: inherit;
   -webkit-mask:
@@ -382,6 +386,7 @@ input[type='number'].error {
 .balance-item label:nth-child(2) {
   font-size: 24px;
   color: var(--secondary);
+  line-height: 32.68px;
 }
 
 .balance-title {

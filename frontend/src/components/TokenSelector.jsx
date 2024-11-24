@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ReactComponent as ETH } from 'assets/icons/ethereum.svg';
 import { ReactComponent as USDC } from 'assets/icons/borrow_usdc.svg';
 import { ReactComponent as STRK } from 'assets/icons/strk.svg';
@@ -11,10 +11,8 @@ const Tokens = [
   { id: 'daiOption', component: <DAI />, label: 'DAI' },
 ];
 
-const TokenSelector = ({ setSelectedToken }) => {
-  const [tokenSelect, setTokenSelect] = useState('STRK');
+const TokenSelector = ({ setSelectedToken, currentToken }) => {
   const handleSelectedToken = (token) => {
-    setTokenSelect(token);
     setSelectedToken(token);
   }
   return (
@@ -28,7 +26,7 @@ const TokenSelector = ({ setSelectedToken }) => {
             value={token.label}
             onChange={() => handleSelectedToken(token.label)}
           />
-          <label htmlFor={token.id} className={token.label === tokenSelect ? 'strk-token' : ''}>
+          <label htmlFor={token.id} className={token.label === currentToken ? 'strk-token' : ''}>
             <h5>
               <span className='token'>{token.component}</span> {token.label}
             </h5>
