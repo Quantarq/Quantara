@@ -10,7 +10,8 @@ This migration introduces the following changes to the `position` table:
 - Adds `liquidation_bonus` (Float): Represents any bonus applied during the liquidation process.
 - Adds `is_liquidated` (Boolean): Marks whether the position has been liquidated.
 - Adds `datetime_liquidation` (DateTime): Stores the timestamp of when the position was liquidated.
-These changes enhance the functionality of the `position` table by allowing better tracking of liquidation-related events and attributes.
+These changes enhance the functionality of the `position` table by
+allowing better tracking of liquidation-related events and attributes.
 """
 
 from alembic import op
@@ -29,7 +30,7 @@ def upgrade() -> None:
     Apply the upgrade.
 
     This function adds four new columns to the `position` table:
-    - `is_protection`: A boolean field that indicates whether protection is enabled for the position.
+    - `is_protection`: A boolean field that indicates whether protection is enabled.
     - `liquidation_bonus`: A float field to store any bonuses applied during liquidation.
     - `is_liquidated`: A boolean field to indicate if the position has been liquidated.
     - `datetime_liquidation`: A datetime field to record when the liquidation occurred.
