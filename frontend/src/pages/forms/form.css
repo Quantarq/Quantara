@@ -88,6 +88,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
 }
 
 .token-card svg {
@@ -229,29 +230,6 @@ input[type='number'].error {
   margin-top: 20px;
 }
 
-@media (min-width: 1800px) {
-  .form-card {
-    width: 400px;
-  }
-
-  .form-token label,
-  .multiplier-card label {
-    width: 150px;
-    height: 60px;
-  }
-
-  input[type='number'] {
-    height: 60px;
-  }
-
-  .recommended p {
-    width: 150px;
-    height: 22px;
-    font-size: 15px;
-  }
-}
-
-
 .form-alert {
   display: flex;
   align-items: center;
@@ -304,6 +282,7 @@ input[type='number'].error {
 }
 
 /* Responsiveness */
+/* Mobile */
 @media (max-width: 768px) {
   .form-content-wrapper {
     background: url('/public/mobilebackground.png') no-repeat;
@@ -328,6 +307,11 @@ input[type='number'].error {
   }
   .form-button-container {
     border-radius: 16px;
+  }
+  .form-token{
+    max-width: 100%;
+    overflow-x: scroll;
+    scrollbar-width: none;
   }
   .balance-container {
     flex-direction: row;
@@ -397,6 +381,7 @@ input[type='number'].error {
   .token-card h5 {
     margin: 0;
     font-size: 1rem;
+    gap: 0;
   }
   .token-card svg {
     width: 15px;
@@ -413,6 +398,7 @@ input[type='number'].error {
   .token-container {
     border-radius: 12px;
     max-width: fit-content;
+    position: relative;
   }
   .pagination {
     display: flex;
@@ -430,5 +416,33 @@ input[type='number'].error {
 
   .dot.active {
     background-color: var(--light-blue);
+  }
+}
+
+/* Tablet devices */
+@media screen and (min-width: 600px) and (max-width: 900px) {
+ 
+}
+
+/* Large screens */
+@media (min-width: 1800px) {
+  .form-card {
+    width: 400px;
+  }
+
+  .form-token label,
+  .multiplier-card label {
+    width: 150px;
+    height: 60px;
+  }
+
+  input[type='number'] {
+    height: 60px;
+  }
+
+  .recommended p {
+    width: 150px;
+    height: 22px;
+    font-size: 15px;
   }
 }
