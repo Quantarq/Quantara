@@ -175,7 +175,7 @@ fn test_loop_eth_fuzz(amount: u64) {
         assert(
             message == 'Parameters cannot be zero'
                 || message == 'Loop amount is too small'
-                || message == 'Approved amount incuficient'
+                || message == 'Approved amount insufficient'
                 || message == 'Insufficient balance',
             message
         ); // Acceptable panics which can be triggered by fuzzers' values

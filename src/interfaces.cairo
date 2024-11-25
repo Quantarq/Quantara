@@ -58,3 +58,10 @@ pub trait IMarket<TContractState> {
 pub trait IAirdrop<TContractState> {
     fn claim(ref self: TContractState, claim: Claim, proof: Span<felt252>) -> bool;
 }
+
+#[starknet::interface]
+pub trait IVault<TContractState> {
+    fn store_liquidity(ref self: TContractState, amount: TokenAmount);
+    fn withdraw_liquidity(ref self: TContractState, amount: TokenAmount);
+}
+
