@@ -89,7 +89,7 @@ class DBConnector:
         finally:
             db.close()
 
-    def delete_object(self, model: Type[Base] = None, obj_id: uuid = None) -> None:
+    def delete_object_by_id(self, model: Type[Base] = None, obj_id: uuid = None) -> None:
         """
         Delete an object by its ID from the database. Rolls back if the operation fails.
         :param model: type[Base] = None
@@ -113,6 +113,24 @@ class DBConnector:
 
         finally:
             db.close()
+
+    def delete_object(self, object: Base) -> None:
+        """
+        Deletes an object from the database.
+        :param object: Object to delete
+        """
+        db = self.Session()
+        try:
+            db.delete(object)
+            db.commit()
+
+        except SQLAlchemyError as e:
+            db.rollback()
+            logger.error(f"Error deleting object: {e}")
+
+        finally:
+            db.close()
+
 
     def create_empty_claim(self, user_id: uuid.UUID) -> AirDrop:
         """
@@ -274,6 +292,29 @@ class UserDBConnector(DBConnector):
             except SQLAlchemyError as e:
                 logger.error(f"Failed to fetch user history for user_id={user_id}: {str(e)}")
                 return []
+
+    def delete_user_by_wallet_id(self, wallet_id: str) -> None:
+        """
+        Deletes a user from the database by their wallet ID.
+        Rolls back the transaction if the operation fails.
+
+        :param wallet_id: str
+        :return: None
+        :raises SQLAlchemyError: If the operation fails
+        """
+        with self.Session() as session:
+            try:
+                user = session.query(User).filter(User.wallet_id == wallet_id).first()
+                if user:
+                    session.delete(user)
+                    session.commit()
+                    logger.info(f"User with wallet_id {wallet_id} deleted successfully.")
+                else:
+                    logger.warning(f"No user found with wallet_id {wallet_id}.")
+            except SQLAlchemyError as e:
+                session.rollback()
+                logger.error(f"Failed to delete user with wallet_id {wallet_id}: {e}")
+                raise e
 
 
 class PositionDBConnector(UserDBConnector):
@@ -449,7 +490,7 @@ class PositionDBConnector(UserDBConnector):
         :param position: Position
         :return: None
         """
-        self.delete_object(Position, position.id)
+        self.delete_object_by_id(Position, position.id)
 
     def close_position(self, position_id: uuid) -> Position | None:
         """
@@ -582,6 +623,27 @@ class PositionDBConnector(UserDBConnector):
                 logger.error(f"Error retrieving liquidated positions: {str(e)}")
                 return []
 
+    def get_position_by_id(self, position_id: int) -> Position | None:
+        """
+        Retrieves a position by its ID.
+        :param position_id: Position ID
+        :return: Position | None
+        """
+        return self.get_object(Position, position_id)
+
+    def delete_all_user_positions(self, user_id: uuid.UUID) -> None:
+        """
+        Deletes all positions for a user.
+        :param user_id: User ID
+        """
+        with self.Session() as db:
+            try:
+                positions = db.query(Position).filter_by(user_id=user_id).all()
+                for position in positions:
+                    db.delete(position)
+                db.commit()
+            except SQLAlchemyError as e:
+                logger.error(f"Error deleting positions for user {user_id}: {str(e)}")
 
 class AirDropDBConnector(DBConnector):
     """
@@ -620,6 +682,20 @@ class AirDropDBConnector(DBConnector):
                     f"Failed to retrieve unclaimed AirDrop instances: {str(e)}"
                 )
                 return []
+
+    def delete_all_users_airdrop(self, user_id: uuid.UUID) -> None:
+        """
+        Delete all airdrops for a user.
+        :param user_id: User ID
+        """
+        with self.Session() as db:
+            try:
+                airdrops = db.query(AirDrop).filter_by(user_id=user_id).all()
+                for airdrop in airdrops:
+                    db.delete(airdrop)
+                db.commit()
+            except SQLAlchemyError as e:
+                logger.error(f"Error deleting airdrops for user {user_id}: {str(e)}")
 
 
 class TelegramUserDBConnector(DBConnector):
@@ -692,7 +768,7 @@ class TelegramUserDBConnector(DBConnector):
         """
         user = self.get_user_by_telegram_id(telegram_id)
         if user:
-            self.delete_object(user, user.id)
+            self.delete_object_by_id(user, user.id)
 
     def set_notification_allowed(
         self, telegram_id: str = None, wallet_id: str = None

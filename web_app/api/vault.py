@@ -7,7 +7,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 
 from web_app.db.crud import DepositDBConnector, UserDBConnector
-from web_app.schemas.vault import (
+from web_app.api.serializers.vault import (
     UpdateVaultBalanceRequest,
     UpdateVaultBalanceResponse,
     VaultBalanceResponse,
@@ -50,7 +50,7 @@ async def deposit_to_vault(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.get("/api/balance", response_model=VaultBalanceResponse)
+@router.get("/balance", response_model=VaultBalanceResponse)
 async def get_user_vault_balance(
     wallet_id: str,
     symbol: str,
@@ -67,7 +67,7 @@ async def get_user_vault_balance(
     return VaultBalanceResponse(wallet_id=wallet_id, symbol=symbol, amount=balance)
 
 
-@router.post("/api/add_balance", response_model=UpdateVaultBalanceResponse)
+@router.post("/add_balance", response_model=UpdateVaultBalanceResponse)
 async def add_vault_balance(
     request: UpdateVaultBalanceRequest,
     deposit_connector: DepositDBConnector = Depends(DepositDBConnector),

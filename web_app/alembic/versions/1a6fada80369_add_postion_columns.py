@@ -33,14 +33,17 @@ def upgrade() -> None:
     - `is_protection`: A boolean field that indicates whether protection is enabled.
     - `liquidation_bonus`: A float field to store any bonuses applied during liquidation.
     - `is_liquidated`: A boolean field to indicate if the position has been liquidated.
-    - `datetime_liquidation`: A datetime field to record when the liquidation occurred.
+    - `datetime_liquidation`: A datetime field to record when the liquidation occurred,
+     allowing null values.
     """
     op.add_column("position", sa.Column("is_protection", sa.Boolean(), nullable=True))
     op.add_column("position", sa.Column("liquidation_bonus", sa.Float(), nullable=True))
     op.add_column("position", sa.Column("is_liquidated", sa.Boolean(), nullable=True))
     op.add_column(
-        "position", sa.Column("datetime_liquidation", sa.DateTime(), nullable=False)
+        "position", sa.Column("datetime_liquidation", sa.DateTime(), nullable=True)
     )
+
+
 
 
 def downgrade() -> None:

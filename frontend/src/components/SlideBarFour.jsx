@@ -1,8 +1,8 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useMaxMultiplier } from 'hooks/useMaxMultiplier';
-import './multiplier.css';
+import './slider-three.css';
 
-const MultiplierSelector = ({ min = 0, max = 10, step = 1, defaultValue = 1, setSelectedMultiplier, selectedToken }) => {
+const StepSlider = ({ min = 0, max = 10, step = 1, defaultValue = 1, setSelectedMultiplier, selectedToken }) => {
     const { data, isLoading, error } = useMaxMultiplier();
     const [value, setValue] = useState(defaultValue);
 
@@ -21,15 +21,22 @@ const MultiplierSelector = ({ min = 0, max = 10, step = 1, defaultValue = 1, set
         (_, i) => min + (i * step)
     );
 
-    console.log(maxMultiplier);
     const TOTAL_MARKS = 11;
 
     const getTrackPercentage = useCallback(() => {
-        return ((value - min + 0.15) / (max - min + 0.25)) * 100;
+        return ((value - min) / (max - min)) * 100;
     }, [value, min, max]);
+
+    const getCurrentMark = useCallback(() => {
+        const invertedValue = maxMultiplier - actualValue + 1;
+        const markIndex = Math.round((invertedValue - 1) * (TOTAL_MARKS - 1) / (maxMultiplier - 1));
+        return Math.min(Math.max(0, markIndex), TOTAL_MARKS - 1);
+    }, [value, maxMultiplier, TOTAL_MARKS]);
 
     if (isLoading) return <div className="slider-skeleton">Loading multiplier data...</div>;
     if (error) return <div className="error-message">Error loading multiplier data: {error.message}</div>;
+
+    const currentMark = getCurrentMark();
 
     return (
         <div className="step-slider-container">
@@ -55,7 +62,7 @@ const MultiplierSelector = ({ min = 0, max = 10, step = 1, defaultValue = 1, set
                     {steps.map((stepValue) => (
                         <div
                             key={stepValue}
-                            className={`step-mark ${stepValue === value ? 'active' : ''}`}
+                            className={`step-mark ${stepValue === currentMark ? 'active' : ''}`}
                         />
                     ))}
                 </div>
@@ -63,7 +70,7 @@ const MultiplierSelector = ({ min = 0, max = 10, step = 1, defaultValue = 1, set
                     {Array.from({ length: TOTAL_MARKS }).map((_, index) => (
                         <div
                             key={index}
-                            className={`step-multiplier ${index === value ? 'active' : ''}`}
+                            className={`step-multiplier ${index === currentMark ? 'active' : ''}`}
                         >x{index}</div>
                     ))}
                 </div>
@@ -72,4 +79,4 @@ const MultiplierSelector = ({ min = 0, max = 10, step = 1, defaultValue = 1, set
     );
 };
 
-export default MultiplierSelector;
+export default StepSlider;

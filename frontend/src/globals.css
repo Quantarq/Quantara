@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Allerta+Stencil&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap');
+
 :root {
   --text-font: 'Rethink Sans', sans-serif;
   --font-family: 'Open Sans', sans-serif;
@@ -18,6 +19,7 @@
   --primary-color: #0b0c10;
   --black: #000;
   --brand: #74d6fd;
+  --pink: #e01dee;
   --secondary: #e7ecf0;
   --secondary-color: #1a1c24;
   --collateral-color: #1d9259;
@@ -67,6 +69,7 @@ main {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: var(--font-family);
 }
 
 a {

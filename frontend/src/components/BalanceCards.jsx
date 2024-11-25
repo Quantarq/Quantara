@@ -36,8 +36,10 @@ const BalanceCards = ({ walletId }) => {
         ) : (
           <div className="balance-item" key={balance.title}>
             <label htmlFor={balance.title} className={'balance-title'}>
-              {balance.icon}
-              {balance.title} Balance:
+              <p className='balance-icon-wrapper'>
+                {balance.icon}
+              </p>
+              <span>{balance.title} Balance</span>
             </label>
             <label htmlFor={balance.title}>{balance.balance}</label>
           </div>

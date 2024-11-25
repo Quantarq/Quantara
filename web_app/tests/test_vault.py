@@ -111,7 +111,7 @@ async def test_get_vault_balance(
         "web_app.db.crud.DepositDBConnector.get_vault_balance", 
         return_value=balance
     ):
-        url = f"/api/vault/api/balance?wallet_id={wallet_id}&symbol={symbol}"
+        url = f"/api/vault/balance?wallet_id={wallet_id}&symbol={symbol}"
         response = await async_client.get(url)
         
         assert response.status_code == expected_status
@@ -160,7 +160,7 @@ async def test_add_vault_balance(
         **patch_kwargs
     ):
         response = await async_client.post(
-            "/api/vault/api/add_balance", 
+            "/api/vault/add_balance",
             json=test_data
         )
         

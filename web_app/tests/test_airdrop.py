@@ -43,8 +43,8 @@ def db_connector():
     airdrop = AirDrop(user_id=test_user.id)
     connector.write_to_db(airdrop)
     yield connector, test_user, airdrop
-    connector.delete_object(AirDrop, airdrop.id)
-    connector.delete_object(User, test_user.id)
+    connector.delete_object_by_id(AirDrop, airdrop.id)
+    connector.delete_object_by_id(User, test_user.id)
 
 
 def test_create_empty_claim_positive(db_connector):
@@ -66,7 +66,7 @@ def test_create_empty_claim_positive(db_connector):
     assert new_airdrop is not None
     assert new_airdrop.user_id == test_user.id
     assert not new_airdrop.is_claimed
-    connector.delete_object(AirDrop, new_airdrop.id)
+    connector.delete_object_by_id(AirDrop, new_airdrop.id)
 
 
 def test_create_empty_claim_non_existent_user(db_connector):
