@@ -84,7 +84,7 @@ jobs:
 
       - name: Run Integration Tests with Coverage
         run: |
-          docker exec backend_dev sh -c "cd /app && pytest web_app/test_integration/ -v"
+          docker exec backend_dev sh -c "cd /app && pytest web_app/test_integration/ -v
             --cov=web_app \
             --cov-report=term-missing \
             --cov-report=xml:coverage.xml"
