@@ -12,6 +12,7 @@ import LogoutModal from './components/Logout/LogoutModal';
 import { connectWallet, logout, checkForCRMToken } from 'services/wallet';
 import { saveTelegramUser, getTelegramUserWalletId } from 'services/telegram';
 import Documentation from 'pages/spotnet/documentation/Documentation';
+import Withdraw from 'pages/vault/withdraw/Withdraw';
 
 function App() {
   const [walletId, setWalletId] = useState(localStorage.getItem('wallet_id'));
@@ -54,16 +55,16 @@ function App() {
     try {
       setError(null);
       const walletAddress = await connectWallet();
-  
+
       if (!walletAddress) {
         throw new Error('Failed to connect wallet');
       }
-  
+
       const hasCRMToken = await checkForCRMToken(walletAddress);
       if (!hasCRMToken) {
         return; // Stop further actions if wallet doesn't have CRM token
       }
-  
+
       setWalletId(walletAddress);
     } catch (err) {
       console.error('Failed to connect wallet:', err);
@@ -84,7 +85,7 @@ function App() {
 
   const closeModal = () => {
     setShowModal(false);
-  }
+  };
 
   return (
     <div className="App">
@@ -95,9 +96,8 @@ function App() {
         walletId={walletId}
         onConnectWallet={handleConnectWallet}
         onLogout={handleLogoutModal}
-        />
+      />
       <main>
-      
         {error && <div className="alert alert-danger">{error}</div>}
         <Routes>
           <Route
@@ -109,8 +109,9 @@ function App() {
             element={walletId ? <Navigate to="/" /> : <Login onConnectWallet={handleConnectWallet} />}
           />
           <Route path="/dashboard" element={<Dashboard walletId={walletId} telegramId={tgUser} />} />
+          <Route path="/withdraw" element={<Withdraw />} />
           <Route path="/form" element={<Form walletId={walletId} setWalletId={setWalletId} />} />
-          <Route path="/documentation" element={<Documentation/>} />
+          <Route path="/documentation" element={<Documentation />} />
         </Routes>
       </main>
       <Footer />

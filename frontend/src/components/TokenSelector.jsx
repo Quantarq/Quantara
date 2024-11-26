@@ -11,30 +11,30 @@ const Tokens = [
   { id: 'daiOption', component: <DAI />, label: 'DAI' },
 ];
 
-const TokenSelector = ({ setSelectedToken, currentToken }) => {
-  const handleSelectedToken = (token) => {
-    setSelectedToken(token);
-  }
-  return (
-    <div className="form-token">
-      {Tokens.map((token) => (
-        <div className="token-card flex" key={token.id}>
-          <input
-            type="radio"
-            id={token.id}
-            name="token-options"
-            value={token.label}
-            onChange={() => handleSelectedToken(token.label)}
-          />
-          <label htmlFor={token.id} className={token.label === currentToken ? 'strk-token' : ''}>
+
+const TokenSelector = ({ selectedToken, setSelectedToken }) => {
+  
+  return <div className='form-token'>
+    {Tokens.map((token) => (
+      <div className='token-card' key={token?.id}>
+        <div className="token-container">
+        <input
+          type='radio'
+          id={token.id}
+          checked={selectedToken === token.label}
+          name='token-options'
+          value={token.label}
+          onChange={() => setSelectedToken(token?.label)}
+        />
+          <label htmlFor={token?.id}>
             <h5>
-              <span className='token'>{token.component}</span> {token.label}
+              <span className="token-icon">{token?.component}</span> {token?.label}
             </h5>
           </label>
         </div>
-      ))}
-    </div>
-  )
+      </div>
+    ))}
+  </div>
 };
 
 export default TokenSelector;

@@ -1,32 +1,70 @@
+.slider-container {
+    width: 100%;
+    border: 1px solid var(--light-purple);
+    padding: 10px 48px;
+    border-radius: 2000px;
+}
+
+.slider-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    padding: 0 6px;
+    width: 100%;
+}
+.slider-label {
+color: var(--slider-gray);
+}
+
+.slider {
+    position: relative;
+    height: 8px;
+    width: 100%;
+    cursor: pointer;
+  }
+  
+.slider-track {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    border-radius: 9999px;
+    overflow: hidden;
+    border: 1px solid var(--footer-divider-bg);
+}
+
+.slider-track-wrapper {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    border-radius: 9999px;
+    overflow: hidden;
+    padding: 1px;
+}
+
+.slider-range {
+    position: absolute;
+    height: 100%;
+    background: linear-gradient(to right, #49ABD2, #E01DEE);
+}
+
+.slider-thumb {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    transition: background-color 0.3s;
+}
+
+
+
+.multiplier-slider-container {
+    margin: 15px 1px -10px 8px;
+    width: 97%;
+}
+
 .slider-with-tooltip {
-  position: relative;
-}
-
-.slider-tooltip {
-  position: absolute;
-  top: 0;
-  transform: translateX(-50%);
-  background: var(--collateral-color);
-  color: var(--primary);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: bold;
-  pointer-events: none;
-}
-
-.slider-tooltip::after {
-  content: '';
-  position: absolute;
-  bottom: -4px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
-  border-top: 4px solid var(--collateral-color);
-}
+    position: relative;
+    width: 100%;
+} 
 
 .error-message {
   color: var(--borrow-color);
@@ -38,15 +76,53 @@
   font-weight: bold;
 }
 
-.slider-skeleton {
-  width: 100%;
-  height: 4px;
-  padding: 20px 0;
-  background: linear-gradient(90deg, var(--primary) 25%, var(--secondary) 50%, var(--primary) 75%);
-  background-size: 200% 100%;
-  animation: loading 1.5s infinite;
-  border-radius: 2px;
-  margin: 20px 0;
+div.slider-skeleton {
+    width: 100%;
+    padding: 10px 20px;
+    background: linear-gradient(90deg, var(--primary) 25%, var(--secondary) 50%, var(--primary) 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 2px;
+    margin: 20px 0;
+    color: var(--primary-color);
+}
+
+.mark-container {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.mark-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    width: 18px;
+}
+
+div.marker {
+    background: var(--slider-gray);
+    width: 4px;
+    height: 12px;
+    border-radius: 12px;
+}
+.mark-item.active div.marker {
+    background: var(--light-blue);
+    width: 4px;
+    height: 12px;
+    border-radius: 12px;
+}
+
+.mark-label {
+    color: var(--slider-gray);
+    font-size: 0.875rem;
+}
+
+.mark-item.active .mark-label {
+    color: var(--primary);
+    font-size: 0.875rem;
 }
 
 
@@ -61,153 +137,36 @@
 }
 
 
-.step-slider-container {
-  max-width: 642px !important;
-  width: 100%;
-  height: 104px;
-  padding: 15px 20px;
-  border: 1px solid #36294e;
-  border-radius: 900px;
-}
 
-.slider-labels {
-  display: flex;
-  justify-content: space-between;
-  color: #fff;
-  font-size: 14px;
-  margin-bottom: 3px;
-  color: #393942;
-  font-family: var(--text-font);
-}
-
-.slider-wrapper {
-  position: relative;
-  margin-top: -7.8px;
-}
-
-.slider-track-fill {
-  position: absolute;
-  top: 10px;
-  height: 8px;
-  background: #49abd2;
-  /* background: linear-gradient(to right, #00a3ff, #a855f7); */
-  border-radius: 4px;
-  transition: width 0.2s ease;
-  z-index: 1;
-}
-
-.step-slider {
-  position: relative;
-  width: 100%;
-  height: 8px;
-  -webkit-appearance: none;
-  appearance: none;
-  background: transparent;
-  outline: none;
-  border-radius: 900px;
-  z-index: 10;
-}
-
-.step-slider::before {
-  content: '';
-  position: absolute;
-  height: 8.5px;
-  inset: -0.5px;
-  padding: 1px;
-  background: var(--blue-pink-gradient);
-  border-radius: inherit;
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-  z-index: -1;
-}
-
-/* Slider thumb styles */
-.step-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 23px;
-  height: 24px;
-  background: url('../../public/pinslide.svg'), no-repeat;
-  background-position: center;
-  border-radius: 50%;
-  margin-top: -10px;
-  cursor: pointer;
-  box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
-  z-index: 10;
-}
-
-.step-slider::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
-  background: #87CEEB;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 2px solid white;
-  box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
-}
-
-/* Step markers container */
-.step-markers {
-  position: absolute;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  padding: 0 10px;
-  margin-top: 2px;
-  box-sizing: border-box;
-}
-
-.step-multipliers {
-  position: absolute;
-  width: 100% !important;
-  display: flex;
-  gap: 6%;
-  /* justify-content: space-between; */
-  box-sizing: border-box;
-}
-
-/* Individual step marker */
-.step-mark {
-  width: 4px;
-  height: 10px;
-  background-color: #393942;
-  border-radius: 2px;
-}
-
-.step-mark.active {
-  background-color: #88b4fa;
-}
-
-.step-multiplier {
-  width: 24px;
-  margin-top: 9px;
-  color: #393942;
-  font-size: 14px;
-  text-align: center;
-  font-family: var(--text-font);
-  padding-top: 2px;
-}
-
-.step-multiplier.active {
-  color: #fff;
-}
-
-/* Track styles for different browsers */
-.step-slider::-webkit-slider-runnable-track {
-  height: 4px;
-  border-radius: 2px;
-}
-
-.step-slider::-moz-range-track {
-  height: 4px;
-  border-radius: 2px;
-}
-
-/* Focus styles */
-.step-slider:focus {
-  outline: none;
+/* Responsiveness */
+/* Mobile */
+@media (max-width: 768px) {
+    .multiplier-slider-container {
+        margin: 10px 0px -10px 0;
+        width: 100%;
+        padding: 0px 9px;
+    }
+    .slider-container {
+        padding: 5px 20px;
+        border-radius: 16px;
+        border: 1px solid var(--light-purple);
+        max-height: 85px;
+        width: 100%;
+    }
+    .slider {
+        height: 4px;
+    }
+    .slider-labels {
+        font-size: 12px;
+    }
+    .mark-item {
+        gap: 4px;
+    }
+    div.marker, .mark-item.active div.marker{
+        width: 2px;
+        height: 8px;
+    }
+    .mark-item.active .mark-label, .mark-label {
+        font-size: 10px;
+    }
 }

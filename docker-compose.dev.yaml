@@ -21,6 +21,12 @@ services:
       - app_network
     depends_on:
       - db
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=spotnet
+      - DB_USER=postgres
+      - DB_PASSWORD=password
 
   db:
     image: postgres:14
@@ -31,11 +37,11 @@ services:
       POSTGRES_PASSWORD: password
     volumes:
       - postgres_data_dev:/var/lib/postgresql/data
-      - ./init-db:/docker-entrypoint-initdb.d # Automatically run initialization scripts
+      - ./init-db:/docker-entrypoint-initdb.d
     networks:
       - app_network
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"  # Use environment variable for port mapping
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
@@ -48,9 +54,9 @@ services:
       dockerfile: Dockerfile.dev
     container_name: frontend_dev
     volumes:
-      - ./frontend:/app # For live code updates during development
+      - ./frontend:/app
     ports:
-      - "3000:80" # Serve the frontend on localhost:3000
+      - "3000:80"
     networks:
       - app_network
     depends_on:

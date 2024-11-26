@@ -1,75 +1,142 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useMemo, useCallback, useState, useRef, useEffect } from 'react';
 import { useMaxMultiplier } from 'hooks/useMaxMultiplier';
+import sliderThumb from '../assets/icons/slider_thumb.svg';
 import './multiplier.css';
 
-const MultiplierSelector = ({ min = 0, max = 10, step = 1, defaultValue = 1, setSelectedMultiplier, selectedToken }) => {
-    const { data, isLoading, error } = useMaxMultiplier();
-    const [value, setValue] = useState(defaultValue);
+const MultiplierSelector = ({ setSelectedMultiplier, selectedToken }) => {
+  const { data, isLoading, error } = useMaxMultiplier();
+  const [actualValue, setActualValue] = useState(1.0);
+  const sliderRef = useRef(null);
+  const isDragging = useRef(false);
+
+  const maxMultiplier = useMemo(() => {
+  return Math.round(parseFloat((data?.[selectedToken]))) || 5.0;
+}, [data, selectedToken]);
 
 
-    const maxMultiplier = useMemo(() => {
-        return data?.[selectedToken] || 11.0;
-    }, [data, selectedToken]);
+  const mapSliderToValue = useCallback(
+    (sliderPosition) => {
+      const value = sliderPosition ;
+      return Math.max(1, Math.min(maxMultiplier, value));
+    },
+    [maxMultiplier]
+  );
 
-    const handleMultiplierChange = useCallback((e) => {
-        setValue(Number(e.target.value));
-        setSelectedMultiplier(value);
-    }, [setSelectedMultiplier, value]);
+  const calculateSliderPercentage = useCallback(
+    (value) => Math.min(((value - 1) / (maxMultiplier - 1)) * 100, 100),
+    [maxMultiplier]
+  );
 
-    const steps = Array.from(
-        { length: Math.floor((max - min) / step) + 1 },
-        (_, i) => min + (i * step)
-    );
+  const updateSliderValue = useCallback(
+    (clientX) => {
+      const slider = sliderRef.current;
+      if (!slider) return;
 
-    console.log(maxMultiplier);
-    const TOTAL_MARKS = 11;
+      const rect = slider.getBoundingClientRect();
+      const x = Math.max(0, Math.min(clientX - rect.left, rect.width));
+      const position = Math.round((x / rect.width) * (maxMultiplier - 1) + 1);
+      const newValue = mapSliderToValue(position);
 
-    const getTrackPercentage = useCallback(() => {
-        return ((value - min + 0.15) / (max - min + 0.25)) * 100;
-    }, [value, min, max]);
+      setActualValue(newValue);
+      setSelectedMultiplier(newValue.toFixed(1));
+    },
+    [mapSliderToValue, maxMultiplier, setSelectedMultiplier]
+  );
 
-    if (isLoading) return <div className="slider-skeleton">Loading multiplier data...</div>;
-    if (error) return <div className="error-message">Error loading multiplier data: {error.message}</div>;
+  const handleDrag = (e) => {
+    if (!isDragging.current) return;
+    const clientX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX;
+    updateSliderValue(clientX);
+  };
 
-    return (
-        <div className="step-slider-container">
-            <div className="slider-labels">
-                <span>Min</span>
-                <span>Max</span>
-            </div>
-            <div className="slider-wrapper">
-                <div
-                    className="slider-track-fill"
-                    style={{ 'width': `${getTrackPercentage()}%` }}
-                />
-                <input
-                    type="range"
-                    min={min}
-                    max={max}
-                    step={step}
-                    value={value}
-                    onChange={handleMultiplierChange}
-                    className="step-slider"
-                />
-                <div className="step-markers">
-                    {steps.map((stepValue) => (
-                        <div
-                            key={stepValue}
-                            className={`step-mark ${stepValue === value ? 'active' : ''}`}
-                        />
-                    ))}
-                </div>
-                <div className="step-multipliers">
-                    {Array.from({ length: TOTAL_MARKS }).map((_, index) => (
-                        <div
-                            key={index}
-                            className={`step-multiplier ${index === value ? 'active' : ''}`}
-                        >x{index}</div>
-                    ))}
-                </div>
-            </div>
+  const handleMouseDown = (e) => {
+    isDragging.current = true;
+    updateSliderValue(e.clientX);
+  };
+
+  const handleTouchStart = (e) => {
+    isDragging.current = true;
+    updateSliderValue(e.touches[0].clientX);
+  };
+
+  const handleDragEnd = () => {
+    isDragging.current = false;
+  };
+
+  useEffect(() => {
+    document.addEventListener('mousemove', handleDrag);
+    document.addEventListener('mouseup', handleDragEnd);
+    document.addEventListener('touchmove', handleDrag);
+    document.addEventListener('touchend', handleDragEnd);
+
+    return () => {
+      document.removeEventListener('mousemove', handleDrag);
+      document.removeEventListener('mouseup', handleDragEnd);
+      document.removeEventListener('touchmove', handleDrag);
+      document.removeEventListener('touchend', handleDragEnd);
+    };
+  }, [handleDrag]);
+
+  useEffect(() => {
+    if (actualValue > maxMultiplier) {
+      setActualValue(maxMultiplier);
+      setSelectedMultiplier(maxMultiplier.toFixed(2));
+    } else {
+      setSelectedMultiplier(actualValue.toFixed(2));
+    }
+  }, [maxMultiplier, actualValue, setSelectedMultiplier]);
+
+  if (isLoading) return <div className="slider-skeleton">Loading multiplier data...</div>;
+  if (error) return <div className="error-message">Error loading multiplier data: {error.message}</div>;
+
+  return (
+    <div className="multiplier-card">
+      <div className="slider-container">
+        <div className="slider-labels">
+          <span className="slider-label">Min</span>
+          <span className="slider-label">Max</span>
         </div>
-    );
+        <div className="slider-with-tooltip">
+          <div className="multiplier-slider-container">
+            <div
+              className="slider"
+              ref={sliderRef}
+              onMouseDown={handleMouseDown}
+              onTouchStart={handleTouchStart}
+            >
+              <div className="slider-track">
+                <div
+                  className="slider-range"
+                  style={{
+                    width: `${calculateSliderPercentage(actualValue)}%`,
+                  }}
+                ></div>
+              </div>
+              <div
+                className="slider-thumb"
+                style={{
+                  left: `${calculateSliderPercentage(actualValue)}%`,
+                }}
+              >
+                <img src={sliderThumb} alt="slider thumb" draggable="false" />
+              </div>
+            </div>
+          </div>
+          <div className="mark-container">
+            {Array.from({ length: maxMultiplier}, (_, i) => i + 1).map((mark) => (
+              <div
+                key={mark}
+                className={`mark-item ${mark === actualValue ? 'active' : ''}`}
+              >
+                <div className="marker" />
+                <span className="mark-label">{`x${mark}`}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default MultiplierSelector;

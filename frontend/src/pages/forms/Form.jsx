@@ -5,8 +5,6 @@ import MultiplierSelector from 'components/MultiplierSelector';
 import { connectWallet } from 'services/wallet';
 import { handleTransaction } from 'services/transaction';
 import Spinner from 'components/spinner/Spinner';
-// import StarMaker from 'components/StarMaker';
-import CardGradients from 'components/CardGradients';
 import { ReactComponent as AlertHexagon } from 'assets/icons/alert_hexagon.svg';
 import './form.css';
 import { createPortal } from 'react-dom';
@@ -15,14 +13,8 @@ import CongratulationsModal from 'components/congratulationsModal/Congratulation
 import StyledPopup from 'components/openpositionpopup/StyledPopup';
 import { useCheckPosition } from 'hooks/useClosePosition';
 const Form = ({ walletId, setWalletId }) => {
-  // const starData = [
-  //   { top: 35, left: 12, size: 12 },
-  //   { top: 90, left: 7, size: 7 },
-  //   { top: 40, left: 80, size: 7 },
-  //   { top: 75, left: 90, size: 9 },
-  // ];
   const [tokenAmount, setTokenAmount] = useState('');
-  const [selectedToken, setSelectedToken] = useState('STRK');
+  const [selectedToken, setSelectedToken] = useState('ETH');
   const [selectedMultiplier, setSelectedMultiplier] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -89,50 +81,52 @@ const Form = ({ walletId, setWalletId }) => {
 
 
   return (
-    <div className="form-container">
-      {successful && createPortal(<CongratulationsModal />, document.body)}
+    <div className="form-content-wrapper">
+        <BalanceCards walletId={walletId} />
+        {successful && createPortal(<CongratulationsModal />, document.body)}
       <StyledPopup
         isOpen={isPositionModalOpened}
         onClose={()=> setIsPositionModalOpened(false)}
         onClosePosition={handleClosePosition}
         />
-      {/* The rest of the UI stays largely unchanged */}
-      <BalanceCards walletId={walletId} />
-      <form onSubmit={handleSubmit}>
-        <div className="form-wrapper">
-          <div className="form-title">
-            <h1 className=''>Please submit your leverage details</h1>
-          </div>
-          {alertMessage && (
-            <p className="error-message form-alert">
-              {alertMessage} <AlertHexagon className="form-alert-hex" />
-            </p>
-          )}
-          <label>Select Token</label>
-          <TokenSelector currentToken={selectedToken} setSelectedToken={setSelectedToken} />
-          <h5 className='select-multiplier'>Select Multiplier</h5>
-          <MultiplierSelector defaultValue={4} setSelectedMultiplier={setSelectedMultiplier} selectedToken={selectedToken} />
-          <div className="token-label">
-            <label className='token-amount'>Token Amount</label>
-            {error && <p className="error-message">{error}</p>}
-            <input
-              type="number"
-              placeholder="Enter Token Amount"
-              value={tokenAmount}
-              onChange={(e) => setTokenAmount(e.target.value)}
-              className={error ? 'error' : ''}
+        {/* The rest of the UI stays largely unchanged */}
+        <form className='form-container' onSubmit={handleSubmit}>
+            <div className="form-title">
+              <h1>Please submit your leverage details</h1>
+            </div>
+            {alertMessage && (
+              <p className="error-message form-alert">
+                {alertMessage} <AlertHexagon className="form-alert-hex" />
+              </p>
+            )}
+            <label>Select Token</label>
+            <TokenSelector selectedToken={selectedToken} setSelectedToken={setSelectedToken} />
+            <label>Select Multiplier</label>
+            <MultiplierSelector
+              setSelectedMultiplier={setSelectedMultiplier}
+              selectedToken={selectedToken}
+              sliderValue={selectedMultiplier}
             />
-          </div>
-          <div>
-            <button type="submit" className="form-button">
-              Submit
-            </button>
-          </div>
-          <CardGradients additionalClassName={'forms-gradient'} />
-          {/* <StarMaker starData={starData} /> */}
-        </div>
-      </form>
-      <Spinner loading={loading} />
+            <div className="token-label">
+              <label>Token Amount</label>
+              {error && <p className="error-message">{error}</p>}
+              <input
+                type="number"
+                placeholder="Enter Token Amount"
+                value={tokenAmount}
+                onChange={(e) => setTokenAmount(e.target.value)}
+                className={error ? 'error' : ''}
+              />
+            </div>
+            <div>
+              <div className="form-button-container">
+                <button type="submit" className="form-button">
+                  Submit
+                </button>
+              </div>
+            </div>
+        </form>
+        <Spinner loading={loading} />
     </div>
   );
 };
