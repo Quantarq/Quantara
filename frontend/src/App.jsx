@@ -15,6 +15,7 @@ import Documentation from 'pages/spotnet/documentation/Documentation';
 import Withdraw from 'pages/vault/withdraw/Withdraw';
 import { useConnectWallet } from 'hooks/useConnectWallet';
 import { Notifier } from 'components/Notifier/Notifier';
+import Stake from 'pages/vault/stake/Stake';
 
 function App() {
   const [walletId, setWalletId] = useState(localStorage.getItem('wallet_id'));
@@ -98,6 +99,8 @@ function App() {
           <Route path="/withdraw" element={<Withdraw />} />
           <Route path="/form" element={<Form walletId={walletId} setWalletId={setWalletId} />} />
           <Route path="/documentation" element={<Documentation />} />
+
+            <Route path="/stake" element={<Stake />} />
         </Routes>
       </main>
       <Footer />

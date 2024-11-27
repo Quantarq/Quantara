@@ -1,0 +1,254 @@
+.staking-container {
+  max-width: 866px;
+  margin: 0 auto;
+  padding: 2rem;
+  color: white;
+  font-family: 'Inter', sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.balance-row {
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.balance-card-header {
+  display: flex;
+  gap: 14px;
+}
+
+.balance-card {
+  flex: 1;
+  flex-direction: column;
+  background: #120721;
+  backdrop-filter: blur(10px);
+  padding: 15px 30px;
+  border-radius: 48px;
+  border: 1px solid #36294e;
+
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.currency-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.balance-label {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.balance-amount {
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.form-title {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: normal;
+  margin: 1.5rem 0;
+  opacity: 0.8;
+}
+
+.staking-card {
+  background: #120721;
+  backdrop-filter: blur(10px);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  border: 1px solid #36294e;
+  margin-bottom: 1.5rem;
+}
+
+.network-selector-container {
+  position: relative;
+  width: 100%;
+}
+
+.network-selector {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  font-size: 1rem;
+  width: 100%;
+  position: relative;
+  z-index: 10;
+}
+
+.network-selector .selected-network {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.network-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.chevron {
+  margin-left: auto;
+  transition: transform 0.3s ease;
+}
+
+.network-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  z-index: 1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.network-dropdown .network-option {
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.network-dropdown .network-option:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.network-selector-container:hover .network-dropdown {
+  display: block;
+}
+
+.network-selector-container:hover .chevron {
+  transform: rotate(180deg);
+}
+
+.amount-input {
+  position: relative;
+  width: 140px;
+  max-width: 140px;
+  margin: 2rem auto 1rem;
+  text-align: center;
+}
+
+.amount-field {
+  background: transparent;
+  border: none;
+  color: #83919f;
+  font-size: 64px;
+  font-weight: 600;
+  outline: none;
+}
+
+.currency {
+  position: absolute;
+  color: #393942;
+  right: -35%;
+  top: 10%;
+  transform: translateY(-50%);
+  opacity: 0.5;
+  font-size: 1.5rem;
+}
+
+.apy-rate {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.875rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+/* .gas-fee-info {
+
+  } */
+.gas-fee {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.gas-icon {
+  font-size: 1rem;
+}
+
+.gas-text {
+  margin-right: 10px;
+}
+
+.stake-button {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 43px;
+  border: none;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  position: relative;
+  transition: opacity 0.2s;
+
+  background-color: #120721;
+  color: white;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 43px;
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.stake-button::before {
+  content: '';
+  position: absolute;
+  top: -1px; 
+  left: -1px; 
+  right: -1px; 
+  bottom: -1px; 
+  border-radius: 43px;
+  z-index: -1;
+}
+
+.stake-button:hover::before {
+  opacity: 0.9;
+}
+
+.stake-button::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 1px solid transparent;
+  border-radius: 43px;
+  background: linear-gradient(45deg, #49abd2, #e01dee);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: destination-out;
+  mask-composite: exclude;
+}

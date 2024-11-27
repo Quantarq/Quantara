@@ -1,0 +1,138 @@
+.layout {
+    display: flex;
+    min-height: 100vh;
+    background: url('../../../public/background.png') no-repeat;
+    background-size: cover;
+    background-position: center 39%;
+    position: relative;
+  }
+  
+  .sidebar {
+    width: 280px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-right: 1px solid rgba(139, 92, 246, 0.1);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    position: absolute;
+    height: 100%;
+  }
+  
+  .sidebar-title {
+    color: white;
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #36294E;
+  }
+  
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: color 0.2s;
+  }
+  
+  .nav-item:hover {
+    color: white;
+  }
+  
+  .nav-bullet {
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+  
+  .main-content {
+    flex: 1;
+    padding: 0;
+    position: relative;
+    padding-bottom: 4rem; 
+  }
+  
+  .footer {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: calc(100% - 240px); /* Adjust for sidebar width */
+    border-top: 1px solid rgba(139, 92, 246, 0.2);
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+  }
+  
+  .footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .footer-links {
+    display: flex;
+    gap: 1.5rem;
+  }
+  
+  .footer-link {
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: color 0.2s;
+  }
+  
+  .footer-link:hover {
+    color: white;
+  }
+  
+  .footer-social {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .social-button {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    padding: 0.25rem;
+    transition: color 0.2s;
+  }
+  
+  .social-button:hover {
+    color: white;
+  }
+  
+  @media (max-width: 768px) {
+    .sidebar {
+      width: 200px;
+    }
+  
+    .footer {
+      width: calc(100% - 200px);
+    }
+  
+    .footer-links {
+      display: none;
+    }
+  }
+  
+  @media (max-width: 640px) {
+    .sidebar {
+      width: 160px;
+    }
+  
+    .footer {
+      width: calc(100% - 160px);
+    }
+  }
+  
