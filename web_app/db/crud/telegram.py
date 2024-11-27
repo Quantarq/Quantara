@@ -7,8 +7,9 @@ from typing import TypeVar
 
 from sqlalchemy import update
 
-from .base import DBConnector
 from web_app.db.models import Base, TelegramUser
+
+from .base import DBConnector
 
 logger = logging.getLogger(__name__)
 ModelType = TypeVar("ModelType", bound=Base)
@@ -143,3 +144,13 @@ class TelegramUserDBConnector(DBConnector):
             user.is_allowed_notification = True
             session.commit()
             return True
+
+    def is_allowed_notification(self, wallet_id: str = None) -> bool | None:
+        """
+        Returns true or false if a telegram user allowed notification.
+
+        Args:
+            wallet_id: Wallet ID of the user.
+        """
+        user = self.get_object_by_field(TelegramUser, "wallet_id", wallet_id)
+        return user.is_allowed_notification if user else None
