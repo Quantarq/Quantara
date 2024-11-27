@@ -1,11 +1,13 @@
 import { create } from 'zustand';
 
-const useWalletStore = create((set) => ({
+export const useWalletStore = create((set) => ({
   walletId: localStorage.getItem('wallet_id'),
   setWalletId: (walletId) => {
     localStorage.setItem('wallet_id', walletId);
     set({ walletId });
   },
+  removeWalletId: () => {
+    localStorage.removeItem('wallet_id');
+    set({ walletId: undefined });
+  },
 }));
-
-export default useWalletStore;

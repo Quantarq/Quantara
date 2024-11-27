@@ -2,7 +2,7 @@ import React from 'react';
 import './telegramNotificationModal.css';
 import useTelegramNotification from 'hooks/useTelegramNotification';
 import { Notifier } from 'components/Notifier/Notifier';
-import useWalletStore from 'stores/useWalletStore';
+import { useWalletStore } from 'stores/useWalletStore';
 
 
 const TelegramNotificationModal = ({ onClose, telegramId }) => {

@@ -8,11 +8,9 @@ import useLockBodyScroll from 'hooks/useLockBodyScroll';
 import MobDropdownMenu from '../mobDropdownMenu/MobDropdownMenu';
 import './header.css';
 import '../../globals.css';
-import useWalletStore from 'stores/useWalletStore';
 
 
 function Header({ onConnectWallet, onLogout }) {
-      const { walletId } = useWalletStore();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation(); // Getting object of currant route
@@ -61,7 +59,7 @@ function Header({ onConnectWallet, onLogout }) {
           <div className="dropdown">
             <MobDropdownMenu isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
           </div>
-          <WalletSection walletId={walletId} onConnectWallet={onConnectWallet} onLogout={onLogout} />
+          <WalletSection  onConnectWallet={onConnectWallet} onLogout={onLogout} />
         </div>
       </div>
     </nav>

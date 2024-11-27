@@ -7,7 +7,7 @@ import { useMatchMedia } from 'hooks/useMatchMedia';
 import { getBalances } from '../services/wallet';
 import useScrollTracker from 'hooks/useScrollTracker';
 import PaginationDots from './PaginationDots';
-import useWalletStore from 'stores/useWalletStore';
+import { useWalletStore } from 'stores/useWalletStore';
 
 const BalanceCards = () => {
     const { walletId } = useWalletStore();

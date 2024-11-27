@@ -1,7 +1,11 @@
 import React, { useEffect } from 'react';
+import { useWalletStore } from 'stores/useWalletStore';
+
 import './telegramLogin.css';
 
 const TelegramLogin = ({ user, onLogin }) => {
+    const { removeWalletId } = useWalletStore();
+
   useEffect(() => {
     const initTelegramLogin = () => {
       const tg = window.Telegram.WebApp;
@@ -28,6 +32,7 @@ const TelegramLogin = ({ user, onLogin }) => {
 
   const handleLogout = () => {
     localStorage.removeItem('tg_user');
+     removeWalletId();
     onLogin(null);
   };
 

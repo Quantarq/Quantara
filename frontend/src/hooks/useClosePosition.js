@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { axiosInstance } from 'utils/axios';
 import { closePosition } from 'services/transaction';
-import useWalletStore from 'stores/useWalletStore';
+import { useWalletStore } from 'stores/useWalletStore';
 
 export const useClosePosition = () => {
         const { walletId } = useWalletStore();

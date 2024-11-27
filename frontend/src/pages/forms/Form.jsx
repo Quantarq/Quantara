@@ -13,7 +13,7 @@ import CongratulationsModal from 'components/congratulationsModal/Congratulation
 import StyledPopup from 'components/openpositionpopup/StyledPopup';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import useWalletStore from 'stores/useWalletStore';
+import { useWalletStore } from 'stores/useWalletStore';
 
 
 const Form = () => {

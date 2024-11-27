@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import useWalletStore from 'stores/useWalletStore';
+import { useWalletStore } from 'stores/useWalletStore';
 
 
 const WalletSection = ({ onConnectWallet, onLogout }) => {

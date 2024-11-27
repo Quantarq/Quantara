@@ -4,7 +4,7 @@ import { getTokenBalances, sendTransaction } from 'services/wallet';
 import { Notifier } from 'components/Notifier/Notifier';
 import { notifyError } from 'utils/notification';
 import { axiosInstance } from 'utils/axios';
-import useWalletStore from 'stores /useWalletStore';
+import { useWalletStore } from 'stores /useWalletStore';
 
 
 const LendingForm = () => {
