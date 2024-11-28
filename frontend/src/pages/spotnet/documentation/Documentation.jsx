@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import './documentation.css';
-import Section from '../../../components/Section';
 import TableOfContents from '../../../components/TableOfContents';
 import ScrollButton from '../../../components/scrollButton/ScrollButton';
+import Sections from 'components/NewSections';
 
 const Documentation = () => {
 
@@ -13,8 +13,8 @@ const Documentation = () => {
 
   const tableOfContents = [
     { title: 'Introduction', link: '#introduction' },
-    { 
-      title: 'Overview', 
+    {
+      title: 'Overview',
       link: '#overview',
       subItems: [
         { title: 'Cosmos Overview', link: '#cosmos-1' },
@@ -32,69 +32,74 @@ const Documentation = () => {
     { title: 'The Hub And Zones', link: '#hub-5' }
   ];
 
+  const sectionsData = [
+    {
+      id: 'introduction',
+      title: 'Introduction',
+      content: [
+        {
+          type: 'text',
+          value:
+            'Welcome to [Product Name] Documentation\n[Product Name] is a decentralized platform designed to [describe purpose, e.g., "empower users to securely manage digital assets and access DeFi tools effortlessly"]. This documentation provides a comprehensive guide on using [Product Name] and making the most of its features.',
+        },
+      ],
+    },
+    {
+      id: 'overview',
+      title: 'Overview',
+      content: [
+        {
+          type: 'text',
+          value:
+            'What is [Product Name]?\n[Product Name] is a Web3 platform that leverages blockchain technology to [describe primary functionalities, e.g., "facilitate secure transactions, staking, and asset management without intermediaries"].',
+        },
+        {
+          type: 'text',
+          value: 'Core features include:',
+        },
+        {
+          type: 'list',
+          items: [
+            'Decentralized Finance (DeFi): Access a suite of DeFi services, including lending, borrowing, and yield farming.',
+            'Security-First Design: Built on smart contracts to ensure safety and transparency.',
+            'Cross-Chain Compatibility: [Product Name] supports multiple blockchains for a seamless user experience.',
+          ],
+        },
+      ],
+    },
+    {
+      id: 'getting-started',
+      title: 'Getting Started',
+      content: [
+        {
+          type: 'text',
+          value: 'Setting Up Your Wallet',
+        },
+        {
+          type: 'orderedList',
+          items: [
+            'Download a compatible Web3 wallet (e.g., MetaMask).',
+            'Fund your wallet with the supported cryptocurrency.',
+            'Connect your wallet to [Product Name].',
+          ],
+        },
+      ],
+    },
+  ];
+
   return (
     <div className="documentation-page">
       <TableOfContents items={tableOfContents} />
-      
+
       <div className="main-content">
         <h1 className="main-title">zkLend Documentation</h1>
 
-        <Section 
-          id="introduction" 
-          title="Introduction"
-          content={[
-            {
-              type: 'text',
-              value: "Welcome to [Product Name] Documentation\n[Product Name] is a decentralized platform designed to [describe purpose, e.g., \"empower users to securely manage digital assets and access DeFi tools effortlessly\"]. This documentation provides a comprehensive guide on using [Product Name] and making the most of its features."
-            }
-          ]}
-        />
-
-        <Section 
-          id="overview" 
-          title="Overview"
-          content={[
-            {
-              type: 'text',
-              value: "What is [Product Name]?\n[Product Name] is a Web3 platform that leverages blockchain technology to [describe primary functionalities, e.g., \"facilitate secure transactions, staking, and asset management without intermediaries\"]."
-            },
-            {
-              type: 'text',
-              value: "Core features include:"
-            },
-            {
-              type: 'list',
-              items: [
-                "Decentralized Finance (DeFi): Access a suite of DeFi services, including lending, borrowing, and yield farming.",
-                "Security-First Design: Built on smart contracts to ensure safety and transparency.",
-                "Cross-Chain Compatibility: [Product Name] supports multiple blockchains for a seamless user experience."
-              ]
-            }
-          ]}
-        />
-
-        <Section 
-          id="getting-started" 
-          title="Getting Started"
-          content={[
-            {
-              type: 'text',
-              value: "Setting Up Your Wallet"
-            },
-            {
-              type: 'orderedList',
-              items: [
-                "Download a compatible Web3 wallet (e.g., MetaMask).",
-                "Fund your wallet with the supported cryptocurrency.",
-                "Connect your wallet to [Product Name]."
-              ]
-            }
-          ]}
-        />
+        <Sections sections={sectionsData} />
       </div>
 
       <ScrollButton />
     </div>
+
   );
 };
 
