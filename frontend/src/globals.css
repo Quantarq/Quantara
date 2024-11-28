@@ -12,7 +12,7 @@
   --second-primary: #fdfdfd;
   --second-gradient: linear-gradient(55deg, #e01dee 0%, #49abd2 49%);
   --header-button-bg: #120721;
-  --plain-button-bg: #0E0A16;
+  --plain-button-bg: #0e0a16;
   --border-gradient: linear-gradient(90deg, #49abd2 0%, #df1ced 99.5%);
   --mask-gradient: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   --primary: #fff;
@@ -45,12 +45,12 @@
   --bg: #120721;
   --border-color: #201338;
   --closePosition: linear-gradient(to right, #49abd2, #e01dee);
-  --light-purple: #36294E;
-  --gray: #83919F;
+  --light-purple: #36294e;
+  --gray: #83919f;
   --dark-purple: #120721;
-  --light-blue: #74D5FD;
+  --light-blue: #74d5fd;
   --slider-gray: #393942;
-  --light-blue: #88B4FA;
+  --light-blue: #88b4fa;
   --thumb-image: url('./assets/icons/slider-thumb.svg');
   --blue-pink-gradient: linear-gradient(90deg, #74d6fd 0%, #e01dee 100%);
   --blue-pink-gradient-alt: linear-gradient(90deg, #49abd2 0%, #e01dee 100%);
@@ -62,6 +62,7 @@
   --deep-purple: #120721;
   --dark-background: #130713;
   --light-dark-background: #130713;
+  --text-gray: #798795;
 }
 
 body {

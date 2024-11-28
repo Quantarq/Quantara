@@ -29,17 +29,6 @@
   font-size: 16px;
 }
 
-@media (max-width: 640px) {
-  .button--lg {
-    /* width: 324px; */
-    width: 100%;
-  }
-
-  .button--md {
-    width: 167px;
-  }
-}
-
 .button--sm {
   width: 167px;
   padding: 18px 16px;
@@ -50,11 +39,7 @@
 .button--primary {
   color: white;
   padding: 16px 24px 16px 24px;
-  background: linear-gradient(to right, #e01dee, #49abd2);
-}
-
-.button--primary:hover {
-  background: linear-gradient(to right, #49abd2, #e01dee);
+  background: linear-gradient(73.48deg, #e01dee 1.13%, #49abd2 51.27%);
 }
 
 .button--primary:active {
@@ -107,4 +92,27 @@
 
 .button:disabled:hover {
   transform: none;
+}
+
+@media (max-width: 768px) {
+  .button {
+    border-radius: 16px;
+  }
+
+  .button--primary {
+    padding: 20px 12px;
+  }
+
+  .button--secondary::before {
+    border-radius: 16px;
+  }
+
+  .button--lg {
+    width: 100%;
+  }
+
+  .button--md {
+    font-size: 14px;
+    width: 167px;
+  }
 }

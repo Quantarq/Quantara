@@ -1,14 +1,10 @@
-import { useMutation,useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { axiosInstance } from 'utils/axios';
 import { closePosition } from 'services/transaction';
 import { useWalletStore } from 'stores/useWalletStore';
 
 export const useClosePosition = () => {
-        const { walletId } = useWalletStore();
-
-
-
-export const useClosePosition = (walletId) => {
+  const { walletId } = useWalletStore();
 
   return useMutation({
     mutationFn: async () => {
@@ -26,8 +22,9 @@ export const useClosePosition = (walletId) => {
   });
 };
 
+export const useCheckPosition = () => {
+  const { walletId } = useWalletStore();
 
-export const useCheckPosition = (walletId) => {
   return useQuery({
     queryKey: ['hasOpenPosition', walletId],
     queryFn: async () => {

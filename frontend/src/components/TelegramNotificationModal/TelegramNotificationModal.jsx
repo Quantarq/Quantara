@@ -5,14 +5,13 @@ import { useWalletStore } from 'stores/useWalletStore';
 import Button from 'components/ui/Button/Button';
 
 const TelegramNotificationModal = ({ onClose, telegramId }) => {
-        const { walletId } = useWalletStore();
-const { subscribe, isLoading } = useTelegramNotification();
-const handleSubscribe = () => {
+  const { walletId } = useWalletStore();
+  const { subscribe, isLoading } = useTelegramNotification();
+  const handleSubscribe = () => {
     subscribe({ telegramId, walletId });
   };
- return (
+  return (
     <div className="notification-overlay">
-      <div className="notification-backdrop" onClick={onClose} />
       <div className="notification-wrapper">
         <div className="notification-box">
           <div className="notification-content">

@@ -1,4 +1,4 @@
-.notification-overlay {
+.close-position-overlay {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -11,7 +11,7 @@
   z-index: 9999;
 }
 
-.notification-wrapper {
+.close-position-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -21,7 +21,7 @@
   overflow: hidden;
 }
 
-.notification-box {
+.close-position-box {
   border-radius: 16px;
   max-width: 642px;
   width: 100%;
@@ -31,7 +31,7 @@
   text-align: center;
 }
 
-.notification-content {
+.close-position-content {
   text-align: center;
   padding: 24px;
   border: var(--nav-divider-bg) 1px solid;
@@ -39,8 +39,8 @@
   border-radius: 48px;
 }
 
-.notification-title {
-  color: var(--primary);
+.close-position-title {
+  color: var(--text-gray);
   text-align: center;
   font-size: 16px;
   padding-bottom: 10px;
@@ -48,7 +48,7 @@
   margin-bottom: 24px;
 }
 
-.notification-content h2 {
+.close-position-content h2 {
   color: var(--primary);
   font-size: 24px;
   font-weight: 500;
@@ -56,20 +56,20 @@
   line-height: 1.3;
 }
 
-.notification-content p {
-  color: var(--second-primary);
-  font-size: 16px;
+.close-position-content p {
+  color: var(--text-gray);
+  font-size: 14px;
   line-height: 1.5;
   max-width: 380px;
   margin: 0 auto;
 }
 
-.notification-actions {
+.close-position-actions {
   display: flex;
   gap: 16px;
 }
 
-.notification-btn {
+.close-position-btn {
   flex: 1;
   padding: 20px 16px;
   border-radius: 40px;
@@ -79,13 +79,13 @@
   cursor: pointer;
 }
 
-.notification-cancel-btn {
+.close-position-cancel-btn {
   color: var(--primary);
   position: relative;
   border: none;
 }
 
-.notification-cancel-btn::before {
+.close-position-cancel-btn::before {
   content: '';
   position: absolute;
   top: 0;
@@ -105,7 +105,7 @@
   mask-composite: exclude;
 }
 
-.notification-confirm-btn {
+.close-position-confirm-btn {
   color: var(--primary);
   background: var(--second-gradient);
   border: none;
@@ -113,43 +113,48 @@
 
 /* Mobile Styles */
 @media screen and (max-width: 768px) {
-  .notification-wrapper {
+  .close-position-content {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .close-position-wrapper {
     max-width: 390px;
     width: 100%;
     padding: 20px;
   }
 
-  .notification-title {
+  .close-position-title {
     font-size: 14px;
-    padding-bottom: 8px;
+    padding-block: 12px;
     margin-bottom: 16px;
   }
 
-  .notification-content h2 {
+  .close-position-content h2 {
     font-size: 16px;
     margin-bottom: 12px;
   }
 
-  .notification-content p {
+  .close-position-content p {
     font-size: 14px;
     max-width: 320px;
   }
 
-  .notification-actions {
+  .close-position-actions {
     gap: 8px;
   }
 
-  .notification-btn {
+  .close-position-btn {
     padding: 20px 8px;
     border-radius: 16px;
     font-size: 14px;
   }
 
-  .notification-cancel-btn::before {
+  .close-position-cancel-btn::before {
     border-radius: 16px;
   }
 
-  .notification-confirm-btn {
+  .close-position-confirm-btn {
     font-size: 14px;
   }
 }

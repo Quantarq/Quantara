@@ -79,8 +79,7 @@
   color: var(--gray);
 }
 
-
-.form-container>* {
+.form-container > * {
   color: var(--primary);
 }
 
@@ -174,7 +173,7 @@ input[type='radio'] {
   box-sizing: border-box;
 }
 
-.multiplier-item input[type='radio']:checked+label {
+.multiplier-item input[type='radio']:checked + label {
   border-color: var(--brand);
   box-shadow: 0 4px 20px var(--brand);
 }
@@ -306,7 +305,6 @@ input[type='number'].error {
   filter: grayscale(1);
 }
 
-
 /* Responsiveness */
 /* Mobile */
 @media (max-width: 768px) {
@@ -330,7 +328,7 @@ input[type='number'].error {
     padding: 1rem;
   }
 
-  .form-container>form {
+  .form-container > form {
     padding: 0 1rem;
   }
 
@@ -388,7 +386,7 @@ input[type='number'].error {
     align-items: center;
   }
 
-  .balance-item .title-container+label:nth-of-type(1) {
+  .balance-item .title-container + label:nth-of-type(1) {
     font-size: 20px;
     font-weight: 600;
   }
@@ -478,7 +476,8 @@ input[type='number'].error {
 }
 
 /* Tablet devices */
-@media screen and (min-width: 600px) and (max-width: 900px) {}
+@media screen and (min-width: 600px) and (max-width: 900px) {
+}
 
 /* Large screens */
 @media (min-width: 1800px) {
