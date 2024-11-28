@@ -17,6 +17,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
+    Float
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
@@ -77,6 +78,10 @@ class Position(Base):
         default="pending",
     )
     start_price = Column(DECIMAL, nullable=False)
+    is_protection = Column(Boolean, default=False)
+    liquidation_bonus = Column(Float, default=0.0)
+    is_liquidated = Column(Boolean, default=False)
+    datetime_liquidation = Column(DateTime, nullable=False)
 
 
 class AirDrop(Base):

@@ -175,7 +175,7 @@ fn test_loop_eth_fuzz(amount: u64) {
         assert(
             message == 'Parameters cannot be zero'
                 || message == 'Loop amount is too small'
-                || message == 'Approved amount incuficient'
+                || message == 'Approved amount insufficient'
                 || message == 'Insufficient balance',
             message
         ); // Acceptable panics which can be triggered by fuzzers' values
@@ -763,7 +763,7 @@ fn test_extra_deposit_supply_token_close_position_fuzz(extra_amount: u32) {
     deposit_disp
         .loop_liquidity(
             DepositData {
-                token: usdc_addr, amount: 1000000000, multiplier: 4, borrow_portion_percent: 98
+                token: usdc_addr, amount: 1000000000, multiplier: 4, borrow_portion_percent: 94
             },
             pool_key,
             get_slippage_limits(pool_key),
@@ -903,9 +903,9 @@ fn test_withdraw_valid_fuzz(amount: u32) {
 
     let user_pre_balance = eth_disp.balanceOf(user);
 
-    start_cheat_caller_address(deposit_disp.contract_address, user);
+    start_cheat_account_contract_address(deposit_disp.contract_address, user);
     deposit_disp.withdraw(eth_addr, amount.into());
-    stop_cheat_caller_address(deposit_disp.contract_address);
+    stop_cheat_account_contract_address(deposit_disp.contract_address);
 
     if amount == 0 {
         assert(z_eth_disp.balanceOf(deposit_disp.contract_address) == 0, 'Wrong contract balance');
@@ -1034,9 +1034,9 @@ fn test_withdraw_position_open() {
         );
     stop_cheat_account_contract_address(deposit_disp.contract_address);
 
-    start_cheat_caller_address(deposit_disp.contract_address, user);
+    start_cheat_account_contract_address(deposit_disp.contract_address, user);
     deposit_disp.withdraw(eth_addr, 100000000000000);
-    stop_cheat_caller_address(deposit_disp.contract_address);
+    stop_cheat_account_contract_address(deposit_disp.contract_address);
 }
 
 #[test]

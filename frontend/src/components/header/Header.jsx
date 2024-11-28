@@ -9,7 +9,9 @@ import MobDropdownMenu from '../mobDropdownMenu/MobDropdownMenu';
 import './header.css';
 import '../../globals.css';
 
-function Header({ walletId, onConnectWallet, onLogout }) {
+
+function Header({ onConnectWallet, onLogout }) {
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation(); // Getting object of currant route
 
@@ -57,7 +59,7 @@ function Header({ walletId, onConnectWallet, onLogout }) {
           <div className="dropdown">
             <MobDropdownMenu isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
           </div>
-          <WalletSection walletId={walletId} onConnectWallet={onConnectWallet} onLogout={onLogout} />
+          <WalletSection  onConnectWallet={onConnectWallet} onLogout={onLogout} />
         </div>
       </div>
     </nav>

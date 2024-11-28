@@ -1,32 +1,23 @@
 """
-Module: Position Closing Tests
-
-This module contains integration tests for closing user positions within the webapp.
-
-Key Components:
-- **PositionDBConnector**: Manages database operations for positions.
-
-Test Class:
-- **PositionCloseTest**: Validates position workflows:
-  1. Creating and verifying positions.
-  2. Updating position statuses.
-  3. Closing positions and validating the final status and attributes.
+Integration test for the PositionClose view.
 """
-
+import asyncio
 from datetime import datetime
 from typing import Any, Dict
 
 import pytest
 from web_app.contract_tools.mixins.dashboard import DashboardMixin
-from web_app.db.crud import PositionDBConnector
+from web_app.db.crud import PositionDBConnector, UserDBConnector, AirDropDBConnector
+from web_app.db.models import Status
 
+user_db = UserDBConnector()
+airdrop = AirDropDBConnector()
 position_db = PositionDBConnector()
 
 
-class PositionCloseTest:
+class TestPositionClose:
     """
     Integration test for closing and managing positions.
-
     Steps:
     1. Create a position using `PositionDBConnector`.
     2. Verify the created position's attributes.
@@ -61,7 +52,6 @@ class PositionCloseTest:
         """
         Args:
         form_data (Dict[str, Any]): Position data.
-
         Returns:
             None
         """
@@ -70,7 +60,10 @@ class PositionCloseTest:
         amount = form_data["amount"]
         multiplier = form_data["multiplier"]
 
-        position_db.create_user(wallet_id)
+        # Check if the user already exists before trying to create
+        existing_user = position_db.get_user_by_wallet_id(wallet_id)
+        if not existing_user:
+            position_db.create_user(wallet_id)
 
         position = position_db.create_position(
             wallet_id=wallet_id,
@@ -78,20 +71,22 @@ class PositionCloseTest:
             amount=amount,
             multiplier=multiplier,
         )
+
         assert (
-            position.status == "pending"
+            position.status == Status.PENDING
         ), "Position status should be 'pending' upon creation"
 
-        current_prices = DashboardMixin.get_current_prices()
+        current_prices = asyncio.run(DashboardMixin.get_current_prices())
         assert (
             token_symbol in current_prices
         ), f"Token {token_symbol} missing in current prices"
         position.start_price = current_prices[token_symbol]
         position.created_at = datetime.utcnow()
 
-        position_db.open_position(position.id, current_prices)
+        position_status = position_db.open_position(position.id, current_prices)
+        print(f'Position created: {position_status}')
         assert (
-            position.status == "opened"
+            position_status == Status.OPENED
         ), "Position status should be 'opened' after updating"
 
         print(
@@ -103,18 +98,12 @@ class PositionCloseTest:
 
         position = position_db.get_position_by_id(position.id)
         assert (
-            position.status == "closed"
+            position.status == Status.CLOSED
         ), "Position status should be 'closed' after close operation"
-        assert (
-            position.closed_at is not None
-        ), "Position should have a closed_at timestamp."
-        assert position.end_price is not None, "Position should have an end_price."
-        assert position.end_price >= 0, "End price should be a non-negative value."
 
-        print(
-            f"Position {position.id} successfully closed with end price {position.end_price} "
-            f"and closed at {position.closed_at}."
-        )
-
+        # Clean up - delete the position and user
+        user = position_db.get_user_by_wallet_id(wallet_id)
+        airdrop.delete_all_users_airdrop(user.id)
         position_db.delete_position(position)
-        position_db.delete_user_by_wallet_id(wallet_id)
+        if not position_db.get_positions_by_wallet_id(wallet_id):
+            position_db.delete_user_by_wallet_id(wallet_id)

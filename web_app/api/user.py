@@ -13,6 +13,7 @@ from web_app.api.serializers.user import (
     GetUserContractAddressResponse,
     SubscribeToNotificationResponse,
     UpdateUserContractResponse,
+    UserHistoryResponse
 )
 from web_app.contract_tools.mixins.dashboard import DashboardMixin
 from web_app.db.crud import (
@@ -242,6 +243,42 @@ async def get_stats() -> GetStatsResponse:
         logger.error(f"Error in get_stats: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
+
+@router.get(
+    "/api/get-user-history",
+    tags=["User Operations"],
+    summary="Get user position history",
+    response_model=UserHistoryResponse,
+    response_description="List of user positions including status,created_at, \
+                                start_price, amount, and multiplier.",
+)
+async def get_user_history(user_id: str) -> list[dict]:
+    """
+    Retrieves the history of positions for a specified user.
+
+    ### Parameters:
+    - **user_id**: The unique ID of the user whose position history is being fetched.
+
+    ### Returns:
+    - A list of positions with the following details:
+        - `status`: Current status of the position.
+        - `created_at`: Timestamp when the position was created.
+        - `start_price`: Initial price of the asset when the position was opened.
+        - `amount`: Amount involved in the position.
+        - `multiplier`: Leverage multiplier applied to the position.
+    """
+    try:
+        # Fetch user history from the database
+        positions = user_db.fetch_user_history(user_id)
+
+        if not positions:
+            logger.info(f"No positions found for user_id={user_id}")
+            return []
+
+        return positions
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @router.post("/allow-notification/{telegram_id}")
 async def allow_notification(

@@ -1,0 +1,173 @@
+.withdraw-wrapper {
+  background: url('../../../../public/background.png') no-repeat;
+  background-size: cover;
+  background-position: center 39%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+ 
+}
+
+.withdraw-card {
+  width: 309px;
+  background: var(--header-button-bg);
+  border: var(--midnight-purple-border);
+  border-radius: 900px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.withdraw-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 32px;
+}
+
+.main-container {
+  width: 642px;
+  gap: 24px;
+  border-radius: 20px;
+  padding: 1rem;
+  color: var(--primary);
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+}
+
+.withdraw-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--primary);
+  text-align: center;
+}
+
+.card-header {
+  color: var(--stormy-gray);
+}
+
+.card-icon {
+  margin-right: 5px;
+  width: 16px;
+  height: 16px;
+}
+
+.main-card {
+  padding: 3rem 1.5rem;
+  height: auto;
+  gap: 24px;
+}
+
+.amount-stack-card {
+  background: var(--footer-divider-bg);
+  border: var(--midnight-purple-border);
+  padding: 2rem;
+  border-radius: 35px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.amount-stack-card-title-container {
+  text-align: center;
+}
+
+.withdraw-input-title {
+  font-size: 16px;
+  color: var(--stormy-gray);
+  margin-bottom: 5px;
+}
+
+.withdraw-input {
+  width: 100%;
+  height: 60px;
+  background: transparent;
+  border: var(--midnight-purple-border);
+  border-radius: 30px;
+  padding: 16px;
+  color: var(--primary);
+  font-size: 16px;
+}
+
+/* main card footer */
+.divider {
+  width: 100%;
+  height: 1px;
+  background: var(--footer-divider-bg);
+  margin: 1rem 0;
+}
+
+.settings-fee-container {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fee-title {
+  color: var(--stormy-gray);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.setting-circle {
+  width: 32px;
+  height: 32px;
+  background-color: var(--footer-divider-bg);
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+}
+
+.setting-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
+}
+
+.withdraw-button {
+  position: relative;
+  display: inline-block;
+  font-weight: 600;
+  width: 642px;
+  height: 60px;
+  background: none;
+  color: var(--primary);
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+  padding: 16px 24px 16px 24px;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.withdraw-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 50px;
+  padding: 2px;
+  background: var(--blue-pink-gradient);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: destination-out;
+  mask-composite: exclude;
+  z-index: -1;
+}

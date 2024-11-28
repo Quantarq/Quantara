@@ -5,14 +5,15 @@ import Information from '../information/Information';
 import DontMiss from '../dont_miss/DontMiss';
 import Home from '../home/Home';
 
-const SpotnetApp = ({ walletId, onConnectWallet, onLogout }) => {
+const SpotnetApp = ({ onConnectWallet, onLogout }) => {
+
   return (
     <div className="spotnet-app">
-      <Home walletId={walletId} onConnectWallet={onConnectWallet} onLogout={onLogout} />
+      <Home  onConnectWallet={onConnectWallet} onLogout={onLogout} />
       <About />
       <Partnership />
       <Information />
-      <DontMiss walletId={walletId} onConnectWallet={onConnectWallet} onLogout={onLogout} />
+      <DontMiss  onConnectWallet={onConnectWallet} onLogout={onLogout} />
     </div>
   );
 };

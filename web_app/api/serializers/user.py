@@ -2,6 +2,7 @@
 This module defines the serializers for the user data.
 """
 from decimal import Decimal
+from datetime import datetime
 from pydantic import BaseModel, Field
 
 
@@ -53,6 +54,37 @@ class GetStatsResponse(BaseModel):
         description="Number of unique users in the database.",
     )
 
+class PositionHistoryItem(BaseModel):
+    """
+    Represents a single user position in the trading history.
+
+    ### Attributes:
+    - **status** (str): The current status of the position (e.g., "OPENED", "CLOSED", "LIQUIDATED").
+    - **created_at** (datetime): The timestamp when the position was created.
+    - **start_price** (float): The price of the asset when the position was opened.
+    - **amount** (str): The quantity of the asset involved in the position.
+    - **multiplier** (int): The leverage multiplier applied to the position.
+    """
+    status: str
+    created_at: datetime
+    start_price: float
+    amount: str
+    multiplier: int
+
+
+class UserHistoryResponse(BaseModel):
+    """
+    Represents the response containing the history of positions for a user.
+
+    ### Attributes:
+    - **positions** (List[PositionHistoryItem]): A list of positions that include details such as:
+        - `status`: The status of the position.
+        - `created_at`: When the position was created.
+        - `start_price`: The initial price of the asset.
+        - `amount`: The quantity of the asset involved.
+        - `multiplier`: The leverage multiplier applied to the position.
+    """
+    positions: list[PositionHistoryItem]
 
 class SubscribeToNotificationResponse(BaseModel):
     """

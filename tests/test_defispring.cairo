@@ -1,6 +1,6 @@
 use openzeppelin_token::erc20::interface::{ERC20ABIDispatcher, ERC20ABIDispatcherTrait};
 use snforge_std::{
-    declare, DeclareResultTrait, replace_bytecode, store, cheat_caller_address, CheatSpan
+    declare, DeclareResultTrait, replace_bytecode, store, cheat_account_contract_address, CheatSpan
 };
 use spotnet::constants::STRK_ADDRESS;
 use spotnet::interfaces::{IDepositDispatcher, IDepositDispatcherTrait};
@@ -96,7 +96,7 @@ fn test_claim_and_withdraw() {
         storage_entry_for_hypothetical_owner
     );
 
-    cheat_caller_address(
+    cheat_account_contract_address(
         address_eligible_for_zklend_rewards, hypothetical_owner_address, CheatSpan::TargetCalls(1)
     );
     deposit_contract.withdraw(STRK_ADDRESS.try_into().unwrap(), 0); //passing 0 to withdraw all

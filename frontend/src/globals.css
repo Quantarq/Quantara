@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Allerta+Stencil&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap');
+
 :root {
   --text-font: 'Rethink Sans', sans-serif;
   --font-family: 'Open Sans', sans-serif;
@@ -11,13 +12,14 @@
   --second-primary: #fdfdfd;
   --second-gradient: linear-gradient(55deg, #e01dee 0%, #49abd2 49%);
   --header-button-bg: #120721;
-  --plain-button-bg: #0E0A16;
+  --plain-button-bg: #0e0a16;
   --border-gradient: linear-gradient(90deg, #49abd2 0%, #df1ced 99.5%);
   --mask-gradient: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   --primary: #fff;
   --primary-color: #0b0c10;
   --black: #000;
   --brand: #74d6fd;
+  --pink: #e01dee;
   --secondary: #e7ecf0;
   --secondary-color: #1a1c24;
   --collateral-color: #1d9259;
@@ -39,6 +41,28 @@
   --card-border: 0.5px solid #4e7787;
   --success-color: #4caf50;
   --error-color: #ff5a5f;
+  --color-overlay: rgba(0, 0, 0, 0.5);
+  --bg: #120721;
+  --border-color: #201338;
+  --closePosition: linear-gradient(to right, #49abd2, #e01dee);
+  --light-purple: #36294e;
+  --gray: #83919f;
+  --dark-purple: #120721;
+  --light-blue: #74d5fd;
+  --slider-gray: #393942;
+  --light-blue: #88b4fa;
+  --thumb-image: url('./assets/icons/slider-thumb.svg');
+  --blue-pink-gradient: linear-gradient(90deg, #74d6fd 0%, #e01dee 100%);
+  --blue-pink-gradient-alt: linear-gradient(90deg, #49abd2 0%, #e01dee 100%);
+  --blue-pink-gradient-alt2: linear-gradient(90deg, #49abd2 100%, #e01dee 100%);
+  --purple-border: 1px solid #201338;
+  --dark-gray: #393942;
+  --midnight-purple-border: 1px solid #36294e;
+  --stormy-gray: #83919f;
+  --deep-purple: #120721;
+  --dark-background: #130713;
+  --light-dark-background: #130713;
+  --text-gray: #798795;
 }
 
 body {
@@ -53,6 +77,7 @@ main {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: var(--font-family);
 }
 
 a {

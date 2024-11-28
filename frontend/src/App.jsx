@@ -9,28 +9,28 @@ import Login from 'pages/Login';
 import Form from 'pages/forms/Form';
 import { createPortal } from 'react-dom';
 import LogoutModal from './components/Logout/LogoutModal';
-import { connectWallet, logout, checkForCRMToken } from 'services/wallet';
+import { logout } from 'services/wallet';
 import { saveTelegramUser, getTelegramUserWalletId } from 'services/telegram';
 import Documentation from 'pages/spotnet/documentation/Documentation';
+import Withdraw from 'pages/vault/withdraw/Withdraw';
+import { useWalletStore } from 'stores/useWalletStore'; 
+import { Notifier } from 'components/Notifier/Notifier';
+import { useConnectWallet } from 'hooks/useConnectWallet';
+
 
 function App() {
-  const [walletId, setWalletId] = useState(localStorage.getItem('wallet_id'));
+  const { walletId, setWalletId, removeWalletId } = useWalletStore(); 
   const [tgUser, setTgUser] = useState(JSON.parse(localStorage.getItem('tg_user')));
-  const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
 
+  const connectWalletMutation = useConnectWallet(setWalletId); 
   useEffect(() => {
     if (tgUser) {
       saveTelegramUser(tgUser, walletId)
         .then(() => console.log('Telegram user saved successfully'))
         .catch((error) => console.error('Error saving Telegram user:', error));
     }
-    if (!walletId) {
-      localStorage.removeItem('wallet_id');
-      return;
-    }
-    localStorage.setItem('wallet_id', walletId);
   }, [walletId, tgUser]);
 
   useEffect(() => {
@@ -48,32 +48,15 @@ function App() {
         .catch((error) => console.error('Error fetching wallet ID:', error));
       localStorage.setItem('tg_user', JSON.stringify(tgUser));
     }
-  }, [tgUser, walletId]);
+  }, [tgUser, walletId, setWalletId]);
 
-  const handleConnectWallet = async () => {
-    try {
-      setError(null);
-      const walletAddress = await connectWallet();
-  
-      if (!walletAddress) {
-        throw new Error('Failed to connect wallet');
-      }
-  
-      const hasCRMToken = await checkForCRMToken(walletAddress);
-      if (!hasCRMToken) {
-        return; // Stop further actions if wallet doesn't have CRM token
-      }
-  
-      setWalletId(walletAddress);
-    } catch (err) {
-      console.error('Failed to connect wallet:', err);
-      setError(err.message);
-    }
+  const handleConnectWallet = () => {
+    connectWalletMutation.mutate(); 
   };
 
   const handleLogout = () => {
     logout();
-    setWalletId(null);
+    removeWalletId();
     closeModal();
     navigate('/');
   };
@@ -84,33 +67,29 @@ function App() {
 
   const closeModal = () => {
     setShowModal(false);
-  }
+  };
 
   return (
     <div className="App">
+      <Notifier />
       {showModal && createPortal(<LogoutModal onClose={closeModal} onLogout={handleLogout} />, document.body)}
       <Header
         tgUser={tgUser}
         setTgUser={setTgUser}
-        walletId={walletId}
         onConnectWallet={handleConnectWallet}
         onLogout={handleLogoutModal}
-        />
+      />
       <main>
-      
-        {error && <div className="alert alert-danger">{error}</div>}
         <Routes>
-          <Route
-            index
-            element={<SpotnetApp walletId={walletId} onConnectWallet={handleConnectWallet} onLogout={handleLogout} />}
-          />
+          <Route index element={<SpotnetApp onConnectWallet={handleConnectWallet} onLogout={handleLogout} />} />
           <Route
             path="/login"
             element={walletId ? <Navigate to="/" /> : <Login onConnectWallet={handleConnectWallet} />}
           />
-          <Route path="/dashboard" element={<Dashboard walletId={walletId} telegramId={tgUser} />} />
-          <Route path="/form" element={<Form walletId={walletId} setWalletId={setWalletId} />} />
-          <Route path="/documentation" element={<Documentation/>} />
+          <Route path="/dashboard" element={<Dashboard telegramId={tgUser} />} />
+          <Route path="/withdraw" element={<Withdraw />} />
+          <Route path="/form" element={<Form />} />
+          <Route path="/documentation" element={<Documentation />} />
         </Routes>
       </main>
       <Footer />

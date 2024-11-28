@@ -113,7 +113,7 @@ def db_connector():
 
     yield connector, test_user
 
-    connector.delete_object(User, test_user.id)
+    connector.delete_object_by_id(User, test_user.id)
 
 
 def test_create_empty_claim_positive(db_connector):
@@ -128,7 +128,7 @@ def test_create_empty_claim_positive(db_connector):
     assert not airdrop.is_claimed
     assert airdrop.amount is None
     assert airdrop.claimed_at is None
-    connector.delete_object(AirDrop, airdrop.id)
+    connector.delete_object_by_id(AirDrop, airdrop.id)
 
 
 def test_create_empty_claim_non_existent_user(db_connector):

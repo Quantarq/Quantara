@@ -100,7 +100,7 @@ assertions
 claim tokens from airdrop contract
 
 if treasury address is non-zero {
-    calculate and transfer 80% to treasury
+    calculate and transfer 50% to treasury
 }
 
 approve zkLend to spend remaining tokens
@@ -108,6 +108,8 @@ approve zkLend to spend remaining tokens
 deposit remaining tokens into zkLend
 
 enable STRK as collateral
+
+emit event
 ```
 
 The method can be called by anyone (e.g., a keeper) to claim rewards. If the treasury address is set to zero when deploying the contract, all claimed rewards will be deposited into zkLend on behalf of the user instead of being split with the treasury. This is intended behavior; sophisticated users wanting to bypass the functionality could deploy their modified contract anyway. This serves to avoid burning the STRK.
@@ -131,6 +133,26 @@ transfer tokens from caller to contract
 approve zkLend to spend the tokens
 
 deposit tokens into zkLend position
+
+emit event
+```
+
+### withdraw
+
+The `withdraw` method withdraws tokens from zkLend position and transfers them to the owner.
+
+Parameters
+* `token`: TokenAddress - token address to withdraw from zkLend
+* `amount`: TokenAmount - amount to withdraw. Pass `0` to withdraw all
+
+It's flow can be described as follows:
+
+```
+assertions(transaction started by the owner)
+
+withdraw tokens from zkLend and transfer to the owner
+
+emit event
 ```
 
 ## Important types, events and constants
@@ -170,7 +192,29 @@ struct PositionClosed {
     repaid_amount: TokenAmount
 }
 ```
+```
+#[derive(starknet::Event, Drop)]
+struct Withdraw {
+    token: ContractAddress,
+    amount: TokenAmount
+}
+```
+```
+#[derive(starknet::Event, Drop)]
+struct ExtraDeposit {
+    token: ContractAddress,
+    amount: TokenAmount,
+    depositor: ContractAddress
+}
+```
 
+```
+#[derive(starknet::Event, Drop)]
+struct RewardClaimed {
+    treasury_amount: TokenAmount,
+    user_amount: TokenAmount
+}
+```
 ### Constants
 * ZK_SCALE_DECIMALS is used for scaling down values obtained by multiplying on zklend collateral and borrow factors.
 * STRK_ADDRESS is the same across Sepolia and Mainnet.
