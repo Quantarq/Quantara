@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, Outlet } from 'react-router-dom';
+import { NavLink, Outlet } from 'react-router-dom';
 import './vaultLayout.css';
 
 export function VaultLayout({ children }) {
@@ -9,18 +9,30 @@ export function VaultLayout({ children }) {
         <div className="sidebar-content">
           <h2 className="sidebar-title">Vault</h2>
           <nav className="sidebar-nav">
-            <Link to="/vault" className="nav-item">
+            <NavLink
+              to="/"
+              className="nav-item"
+              activeClassName="active"
+            >
               <span className="nav-bullet">•</span>
               Home
-            </Link>
-            <Link to="/stake" className="nav-item">
+            </NavLink>
+            <NavLink
+              to="/stake"
+              className="nav-item"
+              activeClassName="active"
+            >
               <span className="nav-bullet">•</span>
               Stake
-            </Link>
-            <Link to="/withdraw" className="nav-item">
+            </NavLink>
+            <NavLink
+              to="/withdraw"
+              className="nav-item"
+              activeClassName="active"
+            >
               <span className="nav-bullet">•</span>
               Withdraw
-            </Link>
+            </NavLink>
           </nav>
         </div>
       </aside>
@@ -30,5 +42,5 @@ export function VaultLayout({ children }) {
         <Outlet />
       </main>
     </div>
-  )
+  );
 }
