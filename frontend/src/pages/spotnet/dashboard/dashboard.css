@@ -469,9 +469,13 @@ body {
     padding: 0.75rem;
   }
 
-  .main-card {
+  /* .main-card {
     width: 400px !important;
     margin: 20px;
+  } */
+
+  .main-card {
+    max-width: 342px;
   }
 
   .tab-title {
