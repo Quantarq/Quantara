@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ReactComponent as ETH } from '../../../assets/icons/ethereum.svg';
 import { ReactComponent as USDC } from '../../../assets/icons/borrow_usdc.svg';
 import { ReactComponent as STRK } from '../../../assets/icons/strk.svg';
+import  STRKIMG from '../../../assets/icons/strk.svg';
 import { ReactComponent as DAI } from '../../../assets/icons/dai.svg';
 import './stake.css';
 import { VaultLayout } from '../VaultLayout';
@@ -9,6 +10,7 @@ import { Button } from 'components/ui/Button';
 //import MetricCard from 'components/StakeCard/MetricCard';
 import GasFee from 'components/GasFee/GasFee';
 import BalanceCards from 'components/BalanceCards';
+import { Image } from 'react-bootstrap';
 
 function Stake() {
   const [selectedNetwork, setSelectedNetwork] = useState('Starknet');
@@ -20,10 +22,10 @@ function Stake() {
     { icon: <DAI />, title: 'DAI', balance: '0.046731' },
   ]);
 
-  const networks = [{ name: 'Starknet', image: STRK }];
+  const networks = [{ name: 'Starknet', image: STRKIMG }];
 
-  const handleChange = (network) => {
-    setSelectedNetwork(network.name);
+  const handleChange = (e) => {
+    setSelectedNetwork(e.target.value);
   };
 
   const handleAmountChange = (e) => {
@@ -33,7 +35,6 @@ function Stake() {
       setAmount(value);
     }
   };
-
   return (
     <div className="stake-page">
       <VaultLayout className="desktop-layout">
@@ -96,7 +97,7 @@ function StakeWrapper({
             <div className="network-selector-container">
               <div className="network-selector">
                 <div className="selected-network">
-                  <img
+                  <Image
                     src={networks.find((network) => network.name === selectedNetwork)?.image}
                     alt={selectedNetwork}
                     className="network-icon"
