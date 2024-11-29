@@ -1,11 +1,15 @@
 .table-of-contents {
-    width: 280px;
+    width: 374px;
     padding: 2rem;
+    margin-top: 94px;
     background: rgba(0, 0, 0, 0.3);
-    height: calc(100vh - 80px);
+    height: calc(100vh);
     position: fixed;
     overflow-y: auto;
     border-right: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    padding-left: 90px;
 }
 
 .toc-title {
@@ -13,12 +17,22 @@
     font-weight: 600;
     margin-bottom: 1.5rem;
     color: var(--primary);
+    padding-bottom: 15px;
+    border-bottom: 1px solid #36294E;
+}
+
+.toc-title-container::after {
+    content: "";
+    height: 10px;
+    background: linear-gradient(to right, #74D6FD 0%, transparent 100%);
+
 }
 
 .toc-nav {
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    padding-bottom: 80px;
 }
 
 .toc-item {

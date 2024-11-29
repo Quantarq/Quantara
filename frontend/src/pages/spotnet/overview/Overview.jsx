@@ -68,6 +68,7 @@ const OverviewPage = () => {
         <div className="overview-container">
             <div className="sidebar">
                 <TableOfContents
+                    tabelTitle={"Content"}
                     items={tableOfContents}
                     defaultActiveId="welcome"
                     headerHeight={80}

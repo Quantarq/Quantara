@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import "./table_of_content_styles.css";
 
-const TableOfContents = ({ items, defaultActiveId, headerHeight = 80}) => {
+const TableOfContents = ({ items, defaultActiveId, tabelTitle, headerHeight = 80 }) => {
   const [activeId, setActiveId] = useState(defaultActiveId);
 
   useEffect(() => {
@@ -48,7 +48,10 @@ const TableOfContents = ({ items, defaultActiveId, headerHeight = 80}) => {
 
   return (
     <div className={"table-of-contents"}>
-      <h3 className={"toc-title"}>Table of Content</h3>
+      <div className="toc-title-container">
+
+      <h3 className={"toc-title"}>{tabelTitle}</h3>
+      </div>
       <nav className={"toc-nav"}>
         {items.map((item, index) => (
           <div key={index} className={"toc-item"}>

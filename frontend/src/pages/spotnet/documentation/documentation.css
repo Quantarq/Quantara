@@ -24,7 +24,7 @@
 }
 
 .main-content {
-  margin-left: 280px;
+  margin-left: 374px;
   flex: 1;
   padding: 2rem 3rem;
   background: url('../../../../public/background.png') no-repeat;
@@ -36,6 +36,7 @@
 .main-title {
   font-size: 2.5rem;
   font-weight: 700;
+  margin-top: 94px;
   margin-bottom: 3rem;
   color: white !important;
   background: white;

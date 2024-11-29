@@ -14,7 +14,7 @@
 
 
 .sidebar {
-    width: 280px;
+    width: 374px;
     height: 912px;
     min-height: 100vh;
     background-color: #00000F;
@@ -32,8 +32,9 @@
 
 /* Content */
 .content {
+    margin-top: 94px;
     flex: 1;
-    margin-left: 300px;
+    margin-left: 394px;
     padding: 24px 0px 0px 24px;
 }
 
@@ -79,11 +80,6 @@
     line-height: 24px;
 }
 
-/* How It Works */
-
-#how-it-works {
-    margin-top: 50px;
-}
 
 .how-it-works-list>li {
     list-style: decimal;
