@@ -37,7 +37,11 @@ export function VaultLayout({ children }) {
         </div>
       </aside>
 
-      <main className="main-content">
+      <main className="@media (max-width: 1024px) {
+  .sidebar-content {
+    display: none;
+  }
+}">
         {children}
         <Outlet />
       </main>

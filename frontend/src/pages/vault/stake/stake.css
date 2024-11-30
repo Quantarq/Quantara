@@ -10,6 +10,7 @@
   padding-top: 1rem;
   padding-bottom: 1rem;
   font-family: var(--font-family);
+padding-left: 450px;
 }
 
 .token-icon {
@@ -49,6 +50,7 @@
   flex-direction: column;
   gap: 10px;
   padding-bottom: 60px;
+  width: 642px
 }
 
 .network-selector-container {
@@ -198,11 +200,13 @@
     justify-content: flex-start;
     align-items: center;
     padding: 0 16px;
+    margin-left: 16px;
     /* Add some side padding */
     min-height: 100vh;
     background: url('/public/background.png') no-repeat;
     background-size: cover;
     background-position: center 50%;
+
   }
 
   .token-icon {
@@ -231,6 +235,7 @@
     flex-direction: column;
     justify-content: center;
     gap: 32px;
+
   }
   .network-dropdown .network-option:hover {
     background: rgba(255, 255, 255, 0.2);
@@ -264,9 +269,9 @@
 
 /* Desktop styles */
 @media (min-width: 1025px) {
-  .desktop-layout {
+  /* .desktop-layout {
     display: block;
-  }
+  } */
 
   .mobile-layout {
     display: none;
@@ -283,12 +288,26 @@
     justify-content: center;
     align-items: center;
     padding: 0 16px;
+    margin-right: -20px;
     min-height: 83vh;
     background: url('/public/mobilebackground.png') no-repeat;
     background-size: cover;
     background-position: center;
   }
+  .layout{
+    display: none;
+  }
+  .stake-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 32px;
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
 
+  }
+  .n
   .token-icon {
     margin-right: 5px;
     width: 30px;
@@ -410,18 +429,17 @@
   
 
   /* balance card side */
-  .mobile-border-container {
+  /* .mobile-border-container {
     border: 1px solid #36294E;
     background-color: #120721;
     border-radius: 16px;
     margin-top: 10px;
-    /* margin-bottom: 32px; */
     min-height: 305px;
     width: 342px;
     margin-left: auto;
     margin-right: auto;
   }
-
+ */
 
 
 
