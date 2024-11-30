@@ -2,10 +2,13 @@
 Unit tests for the UserDBConnector module.
 """
 
-import pytest
 from unittest.mock import MagicMock, patch
-from web_app.db.models import User
+
+import pytest
+from sqlalchemy.exc import SQLAlchemyError
 from web_app.db.crud import UserDBConnector
+from web_app.db.models import AirDrop, Position, User
+
 
 @pytest.fixture
 def mock_db_connector():
@@ -14,16 +17,19 @@ def mock_db_connector():
     """
     return MagicMock()
 
+
 @pytest.fixture
 def user_db(mock_db_connector):
     """
     Fixture to create a UserDBConnector instance with mocked dependencies.
     """
-    with patch('web_app.db.crud.UserDBConnector.get_object_by_field',
-               new_callable=MagicMock) as mock_get:
+    with patch(
+        "web_app.db.crud.UserDBConnector.get_object_by_field", new_callable=MagicMock
+    ) as mock_get:
         mock_get.side_effect = mock_db_connector.get_object_by_field
         connector = UserDBConnector()
         yield connector
+
 
 def test_get_user_by_wallet_id_success(user_db, mock_db_connector):
     """
@@ -41,10 +47,9 @@ def test_get_user_by_wallet_id_success(user_db, mock_db_connector):
 
     assert result == expected_user
     mock_db_connector.get_object_by_field.assert_called_once_with(
-        User,
-        "wallet_id",
-        wallet_id
+        User, "wallet_id", wallet_id
     )
+
 
 def test_get_user_by_wallet_id_not_found(user_db, mock_db_connector):
     """
@@ -57,10 +62,9 @@ def test_get_user_by_wallet_id_not_found(user_db, mock_db_connector):
 
     assert result is None
     mock_db_connector.get_object_by_field.assert_called_once_with(
-        User,
-        "wallet_id",
-        wallet_id
+        User, "wallet_id", wallet_id
     )
+
 
 def test_get_user_by_wallet_id_empty_wallet_id(user_db, mock_db_connector):
     """
@@ -73,9 +77,7 @@ def test_get_user_by_wallet_id_empty_wallet_id(user_db, mock_db_connector):
 
     assert result is None
     mock_db_connector.get_object_by_field.assert_called_once_with(
-        User,
-        "wallet_id",
-        wallet_id
+        User, "wallet_id", wallet_id
     )
 
 
@@ -86,3 +88,43 @@ def test_get_unique_users_count(mock_user_db_connector):
     result = mock_user_db_connector.get_unique_users_count()
 
     assert result == 5
+
+
+def test_delete_all_users_airdrop_success(user_db):
+    """
+    Test successful deletion of all airdrops for a user.
+    """
+    user_id = "123e4567-e89b-12d3-a456-426614174000"
+    mock_session = MagicMock()
+    mock_airdrops = [
+        AirDrop(id=1, user_id=user_id),
+        AirDrop(id=2, user_id=user_id),
+    ]
+    with patch.object(user_db, "Session", return_value=mock_session):
+        mock_session.query.return_value.filter_by.return_value.all.return_value = (
+            mock_airdrops
+        )
+
+        user_db.delete_all_users_airdrop(user_id)
+
+        mock_session.query.assert_called_once_with(AirDrop)
+        mock_session.query.return_value.filter_by.assert_called_once_with(
+            user_id=user_id
+        )
+        assert mock_session.delete.call_count == len(mock_airdrops)
+        mock_session.commit.assert_called_once()
+
+
+def test_delete_all_users_airdrop_failure(user_db):
+    """
+    Test failure while deleting airdrops for a user.
+    """
+    user_id = "123e4567-e89b-12d3-a456-426614174000"
+    mock_session = MagicMock()
+    mock_session.query.side_effect = SQLAlchemyError("Database error")
+    with patch.object(user_db, "Session", return_value=mock_session):
+        with pytest.raises(SQLAlchemyError):
+            user_db.delete_all_users_airdrop(user_id)
+
+        mock_session.query.assert_called_once_with(AirDrop)
+        mock_session.rollback.assert_called_once()
