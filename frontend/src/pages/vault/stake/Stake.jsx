@@ -27,6 +27,7 @@ function Stake() {
   const handleChange = (e) => {
     setSelectedNetwork(e.target.value);
   };
+  
 
   const handleAmountChange = (e) => {
     const value = e.target.value;
