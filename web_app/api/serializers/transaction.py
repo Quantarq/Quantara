@@ -77,6 +77,8 @@ class RepayTransactionDataResponse(BaseModel):
     supply_price: int
     debt_price: int
     contract_address: str
+    ekubo_limits: dict[str, str]
+    borrow_portion_percent: int
     position_id: str
 
 

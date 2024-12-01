@@ -205,7 +205,7 @@ mod Deposit {
                 borrow_portion_percent > 0 && borrow_portion_percent < 100,
                 'Cannot calculate borrow amount'
             );
-            assert(multiplier < 6 && multiplier > 1, 'Multiplier not supported');
+            assert(multiplier < 51 && multiplier > 10, 'Multiplier not supported');
             assert(amount != 0 && pool_price != 0, 'Parameters cannot be zero');
 
             let token_dispatcher = ERC20ABIDispatcher { contract_address: token };
@@ -244,8 +244,8 @@ mod Deposit {
             let mut total_borrowed = 0;
             let mut accumulated = 0;
             let mut deposited = amount;
-
-            while (amount + accumulated) / amount < multiplier.into() {
+            
+            while (amount + accumulated) * 10 / amount < multiplier.into() {
                 let borrow_capacity = ((deposited
                     * ZK_SCALE_DECIMALS
                     * collateral_factor

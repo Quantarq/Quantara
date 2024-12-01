@@ -187,7 +187,7 @@ class StarknetClient:
         deposit_data = {
             "token": deposit_token,
             "amount": amount,
-            "multiplier": int(float(multiplier)),
+            "multiplier": int(float(multiplier) * 10), # Moves for one decimal place, from 2.5 to 25
             "borrow_portion_percent": 80
         }
 
@@ -230,6 +230,8 @@ class StarknetClient:
             "supply_price": supply_price,
             "debt_price": debt_price,
             "pool_key": pool_key,
+            "ekubo_limits": {"lower": "18446748437148339061", "upper": "6277100250585753475930931601400621808602321654880405518632"},
+            "borrow_portion_percent": 93
         }
 
     async def claim_airdrop(self, contract_address: str, proofs: list[str]) -> None:
