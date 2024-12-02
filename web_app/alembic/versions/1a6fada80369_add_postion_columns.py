@@ -44,8 +44,6 @@ def upgrade() -> None:
     )
 
 
-
-
 def downgrade() -> None:
     """
     Revert the upgrade.

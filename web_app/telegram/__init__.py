@@ -3,6 +3,7 @@ This module initializes the Telegram bot and sets up the dispatcher for handling
 
 It imports necessary components from the aiogram library and configures logging.
 """
+
 from aiogram import Bot, Dispatcher
 import logging
 
@@ -19,7 +20,9 @@ if TELEGRAM_TOKEN:
     # Create a Bot instance using the provided token
     bot = Bot(TELEGRAM_TOKEN)
 else:
-    logger.warning("Telegram token is not set. Telegram bot functionality will be limited.")
+    logger.warning(
+        "Telegram token is not set. Telegram bot functionality will be limited."
+    )
 
 # Create a Dispatcher for handling updates
 dp = Dispatcher()

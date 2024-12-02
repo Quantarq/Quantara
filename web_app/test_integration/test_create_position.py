@@ -12,6 +12,7 @@ Test Class:
   2. Creating and verifying positions.
   3. Updating position statuses.
 """
+
 import asyncio
 import pytest
 from typing import Dict, Any

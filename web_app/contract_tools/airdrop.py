@@ -10,9 +10,10 @@ from web_app.contract_tools.constants import TokenParams
 
 class ZkLendAirdrop:
     """
-    A class to fetch and validate airdrop data 
+    A class to fetch and validate airdrop data
     for a specified contract.
     """
+
     REWARD_API_ENDPOINT = "https://app.zklend.com/api/reward/all/"
 
     def __init__(self):
@@ -23,10 +24,10 @@ class ZkLendAirdrop:
 
     async def get_contract_airdrop(self, contract_id: str) -> AirdropResponseModel:
         """
-        Fetches all available airdrops 
+        Fetches all available airdrops
         for a specific contract asynchronously.
         Args:
-            contract_id (str): The ID of the contract 
+            contract_id (str): The ID of the contract
             for which to fetch airdrop data.
         Returns:
             AirdropResponseModel: A validated list of airdrop items
@@ -36,7 +37,7 @@ class ZkLendAirdrop:
         """
         if contract_id is None:
             raise ValueError("Contract ID cannot be None")
-            
+
         underlying_contract_id = TokenParams.add_underlying_address(contract_id)
         response = await self.api.fetch(underlying_contract_id)
         return self._validate_response(response)
@@ -54,9 +55,11 @@ class ZkLendAirdrop:
         for item in data:
             validated_item = AirdropItem(
                 amount=item["amount"],
-                proof=item["proof"],  # This is correct now as AirdropItem expects List[str]
+                proof=item[
+                    "proof"
+                ],  # This is correct now as AirdropItem expects List[str]
                 is_claimed=item["is_claimed"],
-                recipient=item["recipient"]
+                recipient=item["recipient"],
             )
             validated_items.append(validated_item)
         return AirdropResponseModel(airdrops=validated_items)

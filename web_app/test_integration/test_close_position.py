@@ -1,6 +1,7 @@
 """
 Integration test for the PositionClose view.
 """
+
 import asyncio
 from datetime import datetime
 from typing import Any, Dict
@@ -84,7 +85,7 @@ class TestPositionClose:
         position.created_at = datetime.utcnow()
 
         position_status = position_db.open_position(position.id, current_prices)
-        print(f'Position created: {position_status}')
+        print(f"Position created: {position_status}")
         assert (
             position_status == Status.OPENED
         ), "Position status should be 'opened' after updating"

@@ -13,7 +13,7 @@ from web_app.api.serializers.user import (
     GetUserContractAddressResponse,
     SubscribeToNotificationResponse,
     UpdateUserContractResponse,
-    UserHistoryResponse
+    UserHistoryResponse,
 )
 from web_app.contract_tools.mixins.dashboard import DashboardMixin
 from web_app.db.crud import (
@@ -279,6 +279,7 @@ async def get_user_history(user_id: str) -> list[dict]:
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
 
 @router.post("/allow-notification/{telegram_id}")
 async def allow_notification(

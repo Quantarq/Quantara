@@ -3,6 +3,7 @@ This module serves as the entry point for the Telegram bot application.
 It initializes the bot and starts polling for updates.
 This module is made for testing purposes.
 """
+
 from web_app.db.crud import DBConnector
 
 from . import bot, dp

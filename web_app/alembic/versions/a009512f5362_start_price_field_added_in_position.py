@@ -35,7 +35,7 @@ def upgrade() -> None:
     else:
         op.add_column(
             "position",
-            sa.Column("start_price", sa.DECIMAL(), nullable=False, server_default="0")
+            sa.Column("start_price", sa.DECIMAL(), nullable=False, server_default="0"),
         )
         logger.info("Column 'start_price' added to the 'position' table.")
 

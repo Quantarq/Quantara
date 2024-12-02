@@ -27,6 +27,7 @@ class PositionFormData(BaseModel):
         except (ValueError, TypeError):
             raise Exception("Multiplier should be an integer")
 
+
 class TokenMultiplierResponse(BaseModel):
     """
     This class defines the structure of the response for the token multiplier

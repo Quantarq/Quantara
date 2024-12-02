@@ -20,6 +20,7 @@ cmd_router = Router()
 telegram_db = TelegramUserDBConnector()
 db_connector = DBConnector()
 
+
 @cmd_router.message(CommandStart())
 async def start_cmd(message: Message):
     """
@@ -38,7 +39,7 @@ async def start_cmd(message: Message):
 async def notification_allowed(message: Message, command: CommandObject):
     """
     Handle the /start command with user id parameter.
-    
+
     Args:
         message (Message): The incoming message containing the command.
         command (CommandObject): The command object containing the user id.
@@ -47,8 +48,7 @@ async def notification_allowed(message: Message, command: CommandObject):
     user = db_connector.get_object(User, user_id)
 
     telegram_db.set_allow_notification(message.from_user.id, user.wallet_id)
-    
+
     return await message.answer(
-        NOTIFICATION_ALLOWED_MESSAGE,
-        reply_markup=launch_main_web_app_kb
+        NOTIFICATION_ALLOWED_MESSAGE, reply_markup=launch_main_web_app_kb
     )

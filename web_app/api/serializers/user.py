@@ -1,6 +1,7 @@
 """
 This module defines the serializers for the user data.
 """
+
 from decimal import Decimal
 from datetime import datetime
 from pydantic import BaseModel, Field
@@ -54,6 +55,7 @@ class GetStatsResponse(BaseModel):
         description="Number of unique users in the database.",
     )
 
+
 class PositionHistoryItem(BaseModel):
     """
     Represents a single user position in the trading history.
@@ -65,6 +67,7 @@ class PositionHistoryItem(BaseModel):
     - **amount** (str): The quantity of the asset involved in the position.
     - **multiplier** (int): The leverage multiplier applied to the position.
     """
+
     status: str
     created_at: datetime
     start_price: float
@@ -84,19 +87,16 @@ class UserHistoryResponse(BaseModel):
         - `amount`: The quantity of the asset involved.
         - `multiplier`: The leverage multiplier applied to the position.
     """
+
     positions: list[PositionHistoryItem]
+
 
 class SubscribeToNotificationResponse(BaseModel):
     """
     Pydantic model for the notification subscription request.
     """
+
     telegram_id: str = Field(
-        ...,
-        example="123456789",
-        description="Telegram ID of the user"
+        ..., example="123456789", description="Telegram ID of the user"
     )
-    wallet_id: str = Field(
-        ...,
-        example="0xabc123",
-        description="Wallet ID of the user"
-    )
+    wallet_id: str = Field(..., example="0xabc123", description="Wallet ID of the user")

@@ -2,7 +2,6 @@
 This module contains the database configuration for airdrops.
 """
 
-
 import logging
 import uuid
 from datetime import datetime

@@ -38,7 +38,9 @@ class AirdropClaimer:
         for airdrop in unclaimed_airdrops:
             try:
                 user_contract_address = airdrop.user.contract_address
-                proofs = self.zk_lend_airdrop.get_contract_airdrop(user_contract_address)
+                proofs = self.zk_lend_airdrop.get_contract_airdrop(
+                    user_contract_address
+                )
 
                 claim_successful = await self._claim_airdrop(
                     user_contract_address, proofs
@@ -71,9 +73,7 @@ class AirdropClaimer:
         Claims a single airdrop by making a contract call on the Starknet blockchain.
         """
         try:
-            await self.starknet_client.claim_airdrop(
-                contract_address, proofs
-            )
+            await self.starknet_client.claim_airdrop(contract_address, proofs)
             return True
         except ConnectionError as ce:
             logger.error(

@@ -1,6 +1,7 @@
 """
 Seed data for initializing the database with predefined values.
 """
+
 import logging
 from decimal import Decimal
 from faker import Faker
@@ -130,16 +131,18 @@ def create_vaults(session: SessionLocal, users: list[User]) -> None:
     """
     vaults = []
     for user in users:
-        for _ in range(2): 
+        for _ in range(2):
             vault = Vault(
                 user_id=user.id,
                 symbol=fake.random_choices(
                     elements=[token.name for token in TokenParams.tokens()]
                 ),
-                amount=str(fake.random_number(digits=5)),  # Amount stored as string in model
+                amount=str(
+                    fake.random_number(digits=5)
+                ),  # Amount stored as string in model
             )
             vaults.append(vault)
-    
+
     if vaults:
         session.bulk_save_objects(vaults)
         session.commit()

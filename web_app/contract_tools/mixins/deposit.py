@@ -37,7 +37,7 @@ class DepositMixin:
         """
         deposit_token_address = TokenParams.get_token_address(deposit_token)
         decimal = TokenParams.get_token_decimals(deposit_token_address)
-        amount = int(Decimal(amount) * 10 ** decimal)
+        amount = int(Decimal(amount) * 10**decimal)
 
         loop_liquidity_data = await CLIENT.get_loop_liquidity_data(
             deposit_token_address, amount, multiplier, wallet_id, borrowing_token

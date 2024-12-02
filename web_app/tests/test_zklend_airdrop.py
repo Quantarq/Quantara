@@ -1,4 +1,5 @@
 """Test module for ZkLendAirdrop class"""
+
 import pytest
 from unittest.mock import Mock, patch, AsyncMock
 from web_app.contract_tools.airdrop import ZkLendAirdrop
@@ -13,7 +14,7 @@ def mock_api_response() -> list:
             "amount": "1000000000000000000",
             "proof": ["0xabcd", "0x1234"],
             "is_claimed": False,
-            "recipient": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+            "recipient": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
         }
     ]
 
@@ -23,7 +24,7 @@ def zklend_airdrop():
     """Fixture providing a ZkLendAirdrop instance with mocked API."""
     instance = ZkLendAirdrop()
     instance.api = Mock()
-    instance.api.fetch = AsyncMock() 
+    instance.api.fetch = AsyncMock()
     return instance
 
 
@@ -33,11 +34,16 @@ class TestZkLendAirdrop:
     def test_init(self, zklend_airdrop):
         """Test ZkLendAirdrop initialization."""
         assert isinstance(zklend_airdrop, ZkLendAirdrop)
-        assert zklend_airdrop.REWARD_API_ENDPOINT == "https://app.zklend.com/api/reward/all/"
-        assert hasattr(zklend_airdrop, 'api')
+        assert (
+            zklend_airdrop.REWARD_API_ENDPOINT
+            == "https://app.zklend.com/api/reward/all/"
+        )
+        assert hasattr(zklend_airdrop, "api")
 
     @pytest.mark.asyncio
-    async def test_get_contract_airdrop_success(self, zklend_airdrop, mock_api_response):
+    async def test_get_contract_airdrop_success(
+        self, zklend_airdrop, mock_api_response
+    ):
         """Test successful retrieval of airdrop data."""
 
         contract_id = "0x123456"
@@ -87,7 +93,7 @@ class TestZkLendAirdrop:
 
     def test_validate_response(self, zklend_airdrop, mock_api_response):
         """Test response validation."""
-       
+
         result = zklend_airdrop._validate_response(mock_api_response)
 
         assert isinstance(result, AirdropResponseModel)
@@ -98,7 +104,7 @@ class TestZkLendAirdrop:
 
     def test_validate_response_empty(self, zklend_airdrop):
         """Test validation of empty response."""
-       
+
         result = zklend_airdrop._validate_response([])
 
         assert isinstance(result, AirdropResponseModel)
@@ -106,8 +112,8 @@ class TestZkLendAirdrop:
 
     def test_validate_response_missing_fields(self, zklend_airdrop):
         """Test validation with missing required fields."""
-      
-        invalid_data = [{"amount": "1000"}] 
+
+        invalid_data = [{"amount": "1000"}]
 
         with pytest.raises(KeyError):
             zklend_airdrop._validate_response(invalid_data)
@@ -115,7 +121,7 @@ class TestZkLendAirdrop:
     @pytest.mark.asyncio
     async def test_underlying_contract_id_formatting(self, zklend_airdrop):
         """Test correct formatting of underlying contract ID."""
-        
+
         contract_id = "0x123456"
         expected_underlying_id = "0x0123456"
         zklend_airdrop.api.fetch.return_value = []
@@ -123,4 +129,3 @@ class TestZkLendAirdrop:
         await zklend_airdrop.get_contract_airdrop(contract_id)
 
         zklend_airdrop.api.fetch.assert_called_once_with(expected_underlying_id)
-        

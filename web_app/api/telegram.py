@@ -25,7 +25,6 @@ user_db = UserDBConnector()
 telegram_user_db_connector = TelegramUserDBConnector()
 
 
-
 @router.get(
     "/api/generate-telegram-link",
     tags=["Telegram Operations"],
@@ -50,6 +49,7 @@ async def generate_telegram_link(wallet_id: str):
 
     subscription_link = create_start_link(bot, user.id, encode=True)
     return {"subscription_link": subscription_link}
+
 
 @router.get(
     "/api/webhook/telegram",

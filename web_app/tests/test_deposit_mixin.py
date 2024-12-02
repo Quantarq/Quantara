@@ -6,8 +6,9 @@ from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from web_app.contract_tools.mixins.deposit import DepositMixin
+
 # https://starkscan.co/contract/0x04c0a5193d58f74fbace4b74dcf65481e734ed1714121bdc571da345540efa05#read-write-contract
-#get_user_debt_for_token(user_contract, token)
+# get_user_debt_for_token(user_contract, token)
 
 # amount * collateral_factor /(borrow_factor * borrow_amount)
 # class TestDepositMixin:
