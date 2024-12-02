@@ -2,6 +2,7 @@
 This module handles the blockchain calls.
 """
 
+import asyncio
 import logging
 import os
 import time
@@ -16,7 +17,7 @@ import starknet_py.net.networks
 from starknet_py.contract import Contract
 from starknet_py.net.full_node_client import FullNodeClient
 
-from .constants import EKUBO_MAINNET_ADDRESS, TokenParams
+from .constants import EKUBO_MAINNET_ADDRESS, ZKLEND_MARKET_ADDRESS, TokenParams
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +44,7 @@ class StarknetClient:
         """
         Initializes the Starknet client with a given node URL.
         """
-        node_url = os.getenv("STARKNET_NODE_URL")
+        node_url = os.getenv("STARKNET_NODE_URL") or "http://51.195.57.196:6060/v0_7"
         if not node_url:
             raise ValueError("STARKNET_NODE_URL environment variable is not set")
 
@@ -135,8 +136,37 @@ class StarknetClient:
             else price * 10**token_1_decimals
         )
 
+    async def _get_zklend_reserve(self, token_address: str) -> list[int]:
+        return await self._func_call(
+            self._convert_address(ZKLEND_MARKET_ADDRESS),
+            "get_reserve_data",
+            [self._convert_address(token_address)],
+        )
+
+    async def get_available_zklend_reserves(self) -> dict[str, list[int]]:
+        tasks = [
+            self._get_zklend_reserve(token.address) for token in TokenParams.tokens()
+        ]
+        return {
+            token.name: reserve
+            for token, reserve in zip(
+                TokenParams.tokens(), await asyncio.gather(*tasks)
+            )
+        }
+
+    async def get_z_addresses(self) -> dict[str, tuple[int, int]]:
+        reserves = await self.get_available_zklend_reserves()
+        return {token: (reserve[1], reserve[2]) for token, reserve in reserves.items()}
+
+    async def get_zklend_debt(self, user: str, token: str) -> list[int]:
+        return await self._func_call(
+            self._convert_address(ZKLEND_MARKET_ADDRESS),
+            "get_user_debt_for_token",
+            [self._convert_address(user), self._convert_address(token)],
+        )
+
     async def get_balance(
-        self, token_addr: str, holder_addr: str, decimals: int = None
+        self, token_addr: str | int, holder_addr: str, decimals: int = None
     ) -> int:
         """
         Fetches the balance of a holder for a specific token.
@@ -146,13 +176,18 @@ class StarknetClient:
         :param decimals: The number of decimal places to round the balance to. Defaults to None.
         :return: The token balance of the holder as an integer.
         """
-        token_address_int = self._convert_address(token_addr)
+        token_address_int = (
+            self._convert_address(token_addr)
+            if isinstance(token_addr, str)
+            else token_addr
+        )
         holder_address_int = self._convert_address(holder_addr)
         try:
             res = await self._func_call(
                 token_address_int, "balanceOf", [holder_address_int]
             )
         except Exception as exc:
+            print(exc)
             logger.info(
                 f"Failed to get balance for {token_addr} due to an error: {exc}"
             )
@@ -187,8 +222,10 @@ class StarknetClient:
         deposit_data = {
             "token": deposit_token,
             "amount": amount,
-            "multiplier": int(float(multiplier) * 10), # Moves for one decimal place, from 2.5 to 25
-            "borrow_portion_percent": 80
+            "multiplier": int(
+                float(multiplier) * 10
+            ),  # Moves for one decimal place, from 2.5 to 25
+            "borrow_portion_percent": 80,
         }
 
         pool_price = floor(
@@ -198,7 +235,10 @@ class StarknetClient:
             "pool_price": pool_price,
             "pool_key": pool_key,
             "deposit_data": deposit_data,
-            "ekubo_limits": {"lower": "18446748437148339061", "upper": "6277100250585753475930931601400621808602321654880405518632"}
+            "ekubo_limits": {
+                "lower": "18446748437148339061",
+                "upper": "6277100250585753475930931601400621808602321654880405518632",
+            },
         }
 
     async def get_repay_data(self, deposit_token: str, borrowing_token: str) -> dict:
@@ -230,8 +270,11 @@ class StarknetClient:
             "supply_price": supply_price,
             "debt_price": debt_price,
             "pool_key": pool_key,
-            "ekubo_limits": {"lower": "18446748437148339061", "upper": "6277100250585753475930931601400621808602321654880405518632"},
-            "borrow_portion_percent": 93
+            "ekubo_limits": {
+                "lower": "18446748437148339061",
+                "upper": "6277100250585753475930931601400621808602321654880405518632",
+            },
+            "borrow_portion_percent": 93,
         }
 
     async def claim_airdrop(self, contract_address: str, proofs: list[str]) -> None:
