@@ -104,3 +104,12 @@
     width: 100%;
   } */
 }
+
+/* Nest Hub (1024 x 600) */
+@media screen and (max-width: 1024px) and (min-height: 600px) {
+  
+  .layout {
+   justify-content: center;
+  }
+  
+}

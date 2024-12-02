@@ -10,7 +10,6 @@
   padding: 0 24px;
   width: 100vw;
   padding: 0 24px;
-  font-family: var(--font-family);
 }
 
 .token-icon {
@@ -220,13 +219,65 @@
   }
 
   .stake-container {
-    gap: 26px;
-    width: 100%;
+    padding: 0;
     margin-left: 0;
     margin-right: 0;
-    padding: 1rem;
+    width: 100%;
+    
   }
 
+
+  .balance-container {
+    flex-direction: row;
+    justify-content: flex-start;
+   align-items: center;
+    margin-bottom: 0;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap:5px;
+    max-width: 100%;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .balance-item {
+    height: fit-content;
+    padding: 16px 24px;
+    display: flex;
+    width: 167px;
+    height:88px;
+    flex-direction: column;
+    align-items: center;
+    margin-right: 0;
+    border-radius: 16px;
+    border: 1px solid var(--light-purple);
+
+    background-color: var(--dark-purple);
+  }
+
+  .balance-item:first-child {
+    margin-left: 20px;
+  }
+
+  .balance-item:last-child {
+    margin-right: 20px;
+  }
+
+  .balance-item .balance-title {
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+  }
+
+  .balance-item .title-container + label:nth-of-type(1) {
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  .balance-item label:nth-child(2) {
+    color: var(--secondary);
+    font-size: 14px;
+  }
   .stake-title {
     font-size: 16px;
     font-weight: 400;
@@ -238,6 +289,8 @@
     gap: 26px;
     flex-direction: column;
     border-radius: 12px;
+    margin-left: 12px;
+    margin-right: 11px;
    
   }
 
@@ -268,13 +321,16 @@
   }
 
   .stake-button {
-
-    font-size: 14px;
+ font-size: 14px;
     padding: 18px 24px;
+   
+    align-self: center;
   }
 
-  .stake-button::before {
-    border-radius: 16px;
+
+  .balance-card {
+    max-width: 100%;
+    margin-top: 20px;
   }
 
   .balance-display-container .large-screen-balance {
@@ -284,48 +340,52 @@
   .balance-display-container .mobile-screen-balance {
     display: block;
   }
-  .balance-container {
-    flex-direction: row;
-    justify-content: flex-start;
-    gap: 1rem;
-    align-items: center;
-    margin-bottom: 0;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    gap: 20px;
-    max-width:100%;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-  .balance-item {
-    display: flex;
-    flex-direction: column;
-    width: 167px;
-    height: 101px;
-    align-items: center;
-    border: 1px solid var(--light-purple);
-    justify-content: center;
-    background-color: var(--dark-purple);
-    padding: 16px 30px;
-  }
-  .balance-item:first-child {
-    margin-left:1px;
-  }
-  .balance-item:last-child {
-    margin-right: 2px;
-  }
+ 
 }
 
 @media (min-width: 768px) and (max-width: 1024px) {
+  .stake-wrapper {
+    display: flex; 
+    flex-direction: column; 
+    justify-content: flex-start;
+    align-items: center;
+    margin: 0 auto;
+    padding: 0 20px;
+    background-position: center; 
+  }
+
   .stake-container {
-    width: 70%;
-    margin-left: auto;
-    margin-right: auto;
+    width: 100%;
+    padding: 1rem;
+    margin: 0 auto;
   }
-  .balance-container {
-    display: flex;
-    justify-content: space-between;
-    max-width:100%;
-    gap: 8px;
+
+  .top-cards {
+    display: flex; 
+    flex-wrap: wrap;
+    gap: 16px;
   }
+
+  .main-card {
+    margin: 0 auto;
+    max-width: 80%;
+    padding: 20px;
+    gap: 20px;
+  }
+
+  .amount-field {
+    font-size: 24px; 
+    padding: 10px;
+  }
+
+  .stake-button {
+    font-size: 16px;
+    padding: 16px 24px;
+    margin-left: 12px;
+    margin-right: 11px;
+    align-self: center;
+    width:85%;
+
+  }
+  
 }
