@@ -48,7 +48,7 @@ async def get_dashboard(wallet_id: str) -> DashboardResponse:
     )
     # Fetch zkLend position for the wallet ID
     health_ratio = await HealthRatioMixin.get_health_ratio(
-        contract_address, first_opened_position["token_symbol"]
+        contract_address
     )
 
     # Fetch balances (assuming you have a method for this)

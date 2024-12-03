@@ -13,8 +13,8 @@ class DashboardResponse(BaseModel):
     """
     DashboardResponse class for dashboard details.
     """
-    health_ratio: str = Field(
-        ..., example="0.5", description="The health ratio of the user."
+    health_ratio: dict[str, str] = Field(
+        ..., example={"health_factor": "2.0", "ltv": "0.5"}, description="The health ratio of the user."
     )
     balances: Dict[str, Any] = Field(
         ...,
