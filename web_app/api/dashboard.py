@@ -38,6 +38,16 @@ async def get_dashboard(wallet_id: str) -> DashboardResponse:
     contract_address = position_db_connector.get_contract_address_by_wallet_id(
         wallet_id
     )
+    if not contract_address:
+        return DashboardResponse(
+            health_ratio="0",
+            multipliers={},
+            start_dates={},
+            current_sum=0,
+            start_sum=0,
+            borrowed="0",
+        )
+
     opened_positions = position_db_connector.get_positions_by_wallet_id(wallet_id)
 
     # At the moment, we only support one position per wallet
