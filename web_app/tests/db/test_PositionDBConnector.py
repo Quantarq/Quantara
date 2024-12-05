@@ -248,12 +248,14 @@ def test_get_position_id_by_wallet_id_no_positions(mock_position_db_connector):
     assert result is None
 
 
-@patch("web_app.db.crud.PositionDBConnector.delete_all_user_positions")
-def test_delete_all_user_positions_failure(mock_delete):
+@patch("web_app.db.crud.PositionDBConnector")
+def test_delete_all_user_positions_failure(mock_position_db_connector):
+    """Test failure during deletion of all positions for a user."""
     user_id = uuid.uuid4()
-    mock_delete.side_effect = SQLAlchemyError("Database error")
+    mock_session = mock_position_db_connector.Session.return_value
+    mock_session.query.side_effect = SQLAlchemyError("Database error")
 
-    with pytest.raises(SQLAlchemyError):
-        PositionDBConnector().delete_all_user_positions(user_id)
+    position_connector = PositionDBConnector()
+    position_connector.delete_all_user_positions(user_id)
 
-    mock_delete.assert_called_once_with(user_id)
+    mock_session.rollback.assert_called_once()
