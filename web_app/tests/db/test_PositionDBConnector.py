@@ -153,9 +153,7 @@ def test_open_position_success(mock_position_db_connector, sample_position):
 
 def test_get_total_amounts_for_open_positions(mock_position_db_connector):
     """Test getting total amounts for open positions."""
-    mock_position_db_connector.get_total_amounts_for_open_positions.return_value = (
-        Decimal(1000.0)
-    )
+    mock_position_db_connector.get_total_amounts_for_open_positions.return_value = Decimal(1000.0)
 
     result = mock_position_db_connector.get_total_amounts_for_open_positions()
 
