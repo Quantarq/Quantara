@@ -32,11 +32,7 @@ class HealthRatioMixin:
         :param token: The token symbol (e.g., "ETH", "USDC").
         :return: The price of the token as a Decimal.
         """
-        decimals = (
-            10**8
-            if token not in ("USDC", "USDT")
-            else 10**6
-        )
+        decimals = 10**8 if token not in ("USDC", "USDT") else 10**6
         data = await PRAGMA.get_spot(
             f"{token}/USD", AggregationMode.MEDIAN
         )
@@ -91,16 +87,13 @@ class HealthRatioMixin:
             reserves, deposit_contract_address
         )
         return {
-            token: amount
-            * TokenParams.get_token_collateral_factor(token)
+            token: amount * TokenParams.get_token_collateral_factor(token)
             for token, amount in deposits.items()
             if amount != 0
         }
 
     @classmethod
-    async def _get_pragma_prices(
-        cls, tokens: set
-    ) -> dict[str, Decimal]:
+    async def _get_pragma_prices(cls, tokens: set) -> dict[str, Decimal]:
         """
         Get the prices of multiple tokens from the Pragma API.
 
@@ -108,14 +101,10 @@ class HealthRatioMixin:
         :return: A dictionary of token prices with token symbols as
          keys and prices as Decimal values.
         """
-        tasks = [
-            cls._get_pragma_price(token) for token in tokens
-        ]
+        tasks = [cls._get_pragma_price(token) for token in tokens]
         return {
             token: price
-            for token, price in zip(
-                tokens, await asyncio.gather(*tasks)
-            )
+            for token, price in zip(tokens, await asyncio.gather(*tasks))
         }
 
     @classmethod
@@ -125,12 +114,8 @@ class HealthRatioMixin:
         debt_usdc: Decimal,
         collateral_value_usdc: Decimal,
     ):
-        borrow_factor = TokenParams.get_borrow_factor(
-            borrowed_token
-        )
-        return (
-            debt_usdc / borrow_factor
-        ) / collateral_value_usdc
+        borrow_factor = TokenParams.get_borrow_factor(borrowed_token)
+        return (debt_usdc / borrow_factor) / collateral_value_usdc
 
     @classmethod
     async def _get_borrowed_token(
@@ -140,9 +125,7 @@ class HealthRatioMixin:
         :return: Tuple with borrowed token and current debt on ZkLend
         """
         tasks = [
-            CLIENT.get_zklend_debt(
-                deposit_contract_address, token.address
-            )
+            CLIENT.get_zklend_debt(deposit_contract_address, token.address)
             for token in TokenParams.tokens()
         ]
         non_zero_debt = [
@@ -167,10 +150,8 @@ class HealthRatioMixin:
         :param deposit_contract_address: The address of the deposit contract.
         :return: The health ratio as a string.
         """
-        borrowed_token_address, debt_raw = (
-            await cls._get_borrowed_token(
-                deposit_contract_address
-            )
+        borrowed_token_address, debt_raw = await cls._get_borrowed_token(
+            deposit_contract_address
         )
         borrowed_token = TokenParams.get_token_symbol(
             borrowed_token_address
@@ -188,18 +169,11 @@ class HealthRatioMixin:
             if amount != 0
         )
 
-        borrowed_address = TokenParams.get_token_address(
-            borrowed_token
-        )
+        borrowed_address = TokenParams.get_token_address(borrowed_token)
         debt_usdc = (
             debt_raw
             * prices[borrowed_token]
-            / 10
-            ** int(
-                TokenParams.get_token_decimals(
-                    borrowed_address
-                )
-            )
+            / 10 ** int(TokenParams.get_token_decimals(borrowed_address))
         )
         # return {
         #     "health_factor": f"{round(deposit_usdc / Decimal(debt_usdc), 2)}" if debt_usdc != 0 else "0",
