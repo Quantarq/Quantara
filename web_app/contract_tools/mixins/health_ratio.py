@@ -176,8 +176,8 @@ class HealthRatioMixin:
             / 10 ** int(TokenParams.get_token_decimals(borrowed_address))
         )
         # return {
-        #     "health_factor": f"{round(deposit_usdc / Decimal(debt_usdc), 2)}" if debt_usdc != 0 else "0",
-        #     "ltv": f"{round((debt_usdc / TokenParams.get_borrow_factor(borrowed_token)) / deposit_usdc, 2)}"
+        #     "health_factor": f"{round(deposit_usdc / Decimal(debt_usdc), 2)}" if debt_usdc != 0 else "0", # pylint: disable=line-too-long
+        #     "ltv": f"{round((debt_usdc / TokenParams.get_borrow_factor(borrowed_token)) / deposit_usdc, 2)}" # pylint: disable=line-too-long
         # }
         health_factor = (
             f"{round(deposit_usdc / Decimal(debt_usdc), 2)}"
@@ -185,7 +185,7 @@ class HealthRatioMixin:
             else "0"
         )
         ltv = Decimal(
-            f"{round((debt_usdc / TokenParams.get_borrow_factor(borrowed_token)) / deposit_usdc, 2)}"
+            f"{round((debt_usdc / TokenParams.get_borrow_factor(borrowed_token)) / deposit_usdc, 2)}" # pylint: disable=line-too-long
         )
         return health_factor, ltv
 
