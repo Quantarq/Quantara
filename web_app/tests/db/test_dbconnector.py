@@ -7,7 +7,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 
-from web_app.db.crud import DBConnector, PositionDBConnector, UserDBConnector
+from web_app.db.crud import (
+    DBConnector,
+    PositionDBConnector,
+    UserDBConnector,
+)
 from web_app.db.models import AirDrop, Base, Position, Status, User
 
 
@@ -79,7 +83,9 @@ def test_write_to_db_invalid_object(mock_db_connector):
     """
     Test writing an invalid object to the database, expecting SQLAlchemyError.
     """
-    mock_db_connector.write_to_db.side_effect = SQLAlchemyError("Invalid object")
+    mock_db_connector.write_to_db.side_effect = SQLAlchemyError(
+        "Invalid object"
+    )
     with pytest.raises(SQLAlchemyError):
         mock_db_connector.write_to_db(None)
 

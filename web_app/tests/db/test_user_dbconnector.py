@@ -25,7 +25,8 @@ def user_db(mock_db_connector):
     Fixture to create a UserDBConnector instance with mocked dependencies.
     """
     with patch(
-        "web_app.db.crud.UserDBConnector.get_object_by_field", new_callable=MagicMock
+        "web_app.db.crud.UserDBConnector.get_object_by_field",
+        new_callable=MagicMock,
     ) as mock_get:
         mock_get.side_effect = mock_db_connector.get_object_by_field
         connector = UserDBConnector()
@@ -103,8 +104,12 @@ def test_delete_all_users_airdrop_success(user_db):
     ]
 
     air_drop_connector = AirDropDBConnector()
-    with patch.object(air_drop_connector, "Session") as mock_session_factory:
-        mock_session_factory.return_value.__enter__.return_value = mock_session
+    with patch.object(
+        air_drop_connector, "Session"
+    ) as mock_session_factory:
+        mock_session_factory.return_value.__enter__.return_value = (
+            mock_session
+        )
         mock_session.query.return_value.filter_by.return_value.all.return_value = (
             mock_airdrops
         )
@@ -131,7 +136,9 @@ def test_delete_all_users_airdrop_failure(user_db):
     with patch.object(
         air_drop_connector, "Session", return_value=mock_session
     ) as mock_session_factory:
-        mock_session_factory.return_value.__enter__.return_value = mock_session
+        mock_session_factory.return_value.__enter__.return_value = (
+            mock_session
+        )
 
         air_drop_connector.delete_all_users_airdrop(user_id)
         mock_session.query.assert_called_once_with(AirDrop)

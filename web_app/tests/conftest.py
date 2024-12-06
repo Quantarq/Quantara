@@ -8,7 +8,11 @@ import pytest
 from fastapi.testclient import TestClient
 
 from web_app.api.main import app
-from web_app.db.crud import DBConnector, PositionDBConnector, UserDBConnector
+from web_app.db.crud import (
+    DBConnector,
+    PositionDBConnector,
+    UserDBConnector,
+)
 from web_app.db.database import get_database
 
 

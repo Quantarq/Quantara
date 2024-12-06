@@ -40,14 +40,22 @@ async def async_client():
             },
         ),
         (
-            {"wallet_id": "invalid_wallet", "symbol": "ETH", "amount": "1.0"},
+            {
+                "wallet_id": "invalid_wallet",
+                "symbol": "ETH",
+                "amount": "1.0",
+            },
             404,
             {"detail": "User not found"},
         ),
     ],
 )
 async def test_deposit_to_vault(
-    test_data, expected_status, expected_response, mock_user_db_connector, async_client
+    test_data,
+    expected_status,
+    expected_response,
+    mock_user_db_connector,
+    async_client,
 ):
     """Test vault deposit with different scenarios."""
     mock_user = MagicMock()
@@ -55,7 +63,9 @@ async def test_deposit_to_vault(
     mock_vault.id = str(uuid.uuid4())
     mock_vault.amount = test_data["amount"]
 
-    with patch.object(UserDBConnector, "__new__", return_value=mock_user_db_connector):
+    with patch.object(
+        UserDBConnector, "__new__", return_value=mock_user_db_connector
+    ):
         mock_user_db_connector.get_user_by_wallet_id.return_value = (
             mock_user if test_data["wallet_id"] == "test_wallet" else None
         )
@@ -65,9 +75,13 @@ async def test_deposit_to_vault(
                 "web_app.db.crud.DepositDBConnector.create_vault",
                 return_value=mock_vault,
             ):
-                response = await async_client.post("/api/vault/deposit", json=test_data)
+                response = await async_client.post(
+                    "/api/vault/deposit", json=test_data
+                )
         else:
-            response = await async_client.post("/api/vault/deposit", json=test_data)
+            response = await async_client.post(
+                "/api/vault/deposit", json=test_data
+            )
 
     assert response.status_code == expected_status
     expected = (
@@ -99,11 +113,17 @@ async def test_deposit_to_vault(
     ],
 )
 async def test_get_vault_balance(
-    wallet_id, symbol, balance, expected_status, expected_response, async_client
+    wallet_id,
+    symbol,
+    balance,
+    expected_status,
+    expected_response,
+    async_client,
 ):
     """Test vault balance retrieval with different scenarios."""
     with patch(
-        "web_app.db.crud.DepositDBConnector.get_vault_balance", return_value=balance
+        "web_app.db.crud.DepositDBConnector.get_vault_balance",
+        return_value=balance,
     ):
         url = f"/api/vault/balance?wallet_id={wallet_id}&symbol={symbol}"
         response = await async_client.get(url)
@@ -131,9 +151,15 @@ async def test_get_vault_balance(
             },
         ),
         (
-            {"wallet_id": "test_wallet", "symbol": "ETH", "amount": "-1.0"},
+            {
+                "wallet_id": "test_wallet",
+                "symbol": "ETH",
+                "amount": "-1.0",
+            },
             400,
-            {"detail": "Failed to update vault balance: Amount must be positive"},
+            {
+                "detail": "Failed to update vault balance: Amount must be positive"
+            },
         ),
     ],
 )
@@ -145,12 +171,19 @@ async def test_add_vault_balance(
     mock_vault.amount = "2.0"
 
     if test_data["amount"].startswith("-"):
-        patch_kwargs = {"side_effect": ValueError("Amount must be positive")}
+        patch_kwargs = {
+            "side_effect": ValueError("Amount must be positive")
+        }
     else:
         patch_kwargs = {"return_value": mock_vault}
 
-    with patch("web_app.db.crud.DepositDBConnector.add_vault_balance", **patch_kwargs):
-        response = await async_client.post("/api/vault/add_balance", json=test_data)
+    with patch(
+        "web_app.db.crud.DepositDBConnector.add_vault_balance",
+        **patch_kwargs,
+    ):
+        response = await async_client.post(
+            "/api/vault/add_balance", json=test_data
+        )
 
         assert response.status_code == expected_status
         expected = (

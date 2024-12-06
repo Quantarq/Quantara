@@ -83,6 +83,7 @@ async def create_position_with_transaction_data(
         position_db_connector.get_contract_address_by_wallet_id(form_data.wallet_id)
     )
     deposit_data["position_id"] = str(position.id)
+    
     return LoopLiquidityData(**deposit_data)
 
 

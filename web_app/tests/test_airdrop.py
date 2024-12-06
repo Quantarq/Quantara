@@ -149,7 +149,9 @@ def test_get_all_unclaimed_positive(db_connector):
     """
     connector, _, airdrop = db_connector
     unclaimed_airdrops = connector.get_all_unclaimed()
-    assert any(airdrop.id == unclaimed.id for unclaimed in unclaimed_airdrops)
+    assert any(
+        airdrop.id == unclaimed.id for unclaimed in unclaimed_airdrops
+    )
 
 
 def test_get_all_unclaimed_after_claiming(db_connector):

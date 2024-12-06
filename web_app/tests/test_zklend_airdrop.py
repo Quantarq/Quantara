@@ -60,10 +60,15 @@ class TestZkLendAirdrop:
         assert airdrop.amount == "1000000000000000000"
         assert airdrop.proof == ["0xabcd", "0x1234"]
         assert airdrop.is_claimed is False
-        assert airdrop.recipient == "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+        assert (
+            airdrop.recipient
+            == "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+        )
 
     @pytest.mark.asyncio
-    async def test_get_contract_airdrop_empty_response(self, zklend_airdrop):
+    async def test_get_contract_airdrop_empty_response(
+        self, zklend_airdrop
+    ):
         """Test handling of empty API response."""
 
         contract_id = "0x123456"
@@ -76,7 +81,9 @@ class TestZkLendAirdrop:
         assert len(result.airdrops) == 0
 
     @pytest.mark.asyncio
-    async def test_get_contract_airdrop_with_invalid_contract_id(self, zklend_airdrop):
+    async def test_get_contract_airdrop_with_invalid_contract_id(
+        self, zklend_airdrop
+    ):
         """Test handling of invalid contract IDs."""
 
         invalid_ids = ["", "0x"]
@@ -88,7 +95,9 @@ class TestZkLendAirdrop:
             assert len(result.airdrops) == 0
 
     @pytest.mark.asyncio
-    async def test_get_contract_airdrop_none_contract_id(self, zklend_airdrop):
+    async def test_get_contract_airdrop_none_contract_id(
+        self, zklend_airdrop
+    ):
         """Test handling of None contract ID."""
         with pytest.raises(ValueError):
             await zklend_airdrop.get_contract_airdrop(None)
@@ -130,4 +139,6 @@ class TestZkLendAirdrop:
 
         await zklend_airdrop.get_contract_airdrop(contract_id)
 
-        zklend_airdrop.api.fetch.assert_called_once_with(expected_underlying_id)
+        zklend_airdrop.api.fetch.assert_called_once_with(
+            expected_underlying_id
+        )

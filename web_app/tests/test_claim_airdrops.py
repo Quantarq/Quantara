@@ -61,7 +61,9 @@ async def test_claim_airdrops_successful(airdrop_claimer, mock_airdrop):
     Test the claim_airdrops method for successful claims.
     """
     # Arrange
-    airdrop_claimer.db_connector.get_all_unclaimed.return_value = [mock_airdrop]
+    airdrop_claimer.db_connector.get_all_unclaimed.return_value = [
+        mock_airdrop
+    ]
     airdrop_claimer.zk_lend_airdrop.get_contract_airdrop.return_value = [
         "proof1",
         "proof2",
@@ -72,7 +74,9 @@ async def test_claim_airdrops_successful(airdrop_claimer, mock_airdrop):
     await airdrop_claimer.claim_airdrops()
 
     # Assertions
-    airdrop_claimer.zk_lend_airdrop.get_contract_airdrop.assert_called_with("0x123")
+    airdrop_claimer.zk_lend_airdrop.get_contract_airdrop.assert_called_with(
+        "0x123"
+    )
     airdrop_claimer.starknet_client.claim_airdrop.assert_awaited_with(
         "0x123", ["proof1", "proof2"]
     )
@@ -135,18 +139,24 @@ async def test_claim_airdrops_partial_failure(airdrop_claimer):
 
 
 @pytest.mark.asyncio
-async def test_claim_airdrops_database_error(airdrop_claimer, mock_airdrop, caplog):
+async def test_claim_airdrops_database_error(
+    airdrop_claimer, mock_airdrop, caplog
+):
     """
     Test handling of database errors during airdrop claiming.
     """
     # Arrange
-    airdrop_claimer.db_connector.get_all_unclaimed.return_value = [mock_airdrop]
-    airdrop_claimer.zk_lend_airdrop.get_contract_airdrop.return_value = ["proof1"]
+    airdrop_claimer.db_connector.get_all_unclaimed.return_value = [
+        mock_airdrop
+    ]
+    airdrop_claimer.zk_lend_airdrop.get_contract_airdrop.return_value = [
+        "proof1"
+    ]
     airdrop_claimer.starknet_client.claim_airdrop.return_value = True
 
     # Simulate database save error
-    airdrop_claimer.db_connector.save_claim_data.side_effect = SQLAlchemyError(
-        "Database error"
+    airdrop_claimer.db_connector.save_claim_data.side_effect = (
+        SQLAlchemyError("Database error")
     )
 
     # Act
@@ -190,7 +200,9 @@ async def test_claim_airdrop_invalid_proof(airdrop_claimer):
     )
 
     # Act
-    result = await airdrop_claimer._claim_airdrop("0x123", ["invalid_proof"])
+    result = await airdrop_claimer._claim_airdrop(
+        "0x123", ["invalid_proof"]
+    )
 
     # Assertions
     assert result is False
@@ -206,7 +218,9 @@ async def test_claim_airdrop_unexpected_error(airdrop_claimer, caplog):
     """
     # Arrange
     unexpected_error = Exception("Completely unexpected error")
-    airdrop_claimer.starknet_client.claim_airdrop.side_effect = unexpected_error
+    airdrop_claimer.starknet_client.claim_airdrop.side_effect = (
+        unexpected_error
+    )
 
     # Act
     with caplog.at_level(logging.ERROR):
