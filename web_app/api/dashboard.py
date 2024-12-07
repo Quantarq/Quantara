@@ -66,10 +66,11 @@ async def get_dashboard(wallet_id: str) -> DashboardResponse:
         first_opened_position["start_price"],
         first_opened_position["amount"],
     )
+    token_symbol = first_opened_position["token_symbol"]
     return DashboardResponse(
         health_ratio=health_ratio,
-        multipliers={"ETH": first_opened_position["multiplier"]},
-        start_dates={"ETH": first_opened_position["created_at"]},
+        multipliers={token_symbol: str(first_opened_position["multiplier"])},
+        start_dates={token_symbol: first_opened_position["created_at"]},
         current_sum=current_sum,
         start_sum=start_sum,
         borrowed=str(start_sum * tvl),
