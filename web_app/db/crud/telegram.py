@@ -87,15 +87,24 @@ class TelegramUserDBConnector(DBConnector):
         if user:
             self.delete_object_by_id(user, user.id)
 
-    def set_allow_notification(self, telegram_id: int, wallet_id: str) -> bool:
+    def set_allow_notification(self, telegram_id: str, wallet_id: str) -> bool:
         """
         Set wallet_id and is_allowed_notification to True for a user by their telegram ID.
         """
-        return self.update_telegram_user(
-            telegram_id, dict(is_allowed_notification=True, wallet_id=wallet_id)
-        )
+        with self.Session() as session:
+            if telegram_user := self.get_user_by_telegram_id(telegram_id):
+                telegram_user.is_allowed_notification = True
+                session.commit()
+                logger.info(f"Notification allowed for user with telegram_id {telegram_id}")
+                return telegram_user
+            else:
+                logger.info(f"User with telegram_id {telegram_id} not found, creating new one")
+                self.create_telegram_user(
+                    dict(telegram_id=telegram_id, wallet_id=wallet_id)
+                )
+                self.allow_notification(telegram_id)
 
-    def allow_notification(self, telegram_id: int) -> bool:
+    def allow_notification(self, telegram_id: str) -> bool:
         """
         Update is_allowed_notification field to True for a specific telegram user
 

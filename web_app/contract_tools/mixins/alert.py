@@ -8,7 +8,7 @@ from web_app.contract_tools.mixins import HealthRatioMixin
 from web_app.db.crud import UserDBConnector
 
 logger = logging.getLogger(__name__)
-ALERT_THRESHOLD = 1.1
+ALERT_THRESHOLD = 2.0 # FIXME return to 1.1 after testing
 
 
 class AlertMixin:
@@ -25,9 +25,9 @@ class AlertMixin:
         users_data = UserDBConnector().get_users_for_notifications()
 
         for contract_address, telegram_id in users_data:
-            health_ratio_level, _ = HealthRatioMixin.get_health_ratio_and_tvl(contract_address)
+            health_ratio_level, _ = asyncio.run(HealthRatioMixin.get_health_ratio_and_tvl(contract_address))
 
-            if health_ratio_level < ALERT_THRESHOLD:
+            if float(health_ratio_level) < ALERT_THRESHOLD:
                 cls.send_notification(telegram_id, health_ratio_level)
 
     @staticmethod
