@@ -8,15 +8,19 @@ using aiogram and a database connector.
 from typing import Literal
 
 from aiogram.types import Update
-from aiogram.utils.web_app import check_webapp_signature
 from aiogram.utils.deep_linking import create_start_link
+from aiogram.utils.web_app import check_webapp_signature
+
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+
 from web_app.api.serializers.telegram import TelegramUserAuth, TelegramUserCreate
 from web_app.db.crud import DBConnector, TelegramUserDBConnector, UserDBConnector
-from web_app.telegram import TELEGRAM_TOKEN, bot, dp
-from web_app.telegram.utils import build_response_writer, check_telegram_authorization
+from web_app.telegram import TELEGRAM_TOKEN, bot, dp, logger
+from web_app.telegram.utils import (
+    build_multipart_response,
+    check_telegram_authorization,
+)
 
 # Create a FastAPI router for handling Telegram webhook requests
 router = APIRouter()
@@ -86,10 +90,12 @@ async def telegram_webhook(update: Update):
     Returns:
         StreamingResponse: A streaming response containing the result of the update processing.
     """
-    result = await dp.feed_webhook_update(bot, update, db=db_connector)
-    return StreamingResponse(
-        build_response_writer(bot, result), media_type="multipart/form-data"
-    )
+    try:
+        result = await dp.feed_webhook_update(bot, update, db=db_connector)
+        return build_multipart_response(bot, result)
+    except Exception as e:
+        logger.error(f"Error processing Telegram update {update.update_id}: {e}")
+        return b"", 200
 
 
 @router.post(

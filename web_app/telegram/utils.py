@@ -6,15 +6,17 @@ It includes functions for building response writers for webhook responses.
 
 import hashlib
 import hmac
+import json
 import secrets
 import time
-from typing import Dict, Optional
+from typing import Any, Dict, Generator, Optional, Union
 
 from aiogram import Bot
 from aiogram.methods import TelegramMethod
 from aiogram.methods.base import TelegramType
 from aiogram.types import InputFile
-from aiohttp import MultipartWriter
+from fastapi import Response
+from fastapi.responses import StreamingResponse
 
 
 def check_telegram_authorization(
@@ -57,44 +59,93 @@ def check_telegram_authorization(
     return True
 
 
-def build_response_writer(
-    bot: Bot, result: Optional[TelegramMethod[TelegramType]]
-) -> MultipartWriter:
+def generate_multipart_telegram_response(
+    bot: Bot, 
+    result: TelegramMethod[TelegramType], 
+    boundary: str
+) -> Generator[bytes, None, None]:
     """
-    Build a MultipartWriter for sending a response to a Telegram webhook.
+    Generate a multipart/form-data response for Telegram webhook.
 
     Args:
         bot (Bot): The instance of the Bot to use for handled requests.
-        result (Optional[TelegramMethod[TelegramType]]): The result of a Telegram method call.
+        result (TelegramMethod[TelegramType]): The result of a Telegram method call.
+        boundary (str): Custom boundary for multipart data.
 
-    Returns:
-        MultipartWriter: A writer for the multipart/form-data request.
+    Yields:
+        bytes: Multipart form-data chunks
     """
-    writer = MultipartWriter(
-        "form-data",
-        boundary=f"webhookBoundary{secrets.token_urlsafe(16)}",
-    )
-    if not result:
-        return writer
-
-    # Append the API method to the writer
-    payload = writer.append(result.__api_method__)
-    payload.set_content_disposition("form-data", name="method")
-
+    # Prepare a dictionary to store file attachments
     files: Dict[str, InputFile] = {}
-    for key, value in result.model_dump(warnings=False).items():
-        value = bot.session.prepare_value(value, bot=bot, files=files)
-        if not value:
-            continue
-        payload = writer.append(value)
-        payload.set_content_disposition("form-data", name=key)
+    
+    # Prepare method and its parameters
+    method_data = result.model_dump(warnings=False)
+    
+    # Yield method part
+    method_part = (
+        f'--{boundary}\r\n'
+        'Content-Disposition: form-data; name="method"\r\n'
+        'Content-Type: text/plain; charset=utf-8\r\n\r\n'
+        f'{result.__api_method__}\r\n'
+    )
+    yield method_part.encode('utf-8')
 
-    for key, value in files.items():
-        payload = writer.append(value.read(bot))
-        payload.set_content_disposition(
-            "form-data",
-            name=key,
-            filename=value.filename or key,
+    # Process non-file parameters
+    for key, value in method_data.items():
+        # Prepare the value, converting it to a format suitable for sending
+        prepared_value = bot.session.prepare_value(value, bot=bot, files=files)
+        
+        if prepared_value is not None:
+            # Convert value to string for text parts
+            if isinstance(prepared_value, (dict, list)):
+                prepared_value = json.dumps(prepared_value)
+            
+            part = (
+                f'--{boundary}\r\n'
+                f'Content-Disposition: form-data; name="{key}"\r\n'
+                'Content-Type: text/plain; charset=utf-8\r\n\r\n'
+                f'{prepared_value}\r\n'
+            )
+            yield part.encode('utf-8')
+
+    # Process file attachments
+    for key, file in files.items():
+        # Read file content
+        file_content = file.read(bot)
+        
+        # Yield file part headers
+        file_part_header = (
+            f'--{boundary}\r\n'
+            f'Content-Disposition: form-data; name="{key}"; filename="{file.filename}"\r\n'
+            f'Content-Type: application/octet-stream\r\n\r\n'
         )
+        yield file_part_header.encode('utf-8')
+        
+        # Yield file content
+        yield file_content
+        yield b'\r\n'
 
-    return writer
+    # Final boundary
+    yield f'--{boundary}--\r\n'.encode('utf-8')
+
+
+def build_multipart_response(
+    bot: Bot, 
+    result: Any
+) -> Response:
+    """
+    Build a multipart response for Telegram webhook.
+    """
+    # if not result return empty response
+    if not result or not isinstance(result, TelegramMethod):
+        return Response(status_code=200)
+    
+    # generate boundary
+    boundary = f"webhookBoundary{secrets.token_urlsafe(16)}"
+    
+    # return streaming response
+    return StreamingResponse(
+        generate_multipart_telegram_response(bot, result, boundary), 
+        media_type=f"multipart/form-data; boundary={boundary}",
+        status_code=200
+    )
