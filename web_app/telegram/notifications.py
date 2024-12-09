@@ -1,7 +1,7 @@
 """
 This module provides functionalities to send telegram notifications
 """
-
+import asyncio
 from decimal import Decimal
 
 from aiogram.exceptions import TelegramRetryAfter
@@ -23,13 +23,10 @@ async def send_health_ratio_notification(
     Send notification about health ratio to user
     """
     try:
-        user = telegram_db.get_user_by_telegram_id(telegram_id)
-
-        if user and user.is_allowed_notification:
-            await bot.send_message(
-                chat_id=telegram_id,
-                text=HEALTH_RATIO_WARNING_MESSAGE.format(health_ratio=health_ratio),
-            )
+        await bot.send_message(
+            chat_id=telegram_id,
+            text=HEALTH_RATIO_WARNING_MESSAGE.format(health_ratio=health_ratio),
+        )
     except TelegramRetryAfter as e:
         if retry_count < 1:
             return logger.error(f"Failed to send notification to {telegram_id}: {e}")

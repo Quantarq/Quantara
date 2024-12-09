@@ -46,8 +46,8 @@ export const subscribeToNotification = async (telegram_id, wallet_id) => {
 
 export const generateTelegramLink = async (wallet_id) => {
   try {
-    const response = await axiosInstance.post("/api/generate-telegram-link", {
-      wallet_id: wallet_id,
+    const response = await axiosInstance.get(`/api/generate-telegram-link`, {
+      params: { wallet_id: wallet_id },
     });
     return response.data;
   } catch (error) {

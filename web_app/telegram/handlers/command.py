@@ -20,6 +20,23 @@ cmd_router = Router()
 telegram_db = TelegramUserDBConnector()
 db_connector = DBConnector()
 
+@cmd_router.message(CommandStart(deep_link=True, deep_link_encoded=True))
+async def notification_allowed(message: Message, command: CommandObject):
+    """
+    Handle the /start command with user id parameter.
+
+    Args:
+        message (Message): The incoming message containing the command.
+        command (CommandObject): The command object containing the user id.
+    """
+    user_id = command.args
+    user = db_connector.get_object(User, user_id)
+    telegram_db.set_allow_notification(str(message.from_user.id), user.wallet_id)
+
+    return await message.answer(
+        NOTIFICATION_ALLOWED_MESSAGE, reply_markup=launch_main_web_app_kb
+    )
+
 
 @cmd_router.message(CommandStart())
 async def start_cmd(message: Message):
@@ -33,22 +50,3 @@ async def start_cmd(message: Message):
         None: Sends a welcome message with a button to launch the web app.
     """
     return message.answer(WELCOME_MESSAGE, reply_markup=launch_main_web_app_kb)
-
-
-@cmd_router.message(CommandStart(deep_link=True, deep_link_encoded=True))
-async def notification_allowed(message: Message, command: CommandObject):
-    """
-    Handle the /start command with user id parameter.
-
-    Args:
-        message (Message): The incoming message containing the command.
-        command (CommandObject): The command object containing the user id.
-    """
-    user_id = command.args
-    user = db_connector.get_object(User, user_id)
-
-    telegram_db.set_allow_notification(message.from_user.id, user.wallet_id)
-
-    return await message.answer(
-        NOTIFICATION_ALLOWED_MESSAGE, reply_markup=launch_main_web_app_kb
-    )

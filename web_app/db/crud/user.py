@@ -3,12 +3,12 @@ This module contains the user database configuration.
 """
 
 import logging
-from typing import List, TypeVar
+from typing import List, TypeVar, Tuple
 
 from sqlalchemy.exc import SQLAlchemyError
 
 from .base import DBConnector
-from web_app.db.models import Base, Position, Status, User
+from web_app.db.models import Base, Position, Status, User, TelegramUser
 
 logger = logging.getLogger(__name__)
 ModelType = TypeVar("ModelType", bound=Base)
@@ -36,6 +36,31 @@ class UserDBConnector(DBConnector):
                     .all()
                 )
                 return users
+            except SQLAlchemyError as e:
+                logger.error(f"Error retrieving users with OPENED positions: {e}")
+                return []
+
+    def get_users_for_notifications(self) -> List[Tuple[str, str]]:
+        """
+        Retrieves the contract_address of users with an OPENED position status and
+        the telegram_id of Telegram users with notifications enabled.
+
+        :return: List of tuples (contract_address, telegram_id)
+        """
+        with self.Session() as db:
+            try:
+                results = (
+                    db.query(User.contract_address, TelegramUser.telegram_id)
+                    .join(Position, Position.user_id == User.id)
+                    .join(TelegramUser, TelegramUser.wallet_id == User.wallet_id)
+                    .filter(
+                        Position.status == Status.OPENED.value,
+                        TelegramUser.is_allowed_notification == True,
+                    )
+                    .distinct()
+                    .all()
+                )
+                return results
             except SQLAlchemyError as e:
                 logger.error(f"Error retrieving users with OPENED positions: {e}")
                 return []

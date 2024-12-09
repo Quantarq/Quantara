@@ -12,4 +12,4 @@ load_dotenv()
 
 # Retrieve the Telegram bot token from environment variables
 TELEGRAM_TOKEN = getenv("TELEGRAM_TOKEN")
-WEBAPP_URL = getenv("TELEGRAM_WEBAPP_URL", "spotnet.xyz")
+WEBAPP_URL = getenv("TELEGRAM_WEBAPP_URL", "https://spotnet.xyz")
