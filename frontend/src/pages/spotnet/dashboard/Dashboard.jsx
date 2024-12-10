@@ -84,12 +84,17 @@ export default function Component({ telegramId }) {
       let currencyName = 'Ethereum';
       let currencyIcon = EthIcon;
 
-      if (multipliers && multipliers.STRK) {
-        currencyName = 'STRK';
-        currencyIcon = StrkIcon;
-      } else if (multipliers && multipliers.ETH) {
-        currencyName = 'Ethereum';
-        currencyIcon = EthIcon;
+      if (multipliers) {
+        if (multipliers.STRK) {
+          currencyName = 'STRK';
+          currencyIcon = StrkIcon;
+        } else if (multipliers.ETH) {
+          currencyName = 'Ethereum';
+          currencyIcon = EthIcon;
+        } else if (multipliers.USDC) {
+          currencyName = 'USDC';
+          currencyIcon = UsdIcon;
+        }
       }
 
       // Update card data using the new data structure
