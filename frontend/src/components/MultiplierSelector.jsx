@@ -4,28 +4,45 @@ import sliderThumb from '../assets/icons/slider_thumb.svg';
 import './multiplier.css';
 
 const MultiplierSelector = ({ setSelectedMultiplier, selectedToken }) => {
+  const minMultiplier = 1.1;
+
   const { data, isLoading, error } = useMaxMultiplier();
-  const [actualValue, setActualValue] = useState(1.0);
+  const [actualValue, setActualValue] = useState(minMultiplier);
   const sliderRef = useRef(null);
   const isDragging = useRef(false);
 
   const maxMultiplier = useMemo(() => {
-    return Math.round(parseFloat(data?.[selectedToken])) || 5.0;
+    return data?.[selectedToken] || 5.0;
   }, [data, selectedToken]);
+
+  const marks = useMemo(() => {
+    const marksArray = [];
+    for (let i = Math.ceil(minMultiplier); i <= Math.floor(maxMultiplier); i++) {
+      marksArray.push(i);
+    }
+    marksArray.unshift(minMultiplier);
+    if (!marksArray.includes(maxMultiplier)) {
+      marksArray.push(maxMultiplier);
+    }
+    return marksArray;
+  }, [minMultiplier, maxMultiplier]);
 
   const mapSliderToValue = useCallback(
     (sliderPosition) => {
       const rect = sliderRef.current.getBoundingClientRect();
       const percentage = sliderPosition / rect.width;
-      const value = percentage * (maxMultiplier - 1) + 1;
-      return Math.max(1, Math.min(maxMultiplier, parseFloat(value.toFixed(1))));
+      const value = percentage * (maxMultiplier - minMultiplier) + minMultiplier;
+      return Math.max(minMultiplier, Math.min(maxMultiplier, parseFloat(value.toFixed(1))));
     },
-    [maxMultiplier]
+    [maxMultiplier, minMultiplier]
   );
 
   const calculateSliderPercentage = useCallback(
-    (value) => Math.min(((value - 1) / (maxMultiplier - 1)) * 100, 100),
-    [maxMultiplier]
+    (value) => {
+      const percentage = ((value - minMultiplier) / (maxMultiplier - minMultiplier)) * 100;
+      return Math.min(Math.max(percentage, 0), 100);
+    },
+    [maxMultiplier, minMultiplier]
   );
 
   const updateSliderValue = useCallback(
@@ -40,7 +57,7 @@ const MultiplierSelector = ({ setSelectedMultiplier, selectedToken }) => {
       setActualValue(newValue);
       setSelectedMultiplier(newValue.toFixed(1));
     },
-    [mapSliderToValue, maxMultiplier, setSelectedMultiplier]
+    [mapSliderToValue, setSelectedMultiplier]
   );
 
   const handleDrag = (e) => {
@@ -80,9 +97,9 @@ const MultiplierSelector = ({ setSelectedMultiplier, selectedToken }) => {
   useEffect(() => {
     if (actualValue > maxMultiplier) {
       setActualValue(maxMultiplier);
-      setSelectedMultiplier(maxMultiplier.toFixed(2));
+      setSelectedMultiplier(maxMultiplier.toFixed(1));
     } else {
-      setSelectedMultiplier(actualValue.toFixed(2));
+      setSelectedMultiplier(actualValue.toFixed(1));
     }
   }, [maxMultiplier, actualValue, setSelectedMultiplier]);
 
@@ -115,8 +132,16 @@ const MultiplierSelector = ({ setSelectedMultiplier, selectedToken }) => {
             </div>
           </div>
           <div className="mark-container">
-            {Array.from({ length: maxMultiplier }, (_, i) => i + 1).map((mark) => (
-              <div key={mark} className={`mark-item ${actualValue >= mark && actualValue < mark + 1 ? 'active' : ''}`}>
+            {marks.map((mark, index) => (
+              <div
+                key={index}
+                className={`mark-item ${actualValue === mark ? 'active' : ''}`}
+                style={{
+                  left: `${calculateSliderPercentage(mark)}%`,
+                  position: 'absolute',
+                  transform: 'translateX(-50%)',
+                }}
+              >
                 <div className="marker" />
                 <span className="mark-label">{`x${mark}`}</span>
               </div>

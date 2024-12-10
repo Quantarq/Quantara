@@ -70,14 +70,10 @@
   border-color: #2c5475 transparent transparent transparent;
 }
 
-.multiplier-slider-container {
-  margin: 15px 1px -10px 8px;
-  width: 97%;
-}
-
 .slider-with-tooltip {
+  margin: 15px 1px -10px 15px;
   position: relative;
-  width: 100%;
+  width: 96%;
 }
 
 .error-message {
@@ -154,9 +150,18 @@ div.marker {
 /* Mobile */
 @media (max-width: 768px) {
   .multiplier-slider-container {
-    margin: 10px 0px -10px 0;
+    margin: 10px 0px 0;
     width: 100%;
-    padding: 0px 9px;
+    padding: 0px;
+  }
+
+  .slider-with-tooltip {
+    margin-left: 10px;
+    width: 94%;
+  }
+
+  .mark-container {
+    margin-top: 10px;
   }
 
   .slider-container {
