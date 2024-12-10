@@ -7,12 +7,10 @@ networks:
 services:
   backend:
     build: .
-    command:
-      - bash /app/entrypoint.sh
+    command: ["/app/entrypoint.sh"]
     container_name: backend_dev
     volumes:
       - ./entrypoint.sh:/app/entrypoint.sh
-      - .:/app
     env_file:
       - .env.dev
     ports:

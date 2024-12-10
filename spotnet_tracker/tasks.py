@@ -8,9 +8,7 @@ Tasks:
 - test_task: A simple test task that logs a confirmation message.
 """
 
-import asyncio
 import logging
-import time
 
 from web_app.contract_tools.mixins.alert import AlertMixin
 
