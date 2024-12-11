@@ -30,7 +30,6 @@ export const useCheckPosition = () => {
     queryFn: async () => {
       if (!walletId) return { has_opened_position: false };
 
-      console.log(walletId);
       const { data } = await axiosInstance.get('/api/has-user-opened-position', {
         params: { wallet_id: walletId },
       });

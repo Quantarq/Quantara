@@ -57,6 +57,10 @@ body {
   font-size: 24px;
 }
 
+.dashboard-error {
+  color: red;
+}
+
 .card {
   width: 309px;
   height: 101px;

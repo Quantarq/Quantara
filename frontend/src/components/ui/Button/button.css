@@ -40,10 +40,15 @@
   color: white;
   padding: 16px 24px 16px 24px;
   background: linear-gradient(73.48deg, #e01dee 1.13%, #49abd2 51.27%);
+  transition: all 1 ease;
 }
 
 .button--primary:active {
   transform: translateY(1px);
+}
+
+.button--primary:hover:not(:disabled) {
+  background: linear-gradient(73.48deg, #49abd2 1.13%, #e01dee 51.27%);
 }
 
 .button--secondary {
