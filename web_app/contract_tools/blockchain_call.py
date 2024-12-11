@@ -17,7 +17,7 @@ import starknet_py.net.networks
 from starknet_py.contract import Contract
 from starknet_py.net.full_node_client import FullNodeClient
 
-from .constants import EKUBO_MAINNET_ADDRESS, ZKLEND_MARKET_ADDRESS, TokenParams, MULTIPLIER_POWER
+from .constants import ZKLEND_MARKET_ADDRESS, TokenParams, MULTIPLIER_POWER
 
 logger = logging.getLogger(__name__)
 
@@ -110,17 +110,16 @@ class StarknetClient:
             "extension": extension,
         }
 
-    async def _get_pool_price(self, pool_key, is_token1: bool):
+    @staticmethod
+    async def _get_pool_price(pool_key, is_token1: bool, ekubo_contract: "Contract") -> Decimal:
         """
         Calculate Ekubo pool price.
 
         :param pool_key: The pool key dictionary.
         :param is_token1: Boolean indicating if the token is token1.
+        :param ekubo_contract: The Ekubo contract instance.
         :return: The calculated pool price.
         """
-        ekubo_contract = await Contract.from_address(
-            EKUBO_MAINNET_ADDRESS, provider=self.client
-        )
         price_data = await ekubo_contract.functions["get_pool_price"].call(pool_key)
 
         underlying_token_0_address = TokenParams.add_underlying_address(
@@ -231,6 +230,7 @@ class StarknetClient:
         multiplier: Decimal,
         wallet_id: str,
         borrowing_token: str,
+        ekubo_contract: "Contract",
     ) -> dict:
         """
         Get data for Spotnet liquidity looping call.
@@ -240,6 +240,7 @@ class StarknetClient:
         :param multiplier: The multiplier for the deposit.
         :param wallet_id: The wallet ID.
         :param borrowing_token: The address of the borrowing token.
+        :param ekubo_contract: The Ekubo contract instance.
         :return: A dictionary with liquidity data.
         """
         # Get pool key
@@ -258,7 +259,7 @@ class StarknetClient:
         }
 
         pool_price = floor(
-            await self._get_pool_price(pool_key, deposit_token == pool_key["token1"])
+            await self._get_pool_price(pool_key, deposit_token == pool_key["token1"], ekubo_contract)
         )
         return {
             "pool_price": pool_price,
@@ -271,12 +272,13 @@ class StarknetClient:
             "caller": wallet_id,
         }
 
-    async def get_repay_data(self, deposit_token: str, borrowing_token: str) -> dict:
+    async def get_repay_data(self, deposit_token: str, borrowing_token: str, ekubo_contract: "Contract") -> dict:
         """
         Get data for Spotnet position closing.
 
         :param deposit_token: The address of the deposit token.
         :param borrowing_token: The address of the borrowing token.
+        :param ekubo_contract: The Ekubo contract instance.
         :return: A dictionary with repay data.
         """
         pool_key = self._build_ekubo_pool_key(deposit_token, borrowing_token)
@@ -288,7 +290,7 @@ class StarknetClient:
         ), self._convert_address(borrowing_token)
 
         is_token1 = deposit_token == pool_key["token1"]
-        supply_price = floor(await self._get_pool_price(pool_key, is_token1))
+        supply_price = floor(await self._get_pool_price(pool_key, is_token1, ekubo_contract))
 
         try:
             debt_price = floor(Decimal((1 / supply_price)) * 10**decimals_sum)
@@ -312,20 +314,6 @@ class StarknetClient:
             "borrow_portion_percent": 93,
         }
 
-    async def claim_airdrop(self, contract_address: str, proofs: list[str]) -> None:
-        """
-        Claims an airdrop on the Starknet blockchain.
-
-        :param contract_address: The airdrop contract address.
-        :param proofs: A list of proof strings.
-        :return: None
-        """
-        return await self._func_call(
-            addr=self._convert_address(contract_address),
-            selector="claim",
-            calldata=proofs,
-        )
-
     async def is_opened_position(self, contract_address: str) -> bool:
         """
         Checks if a position is opened on the Starknet blockchain.
@@ -338,3 +326,6 @@ class StarknetClient:
             selector="is_position_open",
             calldata=[],
         )
+
+
+CLIENT = StarknetClient()
