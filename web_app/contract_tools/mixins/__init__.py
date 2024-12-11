@@ -8,9 +8,4 @@ from .health_ratio import HealthRatioMixin
 from .deposit import DepositMixin
 from .alert import AlertMixin
 from .position import PositionMixin
-from web_app.contract_tools.blockchain_call import (
-    StarknetClient,
-)
 
-
-CLIENT = StarknetClient()

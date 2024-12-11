@@ -9,6 +9,7 @@ from decimal import Decimal
 
 from web_app.contract_tools.constants import TokenParams, MULTIPLIER_POWER
 from web_app.contract_tools.api_request import APIRequest
+from web_app.contract_tools.blockchain_call import CLIENT
 
 logger = logging.getLogger(__name__)
 
@@ -65,8 +66,6 @@ class DashboardMixin:
         :param holder_address: holder address
         :return: Returns the wallet balances for the given holder address.
         """
-        from . import CLIENT
-
         wallet_balances = {}
 
         for token in TokenParams.tokens():

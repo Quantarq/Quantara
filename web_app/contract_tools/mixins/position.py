@@ -1,6 +1,7 @@
 """
 Mixins for position related methods
 """
+from web_app.contract_tools.blockchain_call import CLIENT
 
 
 class PositionMixin:
@@ -15,8 +16,6 @@ class PositionMixin:
         :param contract_address: Contract address
         :return: True if the position is opened, False otherwise
         """
-        from . import CLIENT
-
         response = await CLIENT.is_opened_position(contract_address)
         try:
             return bool(response[0])

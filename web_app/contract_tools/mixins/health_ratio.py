@@ -7,6 +7,7 @@ from decimal import Decimal
 
 from pragma_sdk.common.types.types import AggregationMode
 from pragma_sdk.onchain.client import PragmaOnChainClient
+from web_app.contract_tools.blockchain_call import CLIENT
 from web_app.contract_tools.constants import TokenParams
 
 PRAGMA = PragmaOnChainClient(
@@ -48,8 +49,6 @@ class HealthRatioMixin:
         :return: A dictionary of token balances with token symbols as keys
          and balances as Decimal values.
         """
-        from . import CLIENT
-
         tasks = [
             CLIENT.get_balance(
                 z_data[1],
@@ -78,7 +77,6 @@ class HealthRatioMixin:
         :return: A dictionary of deposited tokens with token symbols as keys
          and amounts as Decimal values.
         """
-        from . import CLIENT
 
         reserves = await CLIENT.get_z_addresses()
         deposits = await cls._get_z_balances(
@@ -122,8 +120,6 @@ class HealthRatioMixin:
         """
         :return: Tuple with borrowed token and current debt on ZkLend
         """
-        from . import CLIENT
-
         tasks = [
             CLIENT.get_zklend_debt(deposit_contract_address, token.address)
             for token in TokenParams.tokens()
