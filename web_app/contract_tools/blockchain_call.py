@@ -326,20 +326,19 @@ class StarknetClient:
             calldata=[],
         )
 
-    async def add_extra_deposit(self, contract_address: str, token_address: str, amount: str):
+    async def add_extra_deposit(self, contract_address: str, token_address: str, amount: str) -> Any:
         """
         Adds extra deposit to position.
 
         :param contract_address: The contract address.
         :param token_address: The token address.
         :param amount: The amount to deposit.
-        :return: A boolean indicating if the position is opened.
         """
 
         return await self._func_call(
             addr=self._convert_address(contract_address),
             selector="extra_deposit",
-            calldata=[token_address, amount],
+            calldata=[self._convert_address(token_address), amount],
         )
 
 
