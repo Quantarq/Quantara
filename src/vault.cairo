@@ -47,6 +47,7 @@ mod Vault {
         LiquidityAdded: LiquidityAdded,
         LiquidityWithdrawn: LiquidityWithdrawn,
         ContractAdded: ContractAdded
+        PositionProtected: PositionProtected
     }
 
     #[derive(Drop, starknet::Event)]
@@ -76,7 +77,7 @@ mod Vault {
     }
 
     #[derive(Drop, starknet::Event)]
-    struct ContractAdded {
+    struct PositionProtected {
         #[key]
         token: ContractAddress,
         #[key]
