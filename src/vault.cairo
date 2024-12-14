@@ -210,7 +210,14 @@ mod Vault {
             let deposit = IDepositDispatcher(deposit_contract);
             deposit.extra_deposit(token, amount);
 
-            self.emit(PositionProtected {token, deposit_contract, user, amount})
+            self.emit(
+                PositionProtected {
+                    token: token, 
+                    deposit_contract: deposit_contract, 
+                    contract_owner: user, 
+                    amount: amount
+                }
+            )
         }
     }    
 }
