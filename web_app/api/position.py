@@ -168,3 +168,29 @@ async def open_position(position_id: str) -> str:
     current_prices = await DashboardMixin.get_current_prices()
     position_status = position_db_connector.open_position(position_id, current_prices)
     return position_status
+
+
+@router.post(
+    "/api/add-extra-deposit/{position_id}",
+    tags=["Position Operations"],
+    summary="Add extra deposit to a user position",
+    response_description="Returns the new position and transaction data.",
+)
+async def add_extra_deposit(
+    position_id: int,
+    amount: str
+):
+    """
+    This endpoint adds extra deposit to a user position.
+
+    ### Parameters:
+    - **position_id**: The position ID.
+    - **amount**: The amount of the token being deposited.
+    """
+    position = position_db_connector.get_position_by_id(position_id)
+
+    if not position:
+        raise HTTPException(status_code=404, detail="Position not found")
+
+    position_db_connector.add_extra_deposit_to_position(position, amount)
+    

@@ -343,3 +343,13 @@ class PositionDBConnector(UserDBConnector):
                 db.commit()
             except SQLAlchemyError as e:
                 logger.error(f"Error deleting positions for user {user_id}: {str(e)}")
+
+    def add_extra_deposit_to_position(self, position: Position, amount: str) -> None:
+        """
+        Adds extra deposit to a position in the database.
+        :param position: Position
+        :param amount: str
+        :return: None
+        """
+        position.amount = str(int(position.amount) + int(amount))
+        self.write_to_db(position)
