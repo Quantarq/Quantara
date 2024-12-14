@@ -522,3 +522,15 @@ input[type='number'].error {
     font-size: 15px;
   }
 }
+
+.form-health-factor{
+  display: flex;
+  flex-direction: row;
+  align-items: end;
+  justify-self: flex-end;
+  width: fit-content;
+  margin: 2px;
+  color: gray;
+  align-self: flex-end;
+  gap: 5px;
+}
