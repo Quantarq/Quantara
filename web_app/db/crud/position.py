@@ -266,7 +266,7 @@ class PositionDBConnector(UserDBConnector):
         position_id: uuid.UUID, 
         status: str, 
         transaction_hash: str
-    ) -> Transaction | None:
+    ) -> bool:
         """
         Creates a new transaction record associated with a position.
         
