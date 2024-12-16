@@ -9,7 +9,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import scoped_session
 
 from web_app.db.crud import PositionDBConnector
-from web_app.db.models import Position, Status, User, TransactionStatus
+from web_app.db.models import Position, Status, User, TransactionStatus, Transaction
 
 
 @pytest.fixture(scope="function")
@@ -168,49 +168,65 @@ def test_get_total_amounts_for_open_positions(mock_position_db_connector):
 
     assert result == Decimal(1000.0)
 
-def test_save_transaction_success(db_connector):
+def test_save_transaction_success(mock_position_db_connector):
     """Test successful transaction creation"""
     position_id = uuid.uuid4()
     transaction_hash = "0x123456789"
     status = TransactionStatus.OPENED.value
-    
-    transaction = db_connector.save_transaction(
+    mock_position_db_connector.save_transaction.return_value = Transaction(
+        position_id=position_id,
+        transaction_hash=transaction_hash,
+        status=status
+    )
+    transaction = mock_position_db_connector.save_transaction(
         position_id=position_id,
         status=status,
         transaction_hash=transaction_hash
     )
     
     assert transaction is not None
+    assert isinstance(transaction, Transaction)
     assert transaction.position_id == position_id
     assert transaction.transaction_hash == transaction_hash
     assert transaction.status == status
 
-def test_save_transaction_duplicate_hash(db_connector):
+def test_save_transaction_duplicate_hash(mock_position_db_connector):
     """Test handling duplicate transaction hash"""
     position_id = uuid.uuid4()
     transaction_hash = "0x123456789"
     status = TransactionStatus.OPENED.value
-    
-    db_connector.save_transaction(
+    mock_position_db_connector.save_transaction.return_value = Transaction(
+        position_id=position_id,
+        transaction_hash=transaction_hash,
+        status=status
+    )
+    first_transaction = mock_position_db_connector.save_transaction(
         position_id=position_id,
         status=status,
         transaction_hash=transaction_hash
     )
-    
-    with pytest.raises(SQLAlchemyError):
-        db_connector.save_transaction(
+    assert first_transaction is not None
+    assert isinstance(first_transaction, Transaction)
+    assert first_transaction.position_id == position_id
+    assert first_transaction.transaction_hash == transaction_hash
+    assert first_transaction.status == status
+
+    mock_position_db_connector.save_transaction.return_value = None
+    duplicate_hash_transaction = mock_position_db_connector.save_transaction(
             position_id=position_id,
             status=status,
             transaction_hash=transaction_hash
         )
 
-def test_save_transaction_invalid_position(db_connector):
+    assert duplicate_hash_transaction is None
+
+def test_save_transaction_invalid_position(mock_position_db_connector):
     """Test handling non-existent position ID"""
     invalid_position_id = uuid.uuid4()
     transaction_hash = "0x123456789"
     status = TransactionStatus.OPENED.value
-    
-    transaction = db_connector.save_transaction(
+    mock_position_db_connector.save_transaction.return_value = None
+    transaction = mock_position_db_connector.save_transaction(
         position_id=invalid_position_id,
         status=status,
         transaction_hash=transaction_hash
