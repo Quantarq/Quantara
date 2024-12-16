@@ -65,7 +65,7 @@ jobs:
         run: |
           while ! curl -s http://localhost:8000/health > /dev/null; do
             echo "Waiting for backend service..."
-            sleep 10
+            sleep 30
             
             # Check if the container is still running before logging
             if ! docker ps | grep -q backend; then
