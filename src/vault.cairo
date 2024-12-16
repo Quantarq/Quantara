@@ -184,7 +184,7 @@ mod Vault {
         fn add_deposit_contract(ref self: ContractState, deposit_contract: ContractAddress){
             let token = self.token.read();
             let user = get_caller_address();
-            assert!(deposit_contract.is_non_zero(), "Deposit contract address is zero");
+            assert(deposit_contract.is_non_zero(), 'Deposit contract is zero');
             self.activeContracts.entry(user).write(deposit_contract);
             self.emit(ContractAdded { token, user, deposit_contract });
         }
@@ -200,7 +200,7 @@ mod Vault {
             let vault_owner = self.ownable.owner();
             let current_amount = self.amounts.entry(caller).read();
 
-            assert!(vault_owner == caller || user == caller, "Caller must equal to vault owner or user");
+            assert(vault_owner == caller || user == caller, 'Caller must be owner or user');
             assert(current_amount >= amount, 'Insufficient balance');
             
             // update new amount
