@@ -373,7 +373,7 @@
   }
 
   .top-cards {
-    width: 480px;
+    width: 470px;
     gap: 8px;
   }
 
@@ -386,7 +386,7 @@
 
 @media (max-width: 480px) {
   .top-cards {
-    width: 400px;
+    width: 380px;
     gap: 10px;
   }
 
@@ -397,7 +397,7 @@
 
 @media (max-width: 400px) {
   .top-cards {
-    width: 350px;
+    width: 330px;
   }
 
 }
