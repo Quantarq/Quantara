@@ -37,7 +37,7 @@ jobs:
 
       - name: Create .env file
         run: |
-          cat << EOF > .env.dev
+          cat << EOF > /home/runner/work/spotnet/spotnet/.env
           ENV_VERSION=DEV
           STARKNET_NODE_URL=${{ env.STARKNET_NODE_URL }}
           DB_USER=${{ env.DB_USER }}
