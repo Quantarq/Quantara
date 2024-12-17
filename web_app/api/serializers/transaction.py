@@ -97,19 +97,3 @@ class UpdateUserContractRequest(BaseModel):
 
     wallet_id: str
     contract_address: str
-
-
-class DeploymentStatus(BaseModel):
-    """
-    Pydantic model for the deployment status.
-    """
-
-    is_contract_deployed: bool
-
-
-class ContractAddress(BaseModel):
-    """
-    Pydantic model for the contract address.
-    """
-
-    contract_address: str | None

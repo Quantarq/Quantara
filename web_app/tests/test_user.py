@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from web_app.api.serializers.transaction import UpdateUserContractRequest
-from web_app.api.serializers.user import SubscribeToNotificationResponse
+from web_app.db.models import TelegramUser, User
 from web_app.tests.conftest import client, mock_user_db_connector
 
 
@@ -184,84 +184,93 @@ async def test_get_user_contract_address(
 
 
 @pytest.mark.asyncio
-@patch("web_app.db.crud.TelegramUserDBConnector.allow_notification")
+@patch("web_app.db.crud.TelegramUserDBConnector.set_allow_notification")
+@patch("web_app.db.crud.TelegramUserDBConnector.get_telegram_user_by_wallet_id")
 @patch("web_app.db.crud.UserDBConnector.get_user_by_wallet_id")
 @pytest.mark.parametrize(
-    "telegram_id, wallet_id, expected_status_code, expected_response, is_allowed_notification",
+    "telegram_id, wallet_id, user_telegram_id, expected_status_code, expected_response",
     [
         (
             "123456789",
             "0x27994c503bd8c32525fbdaf9d398bdd4e86757988c64581b055a06c5955ea49",
+            "123456789",
             200,
             {"detail": "User subscribed to notifications successfully"},
-            True,
-        ),
-        (
-            "123456789",
-            "invalid_wallet_id",
-            404,
-            {"detail": "User not found"},
-            False,
         ),
         (
             None,
             "0x27994c503bd8c32525fbdaf9d398bdd4e86757988c64581b055a06c5955ea49",
-            422,
+            "123456789",
+            200,
+            {"detail": "User subscribed to notifications successfully"},
+        ),
+        (
+            "123456789", 
+            "invalid_wallet_id",
             None,
-            False,
+            404,
+            {"detail": "User not found"},
+        ),
+        (
+            None,
+            "0x27994c503bd8c32525fbdaf9d398bdd4e86757988c64581b055a06c5955ea49",
+            None,
+            400,
+            {"detail": "Failed to subscribe user to notifications"},
         ),
     ],
 )
 async def test_subscribe_to_notification(
     mock_get_user_by_wallet_id: MagicMock,
-    mock_allow_notification: MagicMock,
+    mock_get_telegram_user_by_wallet_id: MagicMock,
+    mock_set_allow_notification: MagicMock,
     client,
-    telegram_id: str,
+    telegram_id: str | None,
     wallet_id: str,
+    user_telegram_id: str | None,
     expected_status_code: int,
-    expected_response: dict | None,
-    is_allowed_notification: bool,
+    expected_response: dict,
 ) -> None:
     """
     Test subscribe_to_notification endpoint with both positive and negative cases.
 
     :param client: fastapi.testclient.TestClient
     :param mock_get_user_by_wallet_id: unittest.mock.MagicMock for get_user_by_wallet_id
-    :param mock_allow_notification: unittest.mock.MagicMock for allow_notification
+    :param mock_get_telegram_user_by_wallet_id: unittest.mock.MagicMock 
+                                             for get_telegram_user_by_wallet_id
+    :param mock_set_allow_notification: unittest.mock.MagicMock for set_allow_notification
     :param telegram_id: str[Telegram ID of the user]
-    :param wallet_id: str[Wallet ID of the user]
+    :param wallet_id: str[Wallet ID of the user] 
+    :param user_telegram_id: str[Telegram ID of the db user]
     :param expected_status_code: int[Expected HTTP status code]
-    :param expected_response: dict | None[Expected JSON response]
+    :param expected_response: dict[Expected JSON response]
     :return: None
     """
     # Define the behavior of the mocks
-    mock_allow_notification.return_value = is_allowed_notification
+    mock_set_allow_notification.return_value = True
+    
+    mock_get_user_by_wallet_id.return_value = None
+    if wallet_id != "invalid_wallet_id":
+        mock_get_user_by_wallet_id.return_value = User(
+            wallet_id=wallet_id,
+            is_contract_deployed=True,
+        )
+    
+    mock_get_telegram_user_by_wallet_id.return_value = None
+    if user_telegram_id:
+        tg_user = TelegramUser(
+            telegram_id=user_telegram_id,
+            wallet_id=wallet_id,
+        )
+        mock_get_telegram_user_by_wallet_id.return_value = tg_user
 
-    if wallet_id == "invalid_wallet_id":
-        mock_get_user_by_wallet_id.return_value = None
-    else:
-        mock_get_user_by_wallet_id.return_value = {"wallet_id": wallet_id}
-
-    if telegram_id and wallet_id:
-        data = {
-            "telegram_id": telegram_id,
-            "wallet_id": wallet_id,
-        }
-    else:
-        data = {"telegram_id": telegram_id, "wallet_id": wallet_id}
-
+    data = {"telegram_id": telegram_id, "wallet_id": wallet_id}
+    
     response = client.post(
         url="/api/subscribe-to-notification",
         json=data,
     )
-    response_json = response.json()
+    
     assert response.status_code == expected_status_code
-
     if expected_response:
-        assert response_json == expected_response
-    elif expected_status_code == 422:
-        assert "detail" in response_json
-        assert isinstance(response_json["detail"], list)
-    elif expected_status_code == 404:
-        assert "detail" in response_json
-        assert response_json["detail"] == "User not found"
+        assert response.json() == expected_response

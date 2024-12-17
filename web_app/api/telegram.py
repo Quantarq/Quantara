@@ -98,7 +98,7 @@ async def telegram_webhook(update: Update):
         return b"", 200
 
 
-@router.post(
+@router.post( # FIXME REMOVE IT (delete and frontend, not used)
     "/api/telegram/save-user",
     tags=["Telegram Operations"],
     summary="Save or update Telegram user information",

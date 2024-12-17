@@ -48,9 +48,6 @@ app = FastAPI(
     },
 )
 
-# Set up the templates directory
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
 # Add session middleware with a secret key
 app.add_middleware(SessionMiddleware, secret_key=f"Secret:{str(uuid4())}")
 # CORS middleware for React frontend

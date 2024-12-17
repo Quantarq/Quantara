@@ -20,6 +20,14 @@ class TelegramUserDBConnector(DBConnector):
     Provides database connection and operations management for the TelegramUser model.
     """
 
+    def get_telegram_user_by_wallet_id(self, wallet_id: str) -> TelegramUser | None:
+        """
+        Retrieves a TelegramUser by their wallet ID.
+        :param wallet_id: str
+        :return: TelegramUser | None
+        """
+        return self.get_object_by_field(TelegramUser, "wallet_id", wallet_id)
+
     def get_user_by_telegram_id(self, telegram_id: str) -> TelegramUser | None:
         """
         Retrieves a TelegramUser by their Telegram ID.
@@ -91,46 +99,11 @@ class TelegramUserDBConnector(DBConnector):
         """
         Set wallet_id and is_allowed_notification to True for a user by their telegram ID.
         """
-        with self.Session() as session:
-            if telegram_user := self.get_user_by_telegram_id(telegram_id):
-                telegram_user.is_allowed_notification = True
-                session.commit()
-                logger.info(f"Notification allowed for user with telegram_id {telegram_id}")
-                return telegram_user
-            else:
-                logger.info(f"User with telegram_id {telegram_id} not found, creating new one")
-                self.create_telegram_user(
-                    dict(telegram_id=telegram_id, wallet_id=wallet_id)
-                )
-                self.allow_notification(telegram_id)
-
-    def allow_notification(self, telegram_id: str) -> bool:
-        """
-        Update is_allowed_notification field to True for a specific telegram user
-
-        Args:
-            telegram_id: Telegram user ID
-
-        Raises:
-            ValueError: If the user with the given telegram_id is not found
-        """
-        with self.Session() as session:
-            user = (
-                session.query(TelegramUser).filter_by(telegram_id=telegram_id).first()
+        self.save_or_update_user(
+            dict(
+                telegram_id=telegram_id,
+                wallet_id=wallet_id,
+                is_allowed_notification=True,
             )
-            if not user:
-                raise ValueError(f"User with telegram_id {telegram_id} not found")
-
-            user.is_allowed_notification = True
-            session.commit()
-            return True
-
-    def is_allowed_notification(self, wallet_id: str = None) -> bool | None:
-        """
-        Returns true or false if a telegram user allowed notification.
-
-        Args:
-            wallet_id: Wallet ID of the user.
-        """
-        user = self.get_object_by_field(TelegramUser, "wallet_id", wallet_id)
-        return user.is_allowed_notification if user else None
+        )
+        return True

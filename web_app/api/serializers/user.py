@@ -91,12 +91,12 @@ class UserHistoryResponse(BaseModel):
     positions: list[PositionHistoryItem]
 
 
-class SubscribeToNotificationResponse(BaseModel):
+class SubscribeToNotificationRequest(BaseModel):
     """
     Pydantic model for the notification subscription request.
     """
 
-    telegram_id: str = Field(
-        ..., example="123456789", description="Telegram ID of the user"
+    telegram_id: str | None = Field(
+        None, example="123456789", description="Telegram ID of the user"
     )
     wallet_id: str = Field(..., example="0xabc123", description="Wallet ID of the user")

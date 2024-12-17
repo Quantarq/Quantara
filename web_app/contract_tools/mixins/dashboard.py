@@ -84,15 +84,6 @@ class DashboardMixin:
         return wallet_balances
 
     @classmethod
-    def _get_products(cls, dapps: list) -> list[dict]:
-        """
-        Get the products from the dapps.
-        :param dapps: List of dapps
-        :return: List of positions
-        """
-        return [product for dapp in dapps for product in dapp.get("products", [])]
-
-    @classmethod
     def _calculate_sum(
         cls, price: Decimal, amount: Decimal, multiplier: Decimal
     ) -> Decimal:
