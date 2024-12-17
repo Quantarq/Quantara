@@ -1,4 +1,7 @@
 .layout {
+  background: url('../../../public/background\(jpeg\).png') no-repeat;
+  background-size: cover;
+  background-position: bottom center ;
   /* display: flex; */
   /* min-height: 100vh; */
   /* background: url('../../../public/background.png') no-repeat; */
@@ -97,11 +100,13 @@
 @media (max-width: 768px) {
   .sidebar {
     width: 200px;
+    display: none;
   }
 }
 
 @media (max-width: 640px) {
   .sidebar {
     width: 160px;
+    display: none;
   }
 }

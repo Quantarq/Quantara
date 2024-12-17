@@ -1,18 +1,3 @@
-.stake-wrapper {
-  background: url('../../../../public/background(jpeg).png') no-repeat;
-  background-size: cover;
-  background-position: center ;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  margin-left: 200px;
-  padding: 0 24px;
-  /* width: 100vw; */
-  padding: 0 24px;
-  padding-bottom: 5rem;
-  padding-top: 5rem;
-}
 
 .token-icon {
   display: flex;
@@ -23,55 +8,21 @@
   background-color: hsla(261, 49%, 15%, 1);
 }
 
-.stake-card {
-  width: 309px;
-  height:101px;
-  background: var(--header-button-bg);
-  border: var(--midnight-purple-border);
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 24px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
 
-.stake-title {
-  font-size: 14px;
-  font-weight: 400;
-  color: var(--primary);
-  text-align: center;
-  padding: 1rem 0rem;
-}
-
-.stake-container {
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.main-container {
-  width: 642px;
-  gap: 24px;
-  padding-top: 37px;
-  border-radius: 20px;
-  color: var(--primary);
-  text-align: center;
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-  align-items: center;
-}
-
-.top-cards {
+/* .top-cards {
   width: 100%;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24px;
   align-items: stretch;
-}
+} */
+
+
+
+
+
+
+
 
 .network-selector-container {
   position: relative;
@@ -193,14 +144,7 @@
   text-align: center;
 }
 
- .stake-button {
-  width: 642px;
-  height: 60px;
-  padding: 16px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 14px;
-} 
+
 
 .balance-display-container .large-screen-balance {
   display: block;
@@ -210,8 +154,159 @@
   display: none;
 }
 
+/* Responsive  */
+
+/* Mobile view */
+@media (max-width:768px) {
+  .sidenav{
+    display: none;
+  }
+.top-cards {
+  width: 342px;
+  /* display: grid; */
+  /* grid-template-columns: 1fr 1fr; */
+  gap: 5px;
+  /* align-items: stretch; */
+} 
+
+  .main-container {
+    width: 390px;
+    /* gap: 24px;
+    padding-top: 37px;
+    border-radius: 20px;
+    color: var(--primary);
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center; */
+  }
+
+  .stake-card {
+    width: 167px;
+    height:88px;
+    padding: 16px 24px;
+    background: var(--header-button-bg);
+    border: var(--midnight-purple-border);
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    display: flex;
+    /* flex-direction: column;
+    justify-content: center; */
+    gap: 16px;
+    /* align-items: center; */
+  }
+
+  .stake-wrapper {
+    /* background-position: 15rem center ; */
+    top: 80px;
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: center;
+    align-items: flex-start; 
+    /* width: 390px; */
+   
+    padding: 5rem 24px; 
+   
+  }
+
+  .stake-container {
+    /* display: flex;
+    justify-content: center;
+    flex-direction: column;
+    gap: 20px; */
+    width: 390px;
+    height: 610px;
+    margin-bottom: 2rem;
+  }
+
+  .stake-title {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--primary);
+    display: block;
+    margin: 0 auto;
+    text-align: center;
+    padding: 1rem 0rem;
+  }
+
+  .stake-button {
+    width: 167px;
+    height: 60px;
+    padding: 16px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    margin: 0 auto;
+    display: block;
+  } 
+  
+}
+
+/* Desktop view */
+
+@media (min-width:768px) {
+  .stake-wrapper {
+    /* background-position: 15rem center ; */
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; 
+    margin-left: 200px;
+    width: 100vw;
+    padding: 5rem 24px; 
+   
+  }
+
+  .main-container {
+    width: 642px;
+    gap: 24px;
+    padding-top: 37px;
+    border-radius: 20px;
+    color: var(--primary);
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .stake-card {
+    width: 309px;
+    height:101px;
+    background: var(--header-button-bg);
+    border: var(--midnight-purple-border);
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .stake-title {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--primary);
+    text-align: center;
+    padding: 1rem 0rem;
+  }
+  .stake-button {
+    width: 642px;
+    height: 60px;
+    padding: 16px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    margin-top: 2rem;
+  } 
+  
+}
+
 /* Tablet and Mobile Responsiveness */
-@media screen and (max-width: 1024px) {
+/* @media screen and (max-width: 1024px) {
   .stake-wrapper {
     display: block;
     width: 100%;
@@ -258,7 +353,7 @@
     background-color: var(--dark-purple);
   } */
 
-  .balance-item:first-child {
+  /* .balance-item:first-child {
     margin-left: 20px;
   }
 
@@ -278,16 +373,16 @@
   }
 
   .balance-item label:nth-child(2) {
-    color: var(--secondary);
-    /* font-size: 14px; */
-  }
+    color: var(--secondary); */
+    /* font-size: 14px;
+  } */
   /* .stake-title {
     font-size: 14px;
     font-weight: 400;
    
   } */
 
-  .main-card {
+  /* .main-card {
     padding: 20px;
     gap: 26px;
     flex-direction: column;
@@ -320,7 +415,7 @@
 
   .apy-rate {
     font-size: 14px;
-  }
+  } */
 
   /* .stake-button {
     font-size: 14px;
@@ -329,7 +424,7 @@
     align-self: center;
   } */
 
-  .balance-card {
+  /* .balance-card {
     max-width: 100%;
     margin-top: 20px;
   }
@@ -341,9 +436,9 @@
   .balance-display-container .mobile-screen-balance {
     display: block;
   }
-}
+} */
 
-@media (min-width: 768px) and (max-width: 1024px) {
+/* @media (min-width: 768px) and (max-width: 1024px) {
   .stake-wrapper {
     display: flex;
     flex-direction: column;
@@ -351,7 +446,10 @@
     align-items: center;
     margin: 0 auto;
     padding: 0 20px;
-    background-position: center;
+    
+    background: url('../../../../public/background(jpeg).png') no-repeat;
+    background-size: cover;
+   
   }
 
   .stake-container {
@@ -393,4 +491,4 @@
     align-self: center;
     width: 85%;
   } */
-}
+/* }  */
