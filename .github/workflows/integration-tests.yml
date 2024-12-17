@@ -88,7 +88,7 @@ jobs:
 
       - name: Run Integration Tests with Coverage
         run: |
-          docker exec backend bash -c "cd /app && python -m pytest web_app/test_integration/ -v"
+          docker compose exec backend bash -c "cd /app && python -m pytest web_app/test_integration/ -v"
 
 
       - name: Clean Up
