@@ -25,7 +25,6 @@ function App() {
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(false);
-  const [showPopup, setShowPopup] = useState(false);
   const [modal, setModal] = useState(true);
 
 
