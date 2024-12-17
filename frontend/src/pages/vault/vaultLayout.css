@@ -16,7 +16,6 @@
   flex-direction: column;
   padding: 1.5rem 2.5rem 1.5rem;
   position: absolute;
-  height: 100%;
 }
 
 .sidebar-title {
@@ -80,28 +79,45 @@
 }
 
 @media (max-width: 1024px) {
+  .sidebar {
+    width: 220px;
+  }
+
   .sidebar-title {
-    color: white;
     font-size: 14px;
-    margin-bottom: 1rem;
-    padding-bottom: 8px;
   }
 
   .nav-item {
-    gap: 0.5rem;
     font-size: 12px;
-    padding-bottom: 10px;
   }
 }
 
 @media (max-width: 768px) {
   .sidebar {
-    width: 200px;
+    width: 180px;
+    display: none;
+  }
+
+  .sidebar-title {
+    font-size: 12px;
+  }
+
+  .nav-item {
+    font-size: 10px;
   }
 }
 
 @media (max-width: 640px) {
   .sidebar {
-    width: 160px;
+    width: 140px;
+    display: none;
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+  }
+
+  .nav-item {
+    font-size: 8px;
   }
 }

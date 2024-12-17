@@ -14,10 +14,11 @@
 
 .sidebar {
   width: 374px;
-  height: 912px;
-  min-height: 100vh;
-  position: fixed;
+  height: calc(100% - 90px);
+  min-height: 115vh;
+  top: 50;
   left: 0;
+  z-index: 10;
 }
 
 .list-label-container {
