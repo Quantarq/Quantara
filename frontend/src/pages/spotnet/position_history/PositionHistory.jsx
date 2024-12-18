@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './position_history.css';
-import newIcon from '../../../assets/icons/borrow-balance-icon.png';
 import { ReactComponent as HealthIcon } from 'assets/icons/health.svg';
 import { ReactComponent as EthIcon } from 'assets/icons/ethereum.svg';
 import { ReactComponent as StrkIcon } from 'assets/icons/strk.svg';
@@ -9,13 +8,15 @@ import { usePositionHistoryTable } from 'hooks/usePosition';
 import Spinner from 'components/spinner/Spinner';
 import { formatDate } from 'utils/formatDate';
 import useDashboardData from 'hooks/useDashboardData';
+import Card from 'components/Card/Card';
+import PositionHistoryModal from 'pages/spotnet/position_history/PositionHistoryModal';
 import { useWalletStore } from 'stores/useWalletStore';
 
 function PositionHistory() {
   const { walletId } = useWalletStore();
-  const [healthFactor, setHealthFactor] = useState('0.00');
-  const [borrowed, setBorrowed] = useState('0.00');
-
+  const [healthFactor, setHealthFactor] = React.useState('0.00');
+  const [borrowed, setBorrowed] = React.useState('0.00');
+  const [selectedPosition, setSelectedPosition] = useState(null);
   const { data: tableData, isLoading } = usePositionHistoryTable(walletId);
 
   const { data } = useDashboardData(walletId) || {
@@ -57,25 +58,8 @@ function PositionHistory() {
         <h1 className="position-title">zkLend Position History</h1>
         <div className="position-content">
           <div className="position-top-cards">
-            <div className="position-card">
-              <div className="position-card-header">
-                <HealthIcon className="icon" />
-                <span className="label">Health Factor</span>
-              </div>
-              <div className="position-card-value">
-                <span className="top-card-value">{healthFactor}</span>
-              </div>
-            </div>
-            <div className="position-card">
-              <div className="position-card-header">
-                <img src={newIcon} alt="Borrow Balance Icon" className="icon" />{' '}
-                <span className="label">Borrow Balance</span>
-              </div>
-              <div className="position-card-value">
-                <span className="currency-symbol">$</span>
-                <span className="top-card-value">{borrowed}</span>
-              </div>
-            </div>
+            <Card label="Health Factor" value={healthFactor} icon={<HealthIcon className="icon" />} />
+            <Card label="Borrow Balance" cardData={borrowed} icon={<EthIcon className="icon" />} />
           </div>
         </div>
 
@@ -107,21 +91,28 @@ function PositionHistory() {
 
                 <tbody>
                   {tableData?.map((data, index) => (
-                    <tr key={index}>
+                    <tr key={data.id}>
                       <td className="index">{index + 1}.</td>
-                      <div className="token-cell">
-                        {tokenIconMap[data.token_symbol]}
-                        <span className="token-symbol">{data.token_symbol.toUpperCase()}</span>
-                      </div>
+                      <td>
+                        <div className="token-cell">
+                          {tokenIconMap[data.token_symbol]}
+                          <span className="token-symbol">{data.token_symbol.toUpperCase()}</span>
+                        </div>
+                      </td>
                       <td>{Number(data.amount).toFixed(2)}</td>
                       <td>{formatDate(data.created_at)}</td>
                       <td className={`status-cell ${statusStyles[data.status.toLowerCase()] || ''}`}>
                         {data.status.charAt(0).toUpperCase() + data.status.slice(1)}
                       </td>
-                      <td>${data.start_price.toFixed(2)}</td>
+                      <td>{data.start_price.toFixed(2)}</td>
                       <td>{data.multiplier.toFixed(1)}</td>
                       <td>{data.is_liquidated ? 'Yes' : 'No'}</td>
                       <td>{formatDate(data.datetime_liquidation)}</td>
+                      <td>
+                        <span className="action-button" onClick={() => setSelectedPosition(data)}>
+                          &#x22EE;
+                        </span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -130,6 +121,9 @@ function PositionHistory() {
           </div>
         </div>
       </div>
+      {selectedPosition && (
+        <PositionHistoryModal position={selectedPosition} onClose={() => setSelectedPosition(null)} />
+      )}
     </div>
   );
 }
