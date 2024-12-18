@@ -1,49 +1,49 @@
 import React from 'react';
 import './positionHistory.css';
-import { formatDate } from 'utils/formatDate';
 
-function PositionHistoryModal({ position, onClose }) {
+function PositionHistoryModal({ position, onClose, tokenIcon, statusStyles }) {
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <div className="modal-header">
-          <p>
-            <span>
-              {position.token_symbol} {Number(position.amount).toFixed(2)}
-            </span>
-            <span className={`status-${position.status.toLowerCase()}`}>
-              {position.status.charAt(0).toUpperCase() + position.status.slice(1)}
+    <div className="position-modal-overlay">
+      <div className="position-modal-content">
+        <div className="position-modal-header">
+          <p className="position-modal-p">
+            {tokenIcon[position.token_symbol]}
+            <span>{position.token_symbol}</span>
+            <span>{position.amount}</span>
+            <span className={`status-cell ${statusStyles[position.status.toLowerCase()] || ''}`}>
+              {position.status}
             </span>
           </p>
 
-          <button onClick={onClose} className="close-button">
-            X
-          </button>
+          <span onClick={onClose} className="position-close-button" aria-label="Close Account Info Modal Box">
+            ✕
+          </span>
         </div>
-        <div className="modal-body">
-          <div className="detail-row">
+
+        <div className="position-modal-body">
+          <div className="position-detail-row">
             <p>
-              Start Price: <span>{position.start_price.toFixed(2)}</span>
+              Start Price <span>{position.start_price}</span>
             </p>
           </div>
-          <div className="detail-row">
+          <div className="position-detail-row">
             <p>
-              Multiplier: <span>{position.multiplier.toFixed(1)}</span>
+              Multiplier <span>{position.multiplier}</span>
             </p>
           </div>
-          <div className="detail-row">
+          <div className="position-detail-row">
             <p>
-              Liquidated: <span>{position.is_liquidated ? 'Yes' : 'No'}</span>
+              Liquidated <span>{position.is_liquidated ? 'Yes' : 'No'}</span>
             </p>
           </div>
-          <div className="detail-row">
+          <div className="position-detail-row">
             <p>
-              Created At: <span>{formatDate(position.created_at)}</span>
+              Created At <span>{position.created_at}</span>
             </p>
           </div>
-          <div className="detail-row">
+          <div className="position-detail-row">
             <p>
-              Closed At: <span>{formatDate(position.datetime_liquidation)}</span>
+              Closed At <span>{position.datetime_liquidation}</span>
             </p>
           </div>
         </div>

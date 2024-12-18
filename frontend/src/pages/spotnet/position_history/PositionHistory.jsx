@@ -6,7 +6,6 @@ import { ReactComponent as StrkIcon } from 'assets/icons/strk.svg';
 import { ReactComponent as UsdIcon } from 'assets/icons/usd_coin.svg';
 import { usePositionHistoryTable } from 'hooks/usePositionHistory';
 import Spinner from 'components/spinner/Spinner';
-import { formatDate } from 'utils/formatDate';
 import filterIcon from '../../../assets/icons/filter-horizontal.svg';
 import useDashboardData from 'hooks/useDashboardData';
 import Card from 'components/Card/Card';
@@ -89,15 +88,15 @@ function PositionHistory() {
                             <span className="token-symbol">{data.token_symbol.toUpperCase()}</span>
                           </div>
                         </td>
-                        <td>{Number(data.amount).toFixed(2)}</td>
-                        <td>{formatDate(data.created_at)}</td>
+                        <td>{data.amount}</td>
+                        <td>{data.created_at}</td>
                         <td className={`status-cell ${statusStyles[data.status.toLowerCase()] || ''}`}>
-                          {data.status.charAt(0).toUpperCase() + data.status.slice(1)}
+                          {data.status}
                         </td>
-                        <td>{data.start_price.toFixed(2)}</td>
-                        <td>{data.multiplier.toFixed(1)}</td>
-                        <td>{data.is_liquidated ? 'True' : 'False'}</td>
-                        <td>{formatDate(data.datetime_liquidation)}</td>
+                        <td>{data.start_price}</td>
+                        <td>{data.multiplier}</td>
+                        <td>{data.is_liquidated}</td>
+                        <td>{data.datetime_liquidation}</td>
                         <td className="action-column">
                           <span className="action-button" onClick={() => setSelectedPosition(data)}>
                             &#x22EE;
@@ -113,7 +112,12 @@ function PositionHistory() {
         </div>
       </div>
       {selectedPosition && (
-        <PositionHistoryModal position={selectedPosition} onClose={() => setSelectedPosition(null)} />
+        <PositionHistoryModal
+          position={selectedPosition}
+          onClose={() => setSelectedPosition(null)}
+          tokenIcon={tokenIconMap}
+          statusStyles={statusStyles}
+        />
       )}
     </div>
   );

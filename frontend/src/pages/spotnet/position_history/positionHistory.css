@@ -145,7 +145,7 @@
 }
 
 /* Modal styles */
-.modal-overlay {
+.position-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -158,49 +158,49 @@
   z-index: 1000;
 }
 
-.modal-content {
+.position-modal-content {
   background-color: var(--bg);
   border-radius: 12px;
   padding: 24px;
-  width: 90%;
+  width: 70%;
   max-width: 500px;
 }
 
-.modal-header {
+.position-modal-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   margin-bottom: 16px;
 }
 
-.modal-header h2 {
-  font-size: 18px;
-  font-weight: 600;
+.position-modal-p {
+  display: flex;
   color: var(--primary);
+  width: 90%;
+  align-items: center;
+  justify-content: space-evenly;
+  margin-top: 15px;
 }
 
-.close-button {
-  background: none;
-  border: none;
-  color: var(--primary);
-  cursor: pointer;
+.position-close-button {
+  color: var(--status-closed);
 }
 
-.modal-body {
-  text-align: left;
+.position-modal-body {
+  display: flex;
   flex-direction: column;
-  gap: 12px;
+  justify-self: center;
+  gap: 20px;
 }
 
-.detail-row {
+.position-detail-row p {
   font-size: 14px;
-}
-
-.detail-row p {
   color: var(--gray);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.detail-row span:first-child {
+.position-detail-row span:first-child {
   color: var(--primary);
 }
 
