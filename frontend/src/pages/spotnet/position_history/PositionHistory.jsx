@@ -98,7 +98,7 @@ function PositionHistory() {
                         <td>{data.is_liquidated}</td>
                         <td>{data.datetime_liquidation}</td>
                         <td className="action-column">
-                          <span className="action-button" onClick={() => setSelectedPosition(data)}>
+                          <span className="action-button" onClick={() => setSelectedPosition({ data, index })}>
                             &#x22EE;
                           </span>
                         </td>
@@ -113,10 +113,11 @@ function PositionHistory() {
       </div>
       {selectedPosition && (
         <PositionHistoryModal
-          position={selectedPosition}
+          position={selectedPosition.data}
           onClose={() => setSelectedPosition(null)}
           tokenIcon={tokenIconMap}
           statusStyles={statusStyles}
+          index={selectedPosition.index + 1}
         />
       )}
     </div>

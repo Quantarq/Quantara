@@ -1,14 +1,17 @@
 import React from 'react';
 import './positionHistory.css';
 
-function PositionHistoryModal({ position, onClose, tokenIcon, statusStyles }) {
+function PositionHistoryModal({ position, onClose, index, tokenIcon, statusStyles }) {
   return (
     <div className="position-modal-overlay">
       <div className="position-modal-content">
         <div className="position-modal-header">
           <p className="position-modal-p">
-            {tokenIcon[position.token_symbol]}
-            <span>{position.token_symbol}</span>
+            <span>
+              <span>{index}.</span>
+              {tokenIcon[position.token_symbol]}
+              {position.token_symbol}
+            </span>
             <span>{position.amount}</span>
             <span className={`status-cell ${statusStyles[position.status.toLowerCase()] || ''}`}>
               {position.status}
@@ -19,7 +22,7 @@ function PositionHistoryModal({ position, onClose, tokenIcon, statusStyles }) {
             ✕
           </span>
         </div>
-
+        <hr className="modal-divider" />
         <div className="position-modal-body">
           <div className="position-detail-row">
             <p>

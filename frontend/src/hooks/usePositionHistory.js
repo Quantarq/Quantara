@@ -27,7 +27,7 @@ const formatPositionHistoryTable = (data) => {
 const usePositionHistoryTable = () => {
     const walletId = useWalletStore((state) => state.walletId);
 
-    const { data, isLoading, error } = useQuery({
+    const { data, isPending, error } = useQuery({
         queryKey: ['positionHistory', walletId],
         queryFn: () => fetchPositionHistoryTable(walletId),
         enabled: !!walletId,
@@ -37,9 +37,11 @@ const usePositionHistoryTable = () => {
         select: formatPositionHistoryTable,
     });
 
+    const showSpinner = !!walletId && isPending;
+
     return {
         data,
-        isLoading,
+        isPending: showSpinner,
         error: walletId ? error : 'Wallet ID is required',
     };
 };
