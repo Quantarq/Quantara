@@ -5,6 +5,7 @@ This module handles position-related API endpoints.
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Request
+
 from web_app.api.serializers.position import (
     PositionFormData,
     TokenMultiplierResponse,
@@ -227,10 +228,7 @@ async def get_user_positions(wallet_id: str, start: Optional[int] = None) -> lis
     if not wallet_id:
         raise HTTPException(status_code=400, detail="Wallet ID is required")
 
-    if start is not None:
-        start_index = max(0, start)
-    else:
-        start_index = 0
+    start_index = max(0, start) if start is not None else 0
 
     positions = position_db_connector.get_positions_by_wallet_id(
         wallet_id, start_index, PAGINATION_STEP
