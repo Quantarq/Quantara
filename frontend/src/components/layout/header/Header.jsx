@@ -7,7 +7,7 @@ import NavigationLinks from '../navigation-links/NavigationLinks';
 import useLockBodyScroll from '../../../hooks/useLockBodyScroll';
 import MobDropdownMenu from '../mob-dropdown-menu/MobDropdownMenu';
 import './Header.css';
-import '../../../Globals.css';
+import '../../../globals.css';
 
 
 function Header({ onConnectWallet, onLogout }) {

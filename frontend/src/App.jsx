@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
-import './Globals.css';
+import './globals.css';
 import Header from './components/layout/header/Header';
 import Dashboard from './pages/dashboard/Dashboard';
 import Footer from './components/layout/footer/Footer';
