@@ -6,7 +6,7 @@ import WalletSection from '../wallet-section/WalletSection';
 import NavigationLinks from '../navigation-links/NavigationLinks';
 import useLockBodyScroll from '../../../hooks/useLockBodyScroll';
 import MobDropdownMenu from '../mob-dropdown-menu/MobDropdownMenu';
-import 'header.css';
+import '../../layout/header/header.css';
 import '../../../globals.css';
 
 
