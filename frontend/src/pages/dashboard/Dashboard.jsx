@@ -8,7 +8,7 @@ import { ReactComponent as TelegramIcon } from '../../assets/icons/telegram_dash
 import Spinner from '../../components/ui/spinner/Spinner';
 import useDashboardData from '../../hooks/useDashboardData';
 import { useClosePosition, useCheckPosition } from '../../hooks/useClosePosition';
-import { Button } from '../../components/ui/button/Button';
+import Button from '../../components/ui/button/Button';
 import { useWalletStore } from '../../stores/useWalletStore';
 import { ActionModal } from '../../components/ui/action-modal';
 import useTelegramNotification from '../../hooks/useTelegramNotification';

@@ -11,7 +11,7 @@ import './form.css';
 import { createPortal } from 'react-dom';
 import useLockBodyScroll from '../../hooks/useLockBodyScroll';
 import CongratulationsModal from '../../components/layout/congratulations-modal/CongratulationsModal';
-import { Button } from '../../components/ui/button/Button';
+import Button from '../../components/ui/button/Button';
 import { useWalletStore } from '../../stores/useWalletStore';
 import { useConnectWallet } from '../../hooks/useConnectWallet';
 import { useCheckPosition } from '../../hooks/useClosePosition';
