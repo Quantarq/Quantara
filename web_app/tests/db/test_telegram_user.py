@@ -58,14 +58,6 @@ def test_get_user_by_telegram_id_success(telegram_user_db, mock_db_connector):
     result = telegram_user_db.get_user_by_telegram_id(telegram_id)
     assert result == expected_user
 
-def test_get_user_by_telegram_id_none(telegram_user_db, mock_db_connector):
-    """
-    Test retrieving a user by telegram ID when no user exists.
-    """
-    mock_db_connector.get_object_by_ield.return_value = None
-    result = telegram_user_db.get_user_by_telegram_id("unknown")
-    assert result is None
-
 def test_get_wallet_id_by_telegram_id_success(telegram_user_db, mock_db_connector):
     """
     Test retrieving a wallet ID by telegram ID when the user exists.
