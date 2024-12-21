@@ -67,9 +67,9 @@
   --light-dark-background: #130713;
   --text-gray: #798795;
   --modal-border: #170f2e;
-  --warning-colour:#BDC000;
-  --warning-colour-alt: #272A0A;
-  --warning-text-colour: #F0F0F0;
+  --warning-colour: #bdc000;
+  --warning-colour-alt: #272a0a;
+  --warning-text-colour: #f0f0f0;
 }
 
 body {
@@ -102,7 +102,7 @@ a.svelte-1mtuslq.svelte-1mtuslq {
 .App {
   background: url('../public/desktop-background.png') no-repeat;
   background-size: cover;
-  min-height: 100vh; 
+  min-height: 100vh;
   box-sizing: border-box;
 }
 
