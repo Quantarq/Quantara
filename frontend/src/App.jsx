@@ -21,7 +21,7 @@ import { TELEGRAM_BOT_LINK } from './utils/constants';
 import { useCheckMobile } from './hooks/useCheckMobile';
 import PositionHistory from './pages/position-history/PositionHistory';
 import WithdrawAll from 'pages/spotnet/dashboard/withdraw-all/WithdrawAll';
-
+import SpringDefiPage from 'pages/spotnet/defi-spring/Defi-spring';
 function App() {
   const { setWalletId, removeWalletId } = useWalletStore();
   const [showModal, setShowModal] = useState(false);
