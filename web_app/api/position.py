@@ -164,9 +164,7 @@ async def close_position(position_id: str, transaction_hash: str) -> str:
         created_at=datetime.utcnow(),
         updated_at=datetime.utcnow()
     )
-    position_db_connector.add(new_transaction)
-    position_db_connector.commit()
-        
+    position_db_connector.save_transaction(new_transaction)
     return position_status
 
 @router.get(
