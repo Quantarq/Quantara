@@ -1,5 +1,4 @@
-use openzeppelin::token::erc20::interface::IERC20DispatcherTrait;
-use openzeppelin_token::erc20::interface::{ERC20ABIDispatcher, ERC20ABIDispatcherTrait};
+use openzeppelin::token::erc20::interface::{IERC20DispatcherTrait, ERC20ABIDispatcher, ERC20ABIDispatcherTrait};
 use snforge_std::cheatcodes::execution_info::caller_address::{
     start_cheat_caller_address, stop_cheat_caller_address
 };
