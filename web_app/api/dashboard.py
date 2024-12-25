@@ -55,7 +55,7 @@ async def get_dashboard(wallet_id: str) -> DashboardResponse:
 
     # Fetching first 10 positions at the moment
     opened_positions = position_db_connector.get_positions_by_wallet_id(
-        wallet_id, 0, 10
+        wallet_id
     )
 
     # At the moment, we only support one position per wallet

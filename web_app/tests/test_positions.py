@@ -470,7 +470,7 @@ async def test_get_user_positions_success(client: TestClient) -> None:
     ]
 
     with patch(
-        "web_app.db.crud.PositionDBConnector.get_positions_by_wallet_id"
+        "web_app.db.crud.PositionDBConnector.get_all_positions_by_wallet_id"
     ) as mock_get_positions:
         mock_get_positions.return_value = mock_positions
         response = client.get(f"/api/user-positions/{wallet_id}")
