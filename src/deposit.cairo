@@ -175,22 +175,28 @@ use alexandria_math::fast_power::fast_power;
             )
         }
         fn repay_vaults(ref self: ContractState, supply_token: ContractAddress, vaults: Span<VaultRepayData>){
+            let zk_market = self.zk_market.read();
+            let contract_address = get_contract_address();
+            let owner = self.owner();
+
             for vault in vaults {
                 let vault_disp = IVaultDispatcher{contract_address: (*vault).vault};
                 let vault_token = vault_disp.get_vault_token();
                 if vault_token == supply_token {
                     continue;
                 }
-                let zk_market = self.zk_market.read();
                 let mut amount = (*vault).amount;
+                let token_disp = ERC20ABIDispatcher { contract_address: vault_token };
+
                 if amount == 0 {
                     zk_market.withdraw_all(vault_token);
-                    amount = ERC20ABIDispatcher { contract_address: get_contract_address() }
-                        .balanceOf(self.owner());
+                    amount = token_disp.balanceOf(contract_address);
                 } else {
                     zk_market.withdraw(vault_token, amount.try_into().unwrap());
                 }
-                vault_disp.return_liquidity(self.owner(), amount);
+
+                token_disp.approve((*vault).vault, amount);
+                vault_disp.return_liquidity(owner, amount);
             }
         }
     }
