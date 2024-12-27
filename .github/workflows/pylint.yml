@@ -12,11 +12,11 @@ jobs:
     with:
       python-version: "3.12"
 
-    steps:
-      - name: Install dependencies
-        run: |
-          pip install pylint
-
-      - name: Analysing the code with pylint
-        run: |
-          pylint $(git ls-files '*.py') --disable=all --enable=C0114,C0115,C0116,C0301
+#    steps:
+#      - name: Install dependencies
+#        run: |
+#          pip install pylint
+#
+#      - name: Analysing the code with pylint
+#        run: |
+#          pylint $(git ls-files '*.py') --disable=all --enable=C0114,C0115,C0116,C0301

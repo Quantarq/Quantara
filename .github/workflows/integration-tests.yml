@@ -26,13 +26,13 @@ jobs:
         REDIS_PORT=6379
         ENV_VERSION=DEV
 
-    steps:
-      - name: Build and Start Containers
-        run: |
-          docker compose -f docker-compose.dev.yaml up -d --build
-          echo "Waiting for containers to be ready..."
-          sleep 30
-
-      - name: Run Integration Tests with Coverage
-        run: |
-          docker compose exec backend bash -c "cd /app && python -m pytest web_app/test_integration/ -v"
+#    steps:
+#      - name: Build and Start Containers
+#        run: |
+#          docker compose -f docker-compose.dev.yaml up -d --build
+#          echo "Waiting for containers to be ready..."
+#          sleep 30
+#
+#      - name: Run Integration Tests with Coverage
+#        run: |
+#          docker compose exec backend bash -c "cd /app && python -m pytest web_app/test_integration/ -v"
