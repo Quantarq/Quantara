@@ -17,13 +17,11 @@ const Documentation = () => {
       link: '#overview',
       subItems: [
         { id: 'cosmos-1', name: 'Cosmos Overview', link: '#cosmos-1' },
-        { id: 'cosmos-2', name: 'Cosmos Overview', link: '#cosmos-2' },
-        { id: 'cosmos-3', name: 'Cosmos Overview', link: '#cosmos-3' },
-        { id: 'cosmos-4', name: 'Cosmos Overview', link: '#cosmos-4' },
       ],
     },
     { id: 'how-it-performs', name: 'How it performs', link: '#how-it-performs' },
-    { id: 'getting-started', name: 'Getting Started', link: '#getting-started' },
+    { id: 'powered-by-starknet', name: 'Powered by Starknet', link: '#powered-by-starknet' },
+    { id: 'getting-started', name: 'Getting Started: Setting up your wallet', link: '#getting-started' },
   ];
 
   const sectionsData = [
@@ -34,7 +32,12 @@ const Documentation = () => {
         {
           type: 'text',
           value:
-            'Welcome to spotnet Documentation \n Spotnet is a decentralized platform designed to [describe purpose, e.g., "empower users to securely manage digital assets and access DeFi tools effortlessly"]. \n This documentation provides a comprehensive guide on using SpotNet and making the most of its features.',
+            'Welcome to Spotnet documentation.',
+        },
+        {
+          type: 'text',
+          value:
+            'Spotnet is a decentralized platform designed to help users easily amplify their investments in digital assets like ETH. \n This documentation provides a comprehensive guide on using SpotNet and making the most of its features.',
         },
       ],
     },
@@ -42,10 +45,16 @@ const Documentation = () => {
       id: 'overview',
       title: 'Overview',
       content: [
+
         {
           type: 'text',
           value:
-            'What is [Product Name]?\n[Product Name] is a Web3 platform that leverages blockchain technology to [describe primary functionalities, e.g., "facilitate secure transactions, staking, and asset management without intermediaries"].',
+            'What is Spotnet?',
+        },
+        {
+          type: 'text',
+          value:
+            'Spotnet is a Web3 platform that leverages blockchain technology to facilitate secure transactions, staking, and asset management without intermediaries, enabling users to amplify their investments in digital assets through decentralized lending protocols and automated market makers (AMMs).',
         },
         {
           type: 'text',
@@ -55,8 +64,8 @@ const Documentation = () => {
           type: 'list',
           items: [
             'Decentralized Finance (DeFi): Access a suite of DeFi services, including lending, borrowing, and yield farming.',
-            'Security-First Design: Built on smart contracts to ensure safety and transparency.',
-            'Cross-Chain Compatibility: [Product Name] supports multiple blockchains for a seamless user experience.',
+            'Security-First Design: Built on smart contracts to ensure safety, transparency, and user control over assets without intermediaries.',
+            'Cross-Chain Compatibility: Spotnet supports multiple blockchains, including Starknet, for a seamless and efficient user experience, providing more liquidity and flexibility across the DeFi ecosystem.',
           ],
         },
       ],
@@ -106,7 +115,7 @@ const Documentation = () => {
     },
     {
       id: 'zk-lend',
-      title: 'Zklend Overview - Powering Your DeFi Journey with Security and Simplicity',
+      title: 'Zklend Overview',
       content: [
         {
           type: 'text',
@@ -151,20 +160,52 @@ const Documentation = () => {
     },
     {
       id: 'getting-started',
-      title: 'Getting Started',
+      title: 'Getting Started: Setting Up Your Wallet',
       content: [
+        
         {
           type: 'text',
-          value: 'Setting Up Your Wallet',
+          value: 'To get started with Spotnet and fully leverage its features, you’ll need to set up a compatible Web3 wallet. Follow the steps below to set up your wallet and connect it to Spotnet:',
+        },
+      
+        {
+          type: 'text',
+          value: 'Download a Compatible Web3 Wallet',
         },
         {
-          type: 'orderedList',
+          type: 'list',
           items: [
-            'Download a compatible Web3 wallet (e.g., MetaMask).',
-            'Fund your wallet with the supported cryptocurrency.',
-            'Connect your wallet to [Product Name].',
+            'MetaMask: MetaMask is one of the most popular Web3 wallets that allows you to interact with decentralized applications (dApps) like Spotnet. You can download MetaMask as a browser extension for Chrome, Firefox, or Brave, or as a mobile app for iOS and Android.',
+            'Other Wallets: Spotnet supports multiple Web3 wallets. You may also choose other wallets like WalletConnect, Coinbase Wallet, or Trust Wallet, depending on your preferences and device compatibility.',
           ],
         },
+
+        {
+          type: 'text',
+          value: 'Fund Your Wallet with Supported Cryptocurrency',
+        },
+
+        {
+          type: 'list',
+          items: [
+            'Once your wallet is installed, you need to fund it with supported cryptocurrencies such as ETH or stablecoins (e.g., USDC). You can transfer funds from a cryptocurrency exchange (like Coinbase, Binance, or Kraken) by withdrawing them to your wallet address. Alternatively, you can purchase cryptocurrency directly within the wallet using third-party services or transfer assets between blockchains using a bridge.',
+          ],
+        },
+
+        {
+          type: 'text',
+          value: 'Connect Your Wallet to Spotnet',
+        },
+        {
+          type: 'list',
+          items: [
+            "After funding your wallet, go to the Spotnet platform and look for the “Connect Wallet” button, typically found in the top-right corner of the homepage. Select your wallet type (e.g., MetaMask, WalletConnect) and follow the prompts to authorize the connection. Your wallet will ask for permission to connect with Spotnet; confirm this request to allow your wallet to interact with the platform. If you’re using a wallet like MetaMask that doesn’t support Starknet by default, you may need to manually add the Starknet network by selecting “Custom RPC” in your wallet settings and entering the necessary network details. Once connected, you'll have full access to Spotnet’s features.",
+          ],
+        },
+        
+
+
+
       ],
     },
   ];

@@ -7,9 +7,13 @@ const NavigationLinks = ({ onNavClick }) => (
     <NavLink to="/" end className={({ isActive }) => (isActive ? 'active-link' : '')} onClick={onNavClick}>
       Home
     </NavLink>
-    <div className="nav-divider"></div>
+    <div className="nav-divider" />
     <NavLink to="/dashboard" className={({ isActive }) => (isActive ? 'active-link' : '')} onClick={onNavClick}>
       Dashboard
+    </NavLink>
+    <div className="nav-divider" />
+    <NavLink to="/form" className={({ isActive }) => (isActive ? 'active-link' : '')} onClick={onNavClick}>
+      Form
     </NavLink>
     {/* <div className="nav-divider"></div> */}
     {/* <NavLink to="/stake" className={({ isActive }) => (isActive ? 'active-link' : '')} onClick={onNavClick}> */}

@@ -10,6 +10,8 @@ import { createPortal } from 'react-dom';
 import { logout } from './services/wallet';
 import { getTelegramUserWalletId } from './services/telegram';
 import Documentation from './pages/documentation/Documentation';
+import TermsAndConditions from './pages/terms-and-conditions/TermsAndConditions';
+
 import Withdraw from './pages/withdraw/Withdraw';
 import { useWalletStore } from './stores/useWalletStore';
 import { Notifier, notify } from './components/layout/notifier/Notifier';
@@ -22,6 +24,7 @@ import { useCheckMobile } from './hooks/useCheckMobile';
 import PositionHistory from './pages/position-history/PositionHistory';
 import WithdrawAll from 'pages/spotnet/dashboard/withdraw-all/WithdrawAll';
 import { DefiSpringPage } from 'pages/spotnet/defi-spring/DefiSpring';
+import { AddDeposit } from 'pages/add-deposit/AddDeposit';
 
 function App() {
   const { setWalletId, removeWalletId } = useWalletStore();
@@ -98,11 +101,13 @@ function App() {
           <Route index element={<SpotnetApp onConnectWallet={handleConnectWallet} onLogout={handleLogout} />} />
           <Route path="/dashboard" element={<Dashboard telegramId={window?.Telegram?.WebApp?.initData?.user?.id} />} />
           <Route path="/dashboard/position-history" element={<PositionHistory />} />
-          <Route path="/dashboard/withdraw-all" element={<WithdrawAll />} />
+          <Route path="/dashboard/withdraw" element={<WithdrawAll />} />
+          <Route path="/dashboard/deposit" element={<AddDeposit />} />
           <Route path="/withdraw" element={<Withdraw />} />
           <Route path="/overview" element={<OverviewPage />} />
           <Route path="/form" element={<Form />} />
           <Route path="/documentation" element={<Documentation />} />
+          <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
           <Route path="/stake" element={<Stake />} />
           <Route path="/defispring" element={<DefiSpringPage />} />
         </Routes>

@@ -10,7 +10,7 @@ export const DefiSpringPage = () => {
   }, []);
 
   const tableOfContents = [
-    { id: 'introduction', name: 'Introduction', link: '#introduction' },
+    { id: 'Introduction', name: 'Introduction', link: '#introduction' },
     {
       id: 'overview',
       name: 'Program overview',
@@ -33,7 +33,7 @@ export const DefiSpringPage = () => {
         {
           type: 'text',
           value:
-            'Welcome to the DeFi Spring Program!\nwhere you can earn rewards through the zkLend protocol. As part of this initiative, participants will have the opportunity to receive STRK token rewards for engaging with the platform. Here’s everything you need to know to get started and make the most of your participation.',
+            'Welcome to the DeFi Spring Program!\nWhere you can earn rewards through the zkLend protocol. As part of this initiative, participants will have the opportunity to receive STRK token rewards for engaging with the platform. Here’s everything you need to know to get started and make the most of your participation.',
         },
       ],
     },

@@ -7,6 +7,9 @@
     "react-hooks/exhaustive-deps": "warn",
     "@tanstack/query/exhaustive-deps": "error"
   },
+  "parserOptions": {
+    "sourceType": "module"
+  },
   "settings": {
     "react": {
       "version": "detect"

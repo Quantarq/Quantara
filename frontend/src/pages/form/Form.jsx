@@ -98,7 +98,6 @@ const Form = () => {
         <div className="form-title">
           <h1>Please submit your leverage details</h1>
         </div>
-        <label className="token-select">Select Token</label>
         <TokenSelector selectedToken={selectedToken} setSelectedToken={setSelectedToken} />
         <label>Select Multiplier</label>
         <MultiplierSelector
@@ -120,11 +119,9 @@ const Form = () => {
             <p>Estimated Health Factor Level:</p>
             <p>{isHealthFactorLoading ? 'Loading...' : healthFactor}</p>
           </div>
-          <div className="form-button-container">
-            <Button variant="secondary" size="lg" type="submit">
-              Submit
-            </Button>
-          </div>
+          <Button variant="secondary" size="lg" type="submit" className="form-button">
+            Submit
+          </Button>
         </div>
       </form>
       <Spinner loading={loading} />

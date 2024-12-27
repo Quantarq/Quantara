@@ -19,6 +19,7 @@ from httpx import AsyncClient
 
 from web_app.api.main import app
 from web_app.api.position import add_extra_deposit
+from web_app.db.models import TransactionStatus
 
 app.dependency_overrides.clear()
 
@@ -32,12 +33,25 @@ async def test_open_position_success(client: TestClient) -> None:
     Returns:
         None
     """
-    position_id = "valid_position_id"
-    with patch(
-        "web_app.db.crud.PositionDBConnector.open_position"
-    ) as mock_open_position:
+    position_id = str(uuid.uuid4())
+    transaction_hash = "valid_transaction_hash"
+    with (
+        patch(
+            "web_app.db.crud.PositionDBConnector.open_position"
+        ) as mock_open_position,
+        patch(
+            "web_app.db.crud.TransactionDBConnector.create_transaction"
+        ) as mock_create_transaction,
+    ):
         mock_open_position.return_value = "Position successfully opened"
-        response = client.get(f"/api/open-position?position_id={position_id}")
+        mock_create_transaction.return_value = {
+            "position_id": position_id,
+            "transaction_hash": transaction_hash,
+            "status": TransactionStatus.OPENED.value
+        }
+        response = client.get(
+            f"/api/open-position?position_id={position_id}&transaction_hash={transaction_hash}"
+		)
         assert response.is_success
         assert response.json() == "Position successfully opened"
 
@@ -53,10 +67,9 @@ async def test_open_position_missing_position_data(
     Returns:
         None
     """
-    response = client.get("/api/open-position?position_id=")
+    response = client.get("/api/open-position?position_id=&transaction_hash=")
     assert response.status_code == 404
     assert response.json() == {"detail": "Position not found"}
-
 
 @pytest.mark.anyio
 async def test_close_position_success(client: TestClient) -> None:
@@ -67,20 +80,22 @@ async def test_close_position_success(client: TestClient) -> None:
     Returns:
         None
     """
-    position_id = str(uuid.uuid4())
+    position_id = str(uuid.uuid4())  
+    transaction_hash = "0xabc123"
     with patch(
         "web_app.db.crud.PositionDBConnector.close_position"
     ) as mock_close_position:
         mock_close_position.return_value = "Position successfully closed"
-        response = client.get(f"/api/close-position?position_id={position_id}")
-        assert response.is_success
+        
+        response = client.get(
+            f"/api/close-position?position_id={position_id}&transaction_hash={transaction_hash}"
+        )
+        
+        assert response.status_code == 200
         assert response.json() == "Position successfully closed"
 
-
 @pytest.mark.anyio
-async def test_close_position_invalid_position_id(
-    client: TestClient,
-) -> None:
+async def test_close_position_invalid_position_id(client: TestClient) -> None:
     """
     Test for attempting to close a position using an invalid position ID,
     which should return a 404 error.
@@ -89,14 +104,16 @@ async def test_close_position_invalid_position_id(
     Returns:
         None
     """
-    invalid_position_id = "invalid_position_id"
+    invalid_position_id = str(uuid.uuid4())
     with patch(
         "web_app.db.crud.PositionDBConnector.close_position"
     ) as mock_close_position:
         mock_close_position.side_effect = HTTPException(
             status_code=404, detail="Position not Found"
         )
-        response = client.get(f"/api/close-position?position_id={invalid_position_id}")
+        response = client.get(
+            f"/api/close-position?position_id={invalid_position_id}&transaction_hash=0xabc123"
+        )
         assert response.status_code == 404
         assert response.json() == {"detail": "Position not Found"}
 
@@ -453,7 +470,7 @@ async def test_get_user_positions_success(client: TestClient) -> None:
     ]
 
     with patch(
-        "web_app.db.crud.PositionDBConnector.get_positions_by_wallet_id"
+        "web_app.db.crud.PositionDBConnector.get_all_positions_by_wallet_id"
     ) as mock_get_positions:
         mock_get_positions.return_value = mock_positions
         response = client.get(f"/api/user-positions/{wallet_id}")

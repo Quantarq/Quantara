@@ -1,0 +1,155 @@
+.token-selector-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.token-options {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.token-card-btn {
+  width: 100%;
+  text-align: center;
+  border: 1px solid var(--secondary);
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.token-card-btn.selected {
+  border-image: linear-gradient(to right, #74d6fd, #e01dee) 1;
+}
+
+.token-container-deposit {
+  background: var(--dark-purple);
+  transition: background 1.3s ease;
+  padding: 1px;
+  height: 100%;
+}
+
+.token-container:has(input[type='radio']:checked) {
+  background: var(--button-gradient);
+}
+
+.token-icon-deposit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  border-radius: 100px;
+  background-color: hsla(261, 49%, 15%, 1);
+}
+
+.token-label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 60px;
+}
+
+.token-label input {
+  background-color: transparent;
+  border: 1px solid var(--light-purple);
+  border-radius: 50px;
+  padding: 20px 30px;
+  color: var(--gray);
+}
+
+.token-select {
+  margin: 8px 0 8px 0;
+}
+
+.token-amount {
+  margin: 20px 0 12px 0;
+}
+
+.token-card-btn h5 {
+  margin-top: 9px;
+  font-size: 16px;
+  font-size: 16px;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.token-card-btn svg {
+  width: 20px;
+  height: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+@media (max-width: 768px) {
+  .token-card-btn label {
+    width: 79.5px;
+    height: 36px;
+    padding: 4px 8px;
+  }
+}
+
+.token-icon {
+  display: grid;
+  gap: 4px;
+}
+
+.token-icon-deposit {
+  margin-right: 5px;
+  position: relative;
+  z-index: 1;
+}
+
+.token-card-btn {
+  width: auto;
+  height: auto;
+}
+
+.token-card-btn h5 {
+  margin: 0;
+  font-size: 14px;
+  gap: 0;
+}
+
+.token-card-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+.token-label input {
+  border-radius: 16px;
+  font-size: 14px;
+}
+
+.token-container {
+  max-width: fit-content;
+  position: relative;
+}
+
+.token-label {
+  margin-top: 0;
+}
+
+.token-amount {
+  margin: 25px 0 12px 0;
+}
+
+@media (min-width: 768px) {
+  .token-card-btn label {
+    width: 208.67px;
+    height: 40px;
+    padding: 4px 8px;
+  }
+}
+
+input[type='radio'] {
+  display: none;
+  padding: 2px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%;
+  box-sizing: border-box;
+}

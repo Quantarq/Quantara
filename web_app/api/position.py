@@ -3,6 +3,7 @@ This module handles position-related API endpoints.
 """
 
 from typing import Optional
+from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Request
 
@@ -17,10 +18,12 @@ from web_app.api.serializers.transaction import (
 )
 from web_app.contract_tools.constants import TokenMultipliers, TokenParams
 from web_app.contract_tools.mixins import DashboardMixin, DepositMixin, PositionMixin
-from web_app.db.crud import PositionDBConnector
+from web_app.db.crud import PositionDBConnector, TransactionDBConnector
+from web_app.db.models import TransactionStatus
 
 router = APIRouter()  # Initialize the router
 position_db_connector = PositionDBConnector()  # Initialize the PositionDBConnector
+transaction_db_connector = TransactionDBConnector()
 
 # Constants
 PAGINATION_STEP = 10
@@ -143,19 +146,24 @@ async def get_repay_data(
     summary="Close a position",
     response_description="Returns the position status",
 )
-async def close_position(position_id: str) -> str:
+async def close_position(position_id: UUID, transaction_hash: str) -> str:
     """
     Close a position.
-    :param position_id: contract address
+    :param position_id: contract address (UUID)
+    :param transaction_hash: transaction hash for the position closure
     :return: str
-    :raises: HTTPException :return: Dict containing status code and detail
+    :raises: HTTPException: If position_id is invalid
     """
     if position_id is None or position_id == "undefined":
         raise HTTPException(status_code=404, detail="Position not Found")
-
-    position_status = position_db_connector.close_position(position_id)
+    
+    position_status = position_db_connector.close_position(str(position_id))
+    position_db_connector.save_transaction(
+        position_id=position_id,
+        status="closed",
+        transaction_hash=transaction_hash
+    )
     return position_status
-
 
 @router.get(
     "/api/open-position",
@@ -164,7 +172,7 @@ async def close_position(position_id: str) -> str:
     summary="Open a position",
     response_description="Returns the positions status",
 )
-async def open_position(position_id: str) -> str:
+async def open_position(position_id: str, transaction_hash: str) -> str:
     """
     Open a position.
     :param position_id: contract address
@@ -175,7 +183,18 @@ async def open_position(position_id: str) -> str:
         raise HTTPException(status_code=404, detail="Position not found")
 
     current_prices = await DashboardMixin.get_current_prices()
-    position_status = position_db_connector.open_position(position_id, current_prices)
+    position_status = position_db_connector.open_position(
+        position_id,
+        current_prices
+    )
+    
+    if transaction_hash:
+        transaction_db_connector.create_transaction(
+            position_id,
+            transaction_hash,
+            status=TransactionStatus.OPENED.value
+        )
+        
     return position_status
 
 
@@ -230,7 +249,7 @@ async def get_user_positions(wallet_id: str, start: Optional[int] = None) -> lis
 
     start_index = max(0, start) if start is not None else 0
 
-    positions = position_db_connector.get_positions_by_wallet_id(
+    positions = position_db_connector.get_all_positions_by_wallet_id(
         wallet_id, start_index, PAGINATION_STEP
     )
     return positions

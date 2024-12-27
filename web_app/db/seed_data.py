@@ -5,7 +5,16 @@ Seed data for initializing the database with predefined values.
 import logging
 from decimal import Decimal
 from faker import Faker
-from web_app.db.models import Status, User, Position, AirDrop, TelegramUser, Vault
+from web_app.db.models import (
+    Status,
+    Transaction,
+    TransactionStatus,
+    User,
+    Position,
+    AirDrop,
+    TelegramUser,
+    Vault,
+)
 from web_app.db.database import SessionLocal
 from web_app.contract_tools.constants import TokenParams
 
@@ -39,7 +48,7 @@ def create_users(session: SessionLocal) -> list[User]:
     return users
 
 
-def create_positions(session: SessionLocal, users: list[User]) -> None:
+def create_positions(session: SessionLocal, users: list[User]) -> list[Position]:
     """
     Create and save fake position records associated with given users.
     Args:
@@ -74,6 +83,7 @@ def create_positions(session: SessionLocal, users: list[User]) -> None:
         logger.info(f"Created {len(positions)} positions for {len(users)} users.")
     else:
         logger.info("No positions created.")
+    return positions
 
 
 def create_airdrops(session: SessionLocal, users: list[User]) -> None:
@@ -153,14 +163,37 @@ def create_vaults(session: SessionLocal, users: list[User]) -> None:
         logger.info("No vaults created.")
 
 
+def create_transaction(session: SessionLocal, positions: list[Position]) -> None:
+    """
+    Create and save fake transaction records to the database.
+    Args:
+        session (Session): SQLAlchemy session object.
+        positions (list): List of Position objects to associate with transactions.
+    """
+    transactions = []
+    transaction_statuses = [status.value for status in TransactionStatus]
+    for position in positions:
+        for i in range(len(transaction_statuses)):
+            transaction = Transaction(
+                position_id=position.id,
+                status=transaction_statuses[i],
+                transaction_hash=fake.unique.uuid4(),
+            )
+            transactions.append(transaction)
+    session.add_all(transactions)
+    session.commit()
+    logger.info(f"Created {len(transactions)} transactions.")
+
+
 if __name__ == "__main__":
     # Start a new session for seeding data
     with SessionLocal() as session:
         # Populate the database
         users = create_users(session)
-        create_positions(session, users)
+        positions = create_positions(session, users)
         # create_airdrops(session, users)
         # create_telegram_users(session, users)
         create_vaults(session, users)
+        create_transaction(session, positions)
 
     logger.info("Database populated with fake data.")

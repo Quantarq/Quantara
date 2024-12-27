@@ -155,13 +155,13 @@ export default function Component({ telegramId }) {
     {
       id: 'deposit ',
       name: 'Add Deposit',
-      link: '/add-deposit',
+      link: '/dashboard/deposit',
       icon: depositIcon,
     },
     {
       id: 'withdraw ',
       name: 'Withdraw All',
-      link: '/dashboard/withdraw-all',
+      link: '/dashboard/withdraw',
       icon: withdrawIcon,
     },
   ];
