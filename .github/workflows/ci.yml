@@ -4,32 +4,46 @@ on:
   push:
     branches:
       - main
-      - feature/create-generic-workflow
   pull_request:
     branches:
       - main
-      - feature/create-generic-workflow
+
 
 jobs:
   test:
-    uses: ./.github/workflows/test_workflow.yml
+    uses: ./.github/workflows/shared_workflow.yml
     with:
       python-version: "3.12"
       env-vars: |
         ENV_VERSION=DEV
 
-#    steps:
-#      - name: Start services
-#        run: docker compose -f docker-compose.dev.yaml up -d --build
-#
-#      - name: Run tests
-#        run: |
-#          docker-compose exec backend poetry run pytest web_app/tests
-#
-#      - name: Run tests coverage
-#        run: |
-#          docker-compose exec backend poetry run pytest --cov=web_app/tests --cov-fail-under=90
-#
-#      - name: Tear down
-#        run: |
-#          docker-compose down
+      services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres" 
+          --health-interval 10s 
+          --health-timeout 5s 
+          --health-retries 5
+
+  another_job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Start services
+        run: docker compose -f docker-compose.dev.yaml up -d --build
+
+      - name: Run tests
+        run: |
+          docker-compose exec backend poetry run pytest web_app/tests
+
+      - name: Run tests coverage
+        run: |
+          docker-compose exec backend poetry run pytest --cov=web_app/tests --cov-fail-under=90
+
+      - name: Tear down
+        run: |
+          docker-compose down

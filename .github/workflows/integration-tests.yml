@@ -4,15 +4,13 @@ on:
   push:
     branches:
       - main
-      - feature/create-generic-workflow
   pull_request:
     branches:
       - main
-      - feature/create-generic-workflow
 
 jobs:
   integration-tests:
-    uses: ./.github/workflows/test_workflow.yml
+    uses: ./.github/workflows/shared_workflow.yml
     with:
       python-version: "3.x"
       env-vars: |
@@ -26,13 +24,59 @@ jobs:
         REDIS_PORT=6379
         ENV_VERSION=DEV
 
-#    steps:
-#      - name: Build and Start Containers
-#        run: |
-#          docker compose -f docker-compose.dev.yaml up -d --build
-#          echo "Waiting for containers to be ready..."
-#          sleep 30
-#
-#      - name: Run Integration Tests with Coverage
-#        run: |
-#          docker compose exec backend bash -c "cd /app && python -m pytest web_app/test_integration/ -v"
+  another_job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build and Start Containers
+        run: |
+          docker compose -f docker-compose.dev.yaml up -d --build
+          echo "Waiting for containers to be ready..."
+          sleep 30
+
+      - name: Install Test Dependencies in Container
+        run: |
+          docker exec backend_dev pip install pytest pytest-cov
+          docker exec backend_dev pip freeze  # Debug: show installed packages
+
+      - name: Wait for Backend Service
+        timeout-minutes: 5
+        run: |
+          while ! curl -s http://localhost:8000/health > /dev/null; do
+            echo "Waiting for backend service..."
+            sleep 30
+            
+            # Check if the container is still running before logging
+            if ! docker ps | grep -q backend; then
+              echo "Backend container is not running!"
+              docker compose -f docker-compose.dev.yaml logs backend || true 
+              exit 1
+            fi
+            
+            # Log the backend service status for debugging purposes.
+            docker compose -f docker-compose.dev.yaml logs backend || true 
+          done
+
+      - name: Apply Migrations
+        run: |
+          docker exec backend_dev alembic -c web_app/alembic.ini upgrade head || {
+            echo "Migration failed. Showing backend logs:"
+            docker compose -f docker-compose.dev.yaml logs backend || true
+            exit 1
+          }
+
+      - name: Run Integration Tests with Coverage
+        run: |
+          docker compose exec backend bash -c "cd /app && python -m pytest web_app/test_integration/ -v"
+
+      - name: Clean Up
+        if: always()
+        run: |
+          docker compose -f docker-compose.dev.yaml logs > docker-logs.txt || true 
+          docker compose -f docker-compose.dev.yaml down -v
+
+      - name: Upload Docker Logs on Failure
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: docker-logs
+          path: docker-logs.txt
