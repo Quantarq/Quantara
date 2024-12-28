@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  integration-tests:
+  shared:
     uses: ./.github/workflows/shared_workflow.yml
     with:
       python-version: "3.x"
@@ -24,7 +24,7 @@ jobs:
         REDIS_PORT=6379
         ENV_VERSION=DEV
 
-  another_job:
+  integration-tests:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository

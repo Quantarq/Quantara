@@ -7,12 +7,12 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  shared:
     uses: ./.github/workflows/shared_workflow.yml
     with:
       python-version: "3.12"
 
-  another_job:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
