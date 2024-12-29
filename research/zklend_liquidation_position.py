@@ -74,7 +74,6 @@ async def check_liquidation_proof(user_address):
     for event in events:
         # logger.info(f"Event Data: {event}")
         # logger.info(f"Event Data: {event.data}")
-        logger.info(f"{user_address}")
 
         # Unpack event.data object
         # sample at
