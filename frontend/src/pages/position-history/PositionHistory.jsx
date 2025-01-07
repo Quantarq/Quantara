@@ -10,6 +10,11 @@ import filterIcon from '../../assets/icons/filter-horizontal.svg';
 import useDashboardData from '../../hooks/useDashboardData';
 import Card from '../../components/ui/card/Card';
 import PositionHistoryModal from '../../pages/position-history/PositionHistoryModal';
+import Sidebar from 'components/layout/sidebar/Sidebar';
+import clockIcon from 'assets/icons/clock.svg';
+import computerIcon from 'assets/icons/computer-icon.svg';
+import depositIcon from 'assets/icons/deposit.svg';
+import withdrawIcon from 'assets/icons/withdraw.svg';
 
 function PositionHistory() {
   const [selectedPosition, setSelectedPosition] = useState(null);
@@ -29,97 +34,111 @@ function PositionHistory() {
     pending: 'status-pending',
   };
 
+  const dashboardItems = [
+    { id: 'dashboard', name: 'Dashboard', link: '/dashboard', icon: computerIcon },
+    { id: 'position_history', name: 'Position History', link: '/dashboard/position-history', icon: clockIcon },
+    { id: 'deposit', name: 'Add Deposit', link: '/dashboard/deposit', icon: depositIcon },
+    { id: 'withdraw', name: 'Withdraw All', link: '/dashboard/withdraw', icon: withdrawIcon },
+  ];
+
   return (
-    <div className="position-wrapper">
-      <div className="position-container">
-        <h1 className="position-title">zkLend Position History</h1>
-        <div className="position-content">
-          <div className="position-top-cards">
-            <Card
-              label="Health Factor"
-              value={cardData?.health_ratio || '0.00'}
-              icon={<HealthIcon className="icon" />}
-            />
-            <Card label="Borrow Balance" cardData={cardData?.borrowed || '0.00'} icon={<EthIcon className="icon" />} />
+    <div className="position-history">
+      <Sidebar items={dashboardItems} />
+      <div className="position-wrapper">
+        <div className="position-container">
+          <h1 className="position-title">zkLend Position History</h1>
+          <div className="position-content">
+            <div className="position-top-cards">
+              <Card
+                label="Health Factor"
+                value={cardData?.health_ratio || '0.00'}
+                icon={<HealthIcon className="icon" />}
+              />
+              <Card
+                label="Borrow Balance"
+                cardData={cardData?.borrowed || '0.00'}
+                icon={<EthIcon className="icon" />}
+              />
+            </div>
           </div>
-        </div>
 
-        <div className="position-content-table">
-          <div className="position-table-title">
-            <p>Position History</p>
-          </div>
+          <div className="position-content-table">
+            <div className="position-table-title">
+              <p>Position History</p>
+            </div>
 
-          <div className="position-table">
-            {isPending ? (
-              <div className="spinner-container">
-                <Spinner loading={isPending} />
-              </div>
-            ) : (
-              <table className="text-white">
-                <thead>
-                  <tr>
-                    <th></th>
-                    <th>Token</th>
-                    <th>Amount</th>
-                    <th>Created At</th>
-                    <th>Status</th>
-                    <th>Start Price</th>
-                    <th>Multiplier</th>
-                    <th>Liquidated</th>
-                    <th>Closed At</th>
-                    <th className="action-column">
-                      <img src={filterIcon} alt="filter-icon" draggable="false" />
-                    </th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {!tableData || tableData.length === 0 ? (
+            <div className="position-table">
+              {isPending ? (
+                <div className="spinner-container">
+                  <Spinner loading={isPending} />
+                </div>
+              ) : (
+                <table className="text-white">
+                  <thead>
                     <tr>
-                      <td colSpan="10">No opened positions</td>
+                      <th></th>
+                      <th>Token</th>
+                      <th>Amount</th>
+                      <th>Created At</th>
+                      <th>Status</th>
+                      <th>Start Price</th>
+                      <th>Multiplier</th>
+                      <th>Liquidated</th>
+                      <th>Closed At</th>
+                      <th className="action-column">
+                        <img src={filterIcon} alt="filter-icon" draggable="false" />
+                      </th>
                     </tr>
-                  ) : (
-                    tableData.map((data, index) => (
-                      <tr key={data.id}>
-                        <td className="index">{index + 1}.</td>
-                        <td>
-                          <div className="token-cell">
-                            {tokenIconMap[data.token_symbol]}
-                            <span className="token-symbol">{data.token_symbol.toUpperCase()}</span>
-                          </div>
-                        </td>
-                        <td>{data.amount}</td>
-                        <td>{data.created_at}</td>
-                        <td className={`status-cell ${statusStyles[data.status.toLowerCase()] || ''}`}>
-                          {data.status}
-                        </td>
-                        <td>{data.start_price}</td>
-                        <td>{data.multiplier}</td>
-                        <td>{data.is_liquidated}</td>
-                        <td>{data.datetime_liquidation}</td>
-                        <td className="action-column">
-                          <span className="action-button" onClick={() => setSelectedPosition({ data, index })}>
-                            &#x22EE;
-                          </span>
-                        </td>
+                  </thead>
+
+                  <tbody>
+                    {!tableData || tableData.length === 0 ? (
+                      <tr>
+                        <td colSpan="10">No opened positions</td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            )}
+                    ) : (
+                      tableData.map((data, index) => (
+                        <tr key={data.id}>
+                          <td className="index">{index + 1}.</td>
+                          <td>
+                            <div className="token-cell">
+                              {tokenIconMap[data.token_symbol]}
+                              <span className="token-symbol">{data.token_symbol.toUpperCase()}</span>
+                            </div>
+                          </td>
+                          <td>{data.amount}</td>
+                          <td>{data.created_at}</td>
+                          <td className={`status-cell ${statusStyles[data.status.toLowerCase()] || ''}`}>
+                            {data.status}
+                          </td>
+                          <td>{data.start_price}</td>
+                          <td>{data.multiplier}</td>
+                          <td>{data.is_liquidated}</td>
+                          <td>{data.datetime_liquidation}</td>
+                          <td className="action-column">
+                            <span className="action-button" onClick={() => setSelectedPosition({ data, index })}>
+                              &#x22EE;
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              )}
+            </div>
           </div>
         </div>
+        {selectedPosition && (
+          <PositionHistoryModal
+            position={selectedPosition.data}
+            onClose={() => setSelectedPosition(null)}
+            tokenIcon={tokenIconMap}
+            statusStyles={statusStyles}
+            index={selectedPosition.index + 1}
+          />
+        )}
       </div>
-      {selectedPosition && (
-        <PositionHistoryModal
-          position={selectedPosition.data}
-          onClose={() => setSelectedPosition(null)}
-          tokenIcon={tokenIconMap}
-          statusStyles={statusStyles}
-          index={selectedPosition.index + 1}
-        />
-      )}
     </div>
   );
 }
