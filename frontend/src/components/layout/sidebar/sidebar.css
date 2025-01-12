@@ -44,6 +44,16 @@
   padding-left: 80px;
 }
 
+@media (max-width: 1200px) {
+  .sidebar-nav {
+    padding-left: 50px;
+  }
+
+  .narrow-sidebar .sidebar-nav {
+    padding-left: 50px;
+  }
+}
+
 /* Item styles */
 .sidebar-item-wrapper {
   width: 100%;

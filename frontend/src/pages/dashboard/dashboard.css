@@ -8,7 +8,6 @@ body {
 }
 .dashboard {
   min-height: 100vh;
-  height: 100%;
   display: flex;
   width: calc(100vw - 372px);
   margin-left: 372px;
@@ -24,12 +23,10 @@ body {
 
 .dashboard-wrapper {
   position: relative;
-  min-height: 100vh;
-  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  width: calc(100vw - 500px);
+  width: calc(100vw - 735px);
 }
 
 .dashboard-container {

@@ -1,6 +1,5 @@
 .deposit {
   min-height: 100vh;
-  height: 100%;
   display: flex;
   width: calc(100vw - 372px);
   margin-left: 372px;
@@ -16,12 +15,10 @@
 
 .deposit-wrapper {
   position: relative;
-  min-height: 100vh;
-  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  width: calc(100vw - 500px);
+  width: calc(100vw - 735px);
 }
 
 .deposit-container {
@@ -56,7 +53,7 @@
 }
 .top-cards-deposit {
   display: flex;
-  gap: 1.5rem;
+  gap: 0.5rem;
   width: 642px;
   height: 101px;
   justify-content: center;
