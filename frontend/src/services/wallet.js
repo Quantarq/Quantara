@@ -6,6 +6,7 @@ import { ReactComponent as USDC } from 'assets/icons/borrow_usdc.svg';
 import { ReactComponent as STRK } from 'assets/icons/strk.svg';
 
 const CRM_TOKEN_ADDRESS = "0x051c4b1fe3bf6774b87ad0b15ef5d1472759076e42944fff9b9f641ff13e5bbe";
+let globalWallet = null;
 
 // Check if the connected wallet holds the CRM token
 export const checkForCRMToken = async (walletAddress) => {
@@ -38,22 +39,19 @@ export const checkForCRMToken = async (walletAddress) => {
 };
 
 export const getWallet = async () => {
-  const { wallet } = await connect({ modalMode: "neverAsk" });
-  if (wallet) {
-    await wallet.enable();
+  if (globalWallet && globalWallet.isConnected) {
+    return globalWallet;
   }
-  if (!wallet || !wallet.isConnected) {
-    throw new Error('Wallet not connected');
-  }
-  return wallet;
-}
+
+  console.log('No wallet found. Attempting to connect...');
+  return await connectWallet(); // Fallback to connectWallet if not already connected
+};
 
 export const connectWallet = async () => {
   try {
     console.log('Attempting to connect to wallet...');
 
     const { wallet } = await connect({
-      // include: ['argentX', 'braavos'],
       modalMode: "alwaysAsk",
       modalTheme: "light",
     });
@@ -67,6 +65,7 @@ export const connectWallet = async () => {
 
     if (wallet.isConnected) {
       const address = wallet.selectedAddress;
+      globalWallet = wallet;
       console.log('Wallet successfully connected. Address:', address);
       return address;
     } else {
@@ -108,6 +107,7 @@ async function getTokenBalance(wallet, walletAddress, tokenAddress) {
       entrypoint: 'balanceOf',
       calldata: [walletAddress],
     });
+
     const tokenDecimals = (tokenAddress === USDC_ADDRESS) ? 6 : 18;
     const balance = BigInt(response.result[0]).toString();
     const readableBalance = (Number(balance) / (10 ** tokenDecimals)).toFixed(4);
