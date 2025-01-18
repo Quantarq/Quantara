@@ -95,6 +95,7 @@ class PositionDBConnector(UserDBConnector):
                     .all()
                 )
 
+                # Convert positions to a list of dictionaries
                 positions_dict = [
                     self._position_to_dict(position) for position in positions
                 ]
@@ -132,6 +133,7 @@ class PositionDBConnector(UserDBConnector):
                     .all()
                 )
 
+                # Convert positions to a list of dictionaries
                 return [self._position_to_dict(position) for position in positions]
 
             except SQLAlchemyError as e:
@@ -181,6 +183,7 @@ class PositionDBConnector(UserDBConnector):
             logger.error(f"User with wallet ID {wallet_id} not found")
             return None
 
+        # Check if a position with status 'pending' already exists for this user
         with self.Session() as session:
             existing_position = (
                 session.query(Position)
@@ -199,6 +202,7 @@ class PositionDBConnector(UserDBConnector):
                 session.refresh(existing_position)
                 return existing_position
 
+            # Create a new position since none with 'pending' status exists
             position = Position(
                 user_id=user.id,
                 token_symbol=token_symbol,
@@ -304,7 +308,6 @@ class PositionDBConnector(UserDBConnector):
         """
         with self.Session() as db:
             try:
-
                 token_amounts = (
                     db.query(
                         Position.token_symbol,
@@ -402,6 +405,7 @@ class PositionDBConnector(UserDBConnector):
                     .all()
                 )
 
+                # Convert ORM objects to dictionaries for return
                 return [
                     {
                         "user_id": position.user_id,
@@ -468,7 +472,9 @@ class PositionDBConnector(UserDBConnector):
     def get_extra_deposits_data(self, position_id: UUID) -> dict[str, str]:
         """
         Get all extra deposits for a position.
-        Returns a dictionary of token_symbol: amount pairs.
+        
+        :param position_id: UUID of the position
+        :return: a dictionary of token_symbol: amount pairs.
         """
         with self.Session() as db:
             deposits = (
@@ -519,8 +525,14 @@ class PositionDBConnector(UserDBConnector):
                 return Decimal(0)
 
     def get_all_extra_deposit_positions(
-        self, position_id
+        self, position_id: UUID
     ) -> dict[str, dict | list[dict]]:
+        """
+        Get all extra deposits by position id + main deposit
+
+        :param position_id: UUID of the position
+        :return: dict with main position and extra_deposits
+        """
         with self.Session() as db:
             extra_deposits = (
                 db.query(ExtraDeposit)

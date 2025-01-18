@@ -51,6 +51,7 @@ class DashboardMixin:
                         )
                         symbol = TokenParams.get_token_symbol(address_with_leading_zero)
                         if symbol:
+                            # Convert to Decimal for precise calculations
                             prices[symbol] = Decimal(str(current_price))
                 except (AttributeError, TypeError, ValueError) as e:
                     logger.debug(f"Error parsing price for {address}: {str(e)}")
@@ -108,11 +109,8 @@ class DashboardMixin:
         """
         Calculate the total position value including extra deposits.
 
-        Args:
-            position: Position object containing base amount and token information
-
-        Returns:
-            Decimal representing total position value including extra deposits
+        :param position: Position object containing base amount and token information
+        :return: Decimal representing total position value including extra deposits
         """
         total_amount = Decimal(position["amount"])
         extra_deposits = position_db_connector.get_extra_deposits_data(position["id"])

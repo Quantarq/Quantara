@@ -205,13 +205,10 @@ async def get_add_deposit_data(position_id: UUID, amount: str, token_symbol: str
     """
     Prepare data for adding an extra deposit to a position.
 
-    Args:
-        position_id: UUID of the position
-        amount: Amount of tokens to deposit
-        token_symbol: Symbol of the token being deposited
-
-    Returns:
-        Dict containing deposit data with token address and amount
+    :param position_id: UUID of the position
+    :param amount: Amount of tokens to deposit
+    :param token_symbol: Symbol of the token being deposited
+    :return: Dict containing deposit data with token address and amount
     """
     if not amount:
         raise HTTPException(status_code=400, detail="Amount is required")
@@ -242,6 +239,10 @@ async def add_extra_deposit(position_id: UUID, data: AddPositionDepositData):
     Add extra deposit to a user position.
     All deposits are now handled through ExtraDeposit table,
     regardless of token type.
+    
+    :param position_id: UUID of the position
+    :param data: Deposit data to create extra deposit
+    :return Dict containing detail
     """
     if not data.amount:
         raise HTTPException(status_code=400, detail="Amount is required")
@@ -296,5 +297,11 @@ async def get_user_positions(wallet_id: str, start: Optional[int] = None) -> lis
     response_model=UserPositionExtraDepositsResponse,
     summary="Get all extra positions for a user",
 )
-async def get_list_of_deposited_tokens(position_id: UUID) -> dict[str, dict | list]:
+async def get_list_of_deposited_tokens(position_id: UUID) -> dict[str, dict | list[dict]]:
+    """
+    Get position and extra position by position id
+    
+    :param position_id: UUID of the position
+    :return Dict containing main position and extra positions
+    """
     return position_db_connector.get_all_extra_deposit_positions(position_id)
