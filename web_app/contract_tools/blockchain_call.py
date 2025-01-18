@@ -353,43 +353,6 @@ class StarknetClient:
             calldata=[self._convert_address(token_address), amount],
         )
 
-    async def withdraw_all(self, contract_address: str) -> dict[str, str]:
-        """
-        Withdraws all supported tokens from the contract by calling withdraw with amount=0.
-
-        :param contract_address: The contract address to withdraw from
-        :return: A dictionary summarizing the results for each token.
-        """
-        contract_addr_int = self._convert_address(contract_address)
-        results = {}
-
-        for token in TokenParams.tokens():
-            token_symbol = token.name
-
-            try:
-                token_addr_int = self._convert_address(token.address)
-
-            except ValueError as e:
-                logger.error(f"Invalid address format for {token_symbol}: {str(e)}")
-                results[token_symbol] = "Failed: Invalid address format"
-                continue
-
-            try:
-                logger.info(
-                    f"Withdrawing {token_symbol} from contract {contract_address}"
-                )
-                await self._func_call(
-                    addr=contract_addr_int,
-                    selector="withdraw",
-                    calldata=[token_addr_int, 0],
-                )
-                results[token_symbol] = "Success"
-            except Exception as e:
-                logger.error(f"Error withdrawing {token_symbol}: {e}")
-                results[token_symbol] = f"Failed: {e}"
-
-        return results
-
     async def fetch_portfolio(self, contract_address: str) -> dict:
         """
         Fetches the portfolio of the contract
