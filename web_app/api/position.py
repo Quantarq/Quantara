@@ -17,7 +17,7 @@ from web_app.api.serializers.position import (
 )
 from web_app.api.serializers.transaction import (
     LoopLiquidityData,
-    RepayTransactionDataResponse,
+    RepayTransactionDataResponse, WithdrawAllData,
 )
 from web_app.contract_tools.constants import TokenMultipliers, TokenParams
 from web_app.contract_tools.mixins import DashboardMixin, DepositMixin, PositionMixin
@@ -196,6 +196,36 @@ async def open_position(position_id: str, transaction_hash: str) -> str:
 
 
 @router.get(
+    "/api/get-withdraw-all-data",
+    tags=["Position Operations"],
+    summary="Get data to close position and withdraw all tokens",
+    response_model=WithdrawAllData,
+    response_description="Object containing data for close position and a list of tokens to withdraw"
+)
+async def get_withdraw_data(wallet_id: str, request: Request) -> WithdrawAllData:
+    contract_address, position_id, token_symbol = position_db_connector.get_repay_data(
+        wallet_id
+    )
+    if not await PositionMixin.is_opened_position(contract_address):
+        raise HTTPException(status_code=400, detail="Position was closed")
+    if not position_id:
+        raise HTTPException(status_code=404, detail="Position not found or closed")
+
+    repay_data = await DepositMixin.get_repay_data(
+        token_symbol, request.app.state.ekubo_contract
+    )
+    extra_tokens = position_db_connector.get_extra_deposits_data(position_id).keys()
+    repay_data["position_id"] = str(position_id)
+    repay_data["contract_address"] = contract_address
+
+    data = WithdrawAllData(
+        repay_data=RepayTransactionDataResponse(**repay_data),
+        tokens=[TokenParams.get_token_address(symbol) for symbol in extra_tokens if symbol != token_symbol]
+    )
+    return data
+
+
+@router.get(
     "/api/get-add-deposit-data/{position_id}",
     tags=["Position Operations"],
     summary="Add extra deposit to a user position",
@@ -217,6 +247,7 @@ async def get_add_deposit_data(position_id: UUID, amount: str, token_symbol: str
         raise HTTPException(status_code=400, detail="Token symbol is required")
 
     position = position_db_connector.get_position_by_id(position_id)
+    print(position_db_connector.get_extra_deposits_data(position_id))
     if not position:
         raise HTTPException(status_code=404, detail="Position not found")
 

@@ -99,3 +99,9 @@ class UpdateUserContractRequest(BaseModel):
 
     wallet_id: str
     contract_address: str
+
+
+
+class WithdrawAllData(BaseModel):
+    repay_data: RepayTransactionDataResponse
+    tokens: list[str]
