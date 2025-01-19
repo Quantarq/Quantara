@@ -29,7 +29,10 @@
     "format": "prettier --check . --write",
     "eject": "react-scripts eject"
   },
-  "proxy": "http://localhost:8000",
+  "options": {
+    "allowedHosts": ["localhost", ".localhost"],
+    "proxy": "http://localhost:8000"
+  },
   "browserslist": {
     "production": [
       ">0.2%",

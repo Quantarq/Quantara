@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './positionHistory.css';
 import { ReactComponent as HealthIcon } from '../../assets/icons/health.svg';
 import { ReactComponent as EthIcon } from '../../assets/icons/ethereum.svg';
@@ -10,6 +10,7 @@ import filterIcon from '../../assets/icons/filter-horizontal.svg';
 import useDashboardData from '../../hooks/useDashboardData';
 import Card from '../../components/ui/card/Card';
 import PositionHistoryModal from '../../pages/position-history/PositionHistoryModal';
+import PositionPagination from '../../pages/position-history/PositionPagination';
 import Sidebar from 'components/layout/sidebar/Sidebar';
 import clockIcon from 'assets/icons/clock.svg';
 import computerIcon from 'assets/icons/computer-icon.svg';
@@ -18,9 +19,24 @@ import withdrawIcon from 'assets/icons/withdraw.svg';
 
 function PositionHistory() {
   const [selectedPosition, setSelectedPosition] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { data: tableData, isPending } = usePositionHistoryTable();
   const { data: cardData } = useDashboardData();
+
+  const [ filteredTableData, setFilteredTableData ] = useState(tableData);
+  const positionsOnPage = 10;
+
+  const getFilteredData = (data, page, itemsPerPage) => {
+    const start = (page - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return data.slice(start, end);
+  }
+  
+  useEffect(() => {
+    if (!isPending && tableData)
+      setFilteredTableData(getFilteredData(tableData, currentPage, positionsOnPage));
+  }, [currentPage, isPending]);
 
   const tokenIconMap = {
     STRK: <StrkIcon className="token-icon" />,
@@ -92,12 +108,12 @@ function PositionHistory() {
                   </thead>
 
                   <tbody>
-                    {!tableData || tableData.length === 0 ? (
+                    {!tableData || tableData.length === 0 || !filteredTableData ? (
                       <tr>
                         <td colSpan="10">No opened positions</td>
                       </tr>
                     ) : (
-                      tableData.map((data, index) => (
+                      filteredTableData.map((data, index) => (
                         <tr key={data.id}>
                           <td className="index">{index + 1}.</td>
                           <td>
@@ -128,6 +144,14 @@ function PositionHistory() {
               )}
             </div>
           </div>
+
+          <PositionPagination
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+            isPending={isPending}
+            tableData={tableData}
+            positionsOnPage={positionsOnPage}
+          />
         </div>
         {selectedPosition && (
           <PositionHistoryModal
