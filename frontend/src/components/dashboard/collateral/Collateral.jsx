@@ -21,7 +21,7 @@ function Collateral({ data, startSum, currentSum, getCurrentSumColor }) {
           <span className="balance-label">Start sum: </span>
           <span className="balance-value">
             <span className="currency-symbol">$</span>
-            {startSum ? Number(startSum).toFixed(0) : '0.00'}
+            {startSum ? Number(startSum).toFixed(2) : '0.00'}
           </span>
         </span>
         <span>

@@ -340,13 +340,16 @@ async def get_user_positions(wallet_id: str, start: Optional[int] = None) -> lis
     response_model=UserPositionExtraDepositsResponse,
     summary="Get all extra positions for a user",
 )
-async def get_list_of_deposited_tokens(
-    position_id: UUID,
-) -> dict[str, dict | list[dict]]:
+async def get_list_of_deposited_tokens(position_id: UUID):
     """
     Get position and extra position by position id
 
     :param position_id: UUID of the position
     :return Dict containing main position and extra positions
     """
-    return position_db_connector.get_all_extra_deposit_positions(position_id)
+    main_position = position_db_connector.get_position_by_id(position_id)
+    extra_deposits = position_db_connector.get_extra_deposits_by_position_id(position_id)
+    return {
+        "main": main_position,
+        "extra_deposits": extra_deposits
+    }

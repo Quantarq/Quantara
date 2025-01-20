@@ -112,9 +112,27 @@ class DashboardMixin:
         :param position: Position object containing base amount and token information
         :return: Decimal representing total position value including extra deposits
         """
-        return position_db_connector.get_current_position_sum_with_extra_deposits(
-            position["id"], await cls.get_current_prices()
-        )
+        main_position = position_db_connector.get_position_by_id(position["id"])
+        if not main_position:
+            return Decimal(0)
+
+        current_prices = await cls.get_current_prices()
+        base_price = current_prices.get(main_position.token_symbol)
+        total_sum = Decimal(0)
+        if base_price:
+            total_sum += cls._calculate_sum(base_price, Decimal(main_position.amount), Decimal(main_position.multiplier))
+        
+        extra_deposits = position_db_connector.get_extra_deposits_by_position_id(position["id"])
+        
+        for extra_deposit in extra_deposits:
+            if extra_deposit.token_symbol in current_prices:
+                deposit_amount = Decimal(extra_deposit.amount)
+                if extra_deposit.token_symbol != main_position.token_symbol:
+                    deposit_amount *= Decimal(current_prices[extra_deposit.token_symbol])
+                    deposit_amount /= Decimal(current_prices[main_position.token_symbol])
+                total_sum += deposit_amount
+        
+        return total_sum
 
     @classmethod
     async def get_start_position_sum(
@@ -152,14 +170,10 @@ class DashboardMixin:
         :param position_id: Position ID
         :return: Position balance
         """
-        position_balances = position_db_connector.get_all_extra_deposit_positions(
-            position_id
-        )
-        main_position = position_balances.get("main")
+        main_position = position_db_connector.get_position_by_id(position_id)
+        extra_deposits = position_db_connector.get_extra_deposits_by_position_id(position_id)
         main_position_balance = main_position and main_position.amount or "0"
-
         total_extra_balance = Decimal("0")
-        extra_deposits = position_balances.get("extra_deposits", [])
         for extra_deposit in extra_deposits:
             total_extra_balance += Decimal(extra_deposit.amount)
         return main_position_balance, total_extra_balance

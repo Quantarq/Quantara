@@ -67,7 +67,7 @@ export const AddDeposit = () => {
             <div className="top-cards-deposit">
               <Card
                 label="Health Factor"
-                value={formatNumber(dashboardData?.health_ratio, false)}
+                value={dashboardData?.health_ratio}
                 icon={<HealthIcon className="icon" />}
               />
               <Card
