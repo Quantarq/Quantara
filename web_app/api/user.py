@@ -1,4 +1,3 @@
-
 """
 This module handles user-related API endpoints.
 """
@@ -6,22 +5,26 @@ This module handles user-related API endpoints.
 import logging
 from decimal import Decimal
 
+import sentry_sdk
 from fastapi import APIRouter, HTTPException
+
 from web_app.api.serializers.transaction import UpdateUserContractRequest
 from web_app.api.serializers.user import (
+    BugReportRequest,
+    BugReportResponse,
     CheckUserResponse,
     GetStatsResponse,
     GetUserContractAddressResponse,
     SubscribeToNotificationRequest,
     UpdateUserContractResponse,
 )
-from web_app.contract_tools.mixins import PositionMixin, DashboardMixin
+from web_app.contract_tools.blockchain_call import CLIENT
+from web_app.contract_tools.mixins import DashboardMixin, PositionMixin
 from web_app.db.crud import (
     PositionDBConnector,
     TelegramUserDBConnector,
     UserDBConnector,
 )
-from web_app.contract_tools.blockchain_call import CLIENT
 
 logger = logging.getLogger(__name__)
 router = APIRouter()  # Initialize the router
@@ -257,3 +260,62 @@ async def get_stats() -> GetStatsResponse:
     except Exception as e:
         logger.error(f"Error in get_stats: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@router.post(
+    "/api/save-bug-report",
+    response_model=BugReportResponse,
+    tags=["Bug Reports"],
+    summary="Submit a bug report",
+    response_description="Returns confirmation of bug report submission",
+)
+async def save_bug_report(report: BugReportRequest) -> BugReportResponse:
+    """
+    Save a bug report and send it to Sentry for tracking.
+
+    ### Parameters:
+    - **report**: An instance of BugReportRequest containing:
+        - **wallet_id**: User's wallet ID (0x format)
+        - **telegram_id**: Optional Telegram ID (numeric)
+        - **bug_description**: Detailed bug description (1-1000 chars)
+
+    ### Returns:
+    - BugReportResponse with confirmation message
+
+    ### Raises:
+    - 422: Validation error
+    - 500: Internal server error
+    """
+    try:
+        if report.wallet_id.strip() == "" or report.bug_description.strip() == "":
+            raise HTTPException(
+                status_code=422, detail="Wallet ID and bug description cannot be empty"
+            )
+
+        sentry_sdk.set_user(
+            {"wallet_id": report.wallet_id, "telegram_id": report.telegram_id}
+        )
+
+        sentry_sdk.set_context(
+            "bug_report",
+            {
+                "wallet_id": report.wallet_id,
+                "telegram_id": report.telegram_id,
+                "description": report.bug_description,
+            },
+        )
+
+        sentry_sdk.capture_message(
+            f"Bug Report from {report.wallet_id}",
+            level="error",
+            extras={"description": report.bug_description},
+        )
+
+        return BugReportResponse(message="Bug report submitted successfully")
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise
+
+        logger.error(f"Failed to submit bug report: {str(e)}")
+        sentry_sdk.capture_exception(e)
+        raise HTTPException(status_code=500, detail="Failed to submit bug report")

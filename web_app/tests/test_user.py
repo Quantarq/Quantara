@@ -349,3 +349,91 @@ async def test_subscribe_to_notification(
 #     mock_get_contract_address.assert_called_once_with(wallet_id)
 #     if contract_address:
 #         mock_withdraw_all.assert_called_once_with(contract_address)
+
+
+@pytest.mark.asyncio
+@patch("sentry_sdk.capture_message")
+@patch("sentry_sdk.set_user")
+@patch("sentry_sdk.set_context")
+@pytest.mark.parametrize(
+    "report_data, expected_status, expected_response",
+    [
+        (
+            {
+                "wallet_id": "0x123",
+                "telegram_id": "456",
+                "bug_description": "Test bug description",
+            },
+            200,
+            {"message": "Bug report submitted successfully"},
+        ),
+        (
+            {"wallet_id": "0x123", "bug_description": "Test without telegram"},
+            200,
+            {"message": "Bug report submitted successfully"},
+        ),
+    ],
+)
+async def test_save_bug_report_success(
+    mock_set_context,
+    mock_set_user,
+    mock_capture_message,
+    client,
+    report_data,
+    expected_status,
+    expected_response,
+):
+    """Test successful bug report submission"""
+    response = client.post("/api/save-bug-report", json=report_data)
+
+    assert response.status_code == expected_status
+    assert response.json() == expected_response
+    mock_set_user.assert_called_once()
+    mock_set_context.assert_called_once()
+    mock_capture_message.assert_called_once()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "report_data, expected_status, error_message",
+    [
+        (
+            {"wallet_id": "invalid", "bug_description": "Test"},
+            422,
+            "String should match pattern '^0x[a-fA-F0-9]+$'",
+        ),
+        (
+            {"wallet_id": "0x123", "telegram_id": "abc", "bug_description": "Test"},
+            422,
+            "String should match pattern '^\\d+$'",
+        ),
+        (
+            {"wallet_id": "0x123", "bug_description": ""},
+            422,
+            "String should have at least 1 character",
+        ),
+        (
+            {"telegram_id": "456", "bug_description": "Missing wallet"},
+            422,
+            "Field required",
+        ),
+        (
+            {"wallet_id": "0x123", "telegram_id": "456"},
+            422,
+            "Field required",
+        ),
+        (
+            {},
+            422,
+            "Field required",
+        ),
+    ],
+)
+async def test_save_bug_report_validation(
+    client, report_data, expected_status, error_message
+):
+    """Test bug report validation failures"""
+    response = client.post("/api/save-bug-report", json=report_data)
+
+    assert response.status_code == expected_status
+    assert response.json()["detail"][0]["msg"] == error_message

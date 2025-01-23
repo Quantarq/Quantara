@@ -2,8 +2,9 @@
 This module defines the serializers for the user data.
 """
 
-from decimal import Decimal
 from datetime import datetime
+from decimal import Decimal
+
 from pydantic import BaseModel, Field
 
 
@@ -100,3 +101,27 @@ class SubscribeToNotificationRequest(BaseModel):
         None, example="123456789", description="Telegram ID of the user"
     )
     wallet_id: str = Field(..., example="0xabc123", description="Wallet ID of the user")
+
+
+class BugReportRequest(BaseModel):
+    """
+    Pydantic model for bug report request.
+    """
+
+    wallet_id: str = Field(
+        ..., pattern=r"^0x[a-fA-F0-9]+$", description="User's wallet ID"
+    )
+    telegram_id: str | None = Field(
+        None, pattern=r"^\d+$", description="User's Telegram ID"
+    )
+    bug_description: str = Field(
+        ..., min_length=1, description="Description of the bug"
+    )
+
+
+class BugReportResponse(BaseModel):
+    """
+    Pydantic model for bug report response.
+    """
+
+    message: str = Field(..., example="Bug report submitted successfully")
