@@ -1,5 +1,6 @@
 import React from 'react';
 import { connect, disconnect } from 'starknetkit';
+import { InjectedConnector } from 'starknetkit/injected';
 import { ETH_ADDRESS, STRK_ADDRESS, USDC_ADDRESS } from '../utils/constants';
 import { ReactComponent as ETH } from 'assets/icons/ethereum.svg';
 import { ReactComponent as USDC } from 'assets/icons/borrow_usdc.svg';
@@ -16,9 +17,8 @@ export const checkForCRMToken = async (walletAddress) => {
   }
 
   try {
-    const { wallet } = await connect({
-      modalMode: "neverAsk",
-    });
+    let wallet = null;
+    await getWallet().then(() => wallet = globalWallet);
 
     console.log('Checking CRM token balance for wallet:', wallet);
     const response = await wallet.provider.callContract({
@@ -53,9 +53,17 @@ export const connectWallet = async () => {
   try {
     console.log('Attempting to connect to wallet...');
 
+    const connectors = !localStorage.getItem("wallet_variant") ? [
+      new InjectedConnector({ options: { id: "argentX" }}),
+      new InjectedConnector({ options: { id: "braavos" }}),
+    ] : [
+      new InjectedConnector({ options: { id: localStorage.getItem("wallet_variant") }}),
+    ];
+
     const { wallet } = await connect({
+      connectors: connectors,
       modalMode: "alwaysAsk",
-      modalTheme: "light",
+      modalTheme: "dark"
     });
 
     if (!wallet) {
@@ -68,6 +76,7 @@ export const connectWallet = async () => {
     if (wallet.isConnected) {
       const address = wallet.selectedAddress;
       globalWallet = wallet;
+      localStorage.setItem("wallet_variant", wallet.id);
       console.log('Wallet successfully connected. Address:', address);
       return address;
     } else {
@@ -86,9 +95,8 @@ export function logout() {
 
 export async function getTokenBalances(walletAddress) {
   try {
-    const { wallet } = await connect({
-      modalMode: "neverAsk",
-    });
+    let wallet = null;
+    await getWallet().then(() => wallet = globalWallet);
     console.log("Wallet info", wallet);
 
     const tokenBalances = {
