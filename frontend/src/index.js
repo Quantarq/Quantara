@@ -11,12 +11,12 @@ const queryClient = new QueryClient();
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 root.render(
-  <ModalProvider>
-    <QueryClientProvider client={queryClient}>
+  <QueryClientProvider client={queryClient}>
+    <ModalProvider>
       <Router>
         <App />
       </Router>
       <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
-  </ModalProvider>
+    </ModalProvider>
+  </QueryClientProvider>
 );
