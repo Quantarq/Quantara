@@ -100,20 +100,7 @@ const Form = () => {
         <div className="form-title">
           <h1>Please submit your leverage details</h1>
         </div>
-        <ActionModal
-          isOpen={isClosePositionOpen}
-          title="Open New Position"
-          subTitle="Do you want to open new a position?"
-          content={[
-            'You have already opened a position.',
-            'Please close active position to open a new one.',
-            "Click the 'Close Active Position' button to continue.",
-          ]}
-          cancelLabel="Cancel"
-          submitLabel="Close Active Position"
-          submitAction={onClosePositionAction}
-          cancelAction={handleCloseModal}
-        />
+
         <TokenSelector
           selectedToken={selectedToken}
           setSelectedToken={setSelectedToken}

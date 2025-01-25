@@ -1,4 +1,4 @@
-.modal-overlay {
+.modall-overlay {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -7,24 +7,30 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    /* background-image: url('./background-img-form.png'); */
+    background: url('../../assets/images/background-form.png');
     z-index: 10100;
     background-repeat: no-repeat;
-    background-size: contain;
+    background-size: cover;
     padding: 100px 100px;
 
 }
 
-.report-bug-form {
+.text-group {
+    background-color: #120721;
+    border-radius: 8px;
+    padding: 24px;
     width: 100%;
     max-width: 642px;
-    background-color: #120721;
+}
+
+.report-bug-form {
     border-radius: 2px;
+
 }
 
 
 
-.modal-content h3 {
+.modall-content h3 {
 
     font-family: Open Sans;
     font-size: 16px;
@@ -105,10 +111,6 @@
     font-family: Open Sans;
     font-size: 14px;
     font-weight: 400;
-
-
-
-
     margin-bottom: 24px;
 }
 

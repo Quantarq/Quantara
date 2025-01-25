@@ -9,13 +9,13 @@ import MobDropdownMenu from '../mob-dropdown-menu/MobDropdownMenu';
 import './header.css';
 import '../../../globals.css';
 import { ReportBugButton } from 'components/report-button/ReportBugButton';
-import { useModal } from 'context/ModalProvider';
 import { ReportBugModal } from 'components/report-modal/ReportBugModal';
 
 function Header({ onConnectWallet, onLogout }) {
-  const { openModal, closeModal, isModalOpen } = useModal();
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const location = useLocation(); // Getting object of currant route
+  const location = useLocation();
+
 
   const makeNavStick = [
     '/overview',
@@ -59,25 +59,43 @@ function Header({ onConnectWallet, onLogout }) {
     setIsMenuOpen(false);
   };
 
+
+  const openModal = () => {
+    setIsModalOpen(true);
+  };
+
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
   return (
-    <><nav className={makeNavStick ? 'header-nav-sticky' : 'header-nav'}>
-      <div className="list-items">
-        <div className="logo">
-          <NavLink to="/">
-            <Logo />
-          </NavLink>
-        </div>
-        {/* desktop navigation */}
-        <NavigationLinks onNavClick={handleNavClick} />
-        <div className="menu-section">
-          <div className="dropdown">
-            <MobDropdownMenu isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
+    <>
+      <nav className={makeNavStick ? 'header-nav-sticky' : 'header-nav'}>
+        <div className="list-items">
+          <div className="logo">
+            <NavLink to="/">
+              <Logo />
+            </NavLink>
           </div>
-          <WalletSection onConnectWallet={onConnectWallet} onLogout={onLogout} />
+          {/* Desktop navigation */}
+          <NavigationLinks onNavClick={handleNavClick} />
+          <div className="menu-section">
+            <div className="dropdown">
+              <MobDropdownMenu isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
+            </div>
+            <WalletSection onConnectWallet={onConnectWallet} onLogout={onLogout} />
+          </div>
         </div>
-      </div>
-    </nav>
-      {!isModalOpen && <ReportBugButton onClick={() => openModal(<ReportBugModal isOpen={true} onClose={closeModal} />)} />}
+      </nav>
+
+      {/* Report Bug Button */}
+      {!isModalOpen && <ReportBugButton onClick={openModal} />}
+
+      {/* Report Bug Modal */}
+      {isModalOpen && (
+        <ReportBugModal isOpen={true} onClose={closeModal} />
+      )}
     </>
   );
 }
