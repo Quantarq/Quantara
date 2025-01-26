@@ -5,6 +5,10 @@
   align-items: center;
   overflow-x: auto;
   overflow-y: hidden;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #36294e;
 }
 
 .tab {
@@ -76,6 +80,8 @@
   height: 18px;
   border-radius: 8px;
   background-color: var(--border-color);
+  min-width: 3px;
+  min-height: 18px;
   margin: 0 1rem;
 }
 
@@ -95,7 +101,7 @@
   .tab-divider {
     width: 2px;
     height: 16px;
-    margin: 0 4px;
+    margin: 0 10px;
     background-color: var(--border-color);
   }
 
@@ -124,7 +130,7 @@
   .tab-divider {
     width: 2px;
     height: 16px;
-    margin: 0 18px;
+    margin: 0 15px;
     background-color: var(--border-color);
   }
 

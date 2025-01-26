@@ -39,7 +39,7 @@ function DashboardTabs({ activeTab, switchTab }) {
             <span className="tab-title">{tab.title}</span>
           </button>
 
-          {index < tabConfig.length - 1 && <div className="tab-divider" />}
+          {index < tabConfig.length - 1 && <div className="tab-divider"></div>}
         </React.Fragment>
       ))}
 
