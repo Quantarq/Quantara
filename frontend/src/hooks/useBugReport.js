@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
-import { axiosInstance } from 'utils/axios';
-import { notify } from 'components/layout/notifier/Notifier';
+import { axiosInstance } from '@/utils/axios';
+import { notify } from '@/components/layout/notifier/Notifier';
 
 export const useBugReport = (walletId, bugDescription, onClose) => {
   const mutation = useMutation({
