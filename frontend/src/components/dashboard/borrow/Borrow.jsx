@@ -4,7 +4,7 @@ import BorrowIcon from '../../../assets/icons/borrow_dynamic.svg?react';
 
 function Borrow({ data }) {
   return (
-    <div className="tab-content">
+    <div className="borrow-tab-content">
       <div className="balance-info">
         <div className="currency-info">
           {React.createElement(data[1]?.currencyIcon || BorrowIcon, {
