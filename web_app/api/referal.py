@@ -31,6 +31,10 @@ router = APIRouter(
 
 
 class ReferralResponse(Base):
+    """ 
+    Response model
+    """
+    
     wallet_id: str
     referral_code: str
 
