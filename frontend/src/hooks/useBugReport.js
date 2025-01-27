@@ -2,15 +2,18 @@ import { useMutation } from '@tanstack/react-query';
 import { axiosInstance } from 'utils/axios';
 // import { generateTelegramLink } from 'services/telegram';
 import { notify } from 'components/layout/notifier/Notifier';
+import { sendExtraDepositTransaction } from 'services/transaction';
 
 export const useBugReport = (walletId, bugDescription, onClose) => {
   const mutation = useMutation({
     mutationFn: async () => {
-      return await axiosInstance.post(`/api/save-bug-report`, {
-        telegram_id: window?.Telegram?.WebApp?.initData?.user?.id,
+      const user_id = window?.Telegram?.WebApp?.initData?.user?.id;
+      const data = {
         wallet_id: walletId,
         bug_description: bugDescription,
-      });
+      }
+      if (user_id) data.telegram_id = user_id;
+      return await axiosInstance.post(`/api/save-bug-report`, data);
     },
     onSuccess: () => {
       notify('Report sent successfully!');
