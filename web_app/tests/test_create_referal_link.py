@@ -28,7 +28,7 @@ def client():
 @pytest.mark.asyncio
 async def test_create_referal_link_success(client):
     """Test successful referral link creation with a valid wallet ID."""
-    with patch("web_app.db.database.get_db") as mock_get_db:
+    with patch("web_app.db.database.get_database") as mock_get_db:  # Changed here
         mock_db = MagicMock()
         mock_get_db.return_value = mock_db
         mock_user = MagicMock(spec=User)
@@ -47,13 +47,13 @@ async def test_create_referal_link_missing_wallet_id(client):
     response = client.get("/api/create_referal_link")
     assert response.status_code == 422
     data = response.json()
-    assert data["detail"][0]["msg"] == "field required"
+    assert data["detail"][0]["msg"] == "Field required"  # Updated here
 
 
 @pytest.mark.asyncio
 async def test_create_referal_link_user_not_found(client):
     """Test error when the user is not found in the database."""
-    with patch("web_app.db.database.get_db") as mock_get_db:
+    with patch("web_app.db.database.get_database") as mock_get_db:  # Changed here
         mock_db = MagicMock()
         mock_get_db.return_value = mock_db
         mock_db.query().filter().first.return_value = None
