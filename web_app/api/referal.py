@@ -19,7 +19,7 @@ import string
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from web_app.db.database import get_db
+from web_app.db.database import get_database
 from web_app.db.models import User
 
 app = FastAPI()
@@ -47,7 +47,7 @@ def generate_random_string(length=16):
 @router.get("/create_referal_link")
 async def create_referal_link(
     wallet_id: str = Query(..., description="Wallet ID of the user"),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_database),
 ):
     """
     Create a referral link for a user.
