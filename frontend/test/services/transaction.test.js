@@ -3,19 +3,20 @@ import { sendTransaction, closePosition, handleTransaction } from '../../src/ser
 import { axiosInstance } from '../../src/utils/axios';
 import { mockBackendUrl } from '../constants';
 import { checkAndDeployContract } from '../../src/services/contract';
+import { vi } from 'vitest';
 
-jest.mock('../../src/services/wallet', () => ({
-  getWallet: jest.fn(),
+vi.mock('../../src/services/wallet', () => ({
+  getWallet: vi.fn(),
 }));
 
-jest.mock('../../src/utils/axios');
-jest.mock('../../src/services/contract');
+vi.mock('../../src/utils/axios');
+vi.mock('../../src/services/contract');
 
-jest.mock('starknet', () => ({
+vi.mock('starknet', () => ({
   CallData: class MockCallData {
     constructor() {
       return {
-        compile: jest.fn((fnName, args) => {
+        compile: vi.fn((fnName, args) => {
           return Array.isArray(args) ? args : [args];
         }),
       };
@@ -29,16 +30,16 @@ describe('Transaction Functions', () => {
   const mockWalletId = '0x789xyz';
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     const mockWallet = {
       account: {
-        execute: jest.fn().mockResolvedValue({
+        execute: vi.fn().mockResolvedValue({
           transaction_hash: mockTransactionHash,
         }),
       },
       provider: {
-        getTransactionReceipt: jest.fn().mockResolvedValue({
+        getTransactionReceipt: vi.fn().mockResolvedValue({
           status: 'ACCEPTED',
         }),
       },
@@ -96,12 +97,12 @@ describe('Transaction Functions', () => {
       const mockError = new Error('Transaction failed');
       const mockWallet = {
         account: {
-          execute: jest.fn().mockRejectedValue(mockError),
+          execute: vi.fn().mockRejectedValue(mockError),
         },
       };
       getWallet.mockResolvedValue(mockWallet);
 
-      console.error = jest.fn();
+      console.error = vi.fn();
 
       await expect(sendTransaction(validLoopLiquidityData, mockContractAddress)).rejects.toThrow('Transaction failed');
 
@@ -133,7 +134,7 @@ describe('Transaction Functions', () => {
       const mockError = new Error('Close position failed');
       const mockWallet = {
         account: {
-          execute: jest.fn().mockRejectedValue(mockError),
+          execute: vi.fn().mockRejectedValue(mockError),
         },
       };
       getWallet.mockResolvedValue(mockWallet);
@@ -143,8 +144,8 @@ describe('Transaction Functions', () => {
   });
 
   describe('handleTransaction', () => {
-    const mockSetTokenAmount = jest.fn();
-    const mockSetLoading = jest.fn();
+    const mockSetTokenAmount = vi.fn();
+    const mockSetLoading = vi.fn();
     const mockFormData = { position_id: 1 };
     const mockTransactionData = {
       position_id: 1,
@@ -184,7 +185,7 @@ describe('Transaction Functions', () => {
       const mockError = new Error('Contract deployment failed');
       checkAndDeployContract.mockRejectedValue(mockError);
 
-      console.error = jest.fn();
+      console.error = vi.fn();
 
       await handleTransaction(mockWalletId, mockFormData, mockSetTokenAmount, mockSetLoading);
 
@@ -196,7 +197,7 @@ describe('Transaction Functions', () => {
       const mockError = new Error('Create position failed');
       axiosInstance.post.mockRejectedValue(mockError);
 
-      console.error = jest.fn();
+      console.error = vi.fn();
 
       await handleTransaction(mockWalletId, mockFormData, mockSetTokenAmount, mockSetLoading);
 

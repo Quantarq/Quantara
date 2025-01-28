@@ -3,19 +3,20 @@ import { getWallet } from '../../src/services/wallet';
 import { axiosInstance } from '../../src/utils/axios';
 import { deployContract, checkAndDeployContract } from '../../src/services/contract';
 import { getDeployContractData } from '../../src/utils/constants';
+import { vi } from 'vitest';
 
 // Mock dependencies
-jest.mock('starknetkit', () => ({
-  connect: jest.fn(),
+vi.mock('starknetkit', () => ({
+  connect: vi.fn(),
 }));
-jest.mock('../../src/services/wallet', () => ({
-  getWallet: jest.fn(),
+vi.mock('../../src/services/wallet', () => ({
+  getWallet: vi.fn(),
 }));
-jest.mock('../../src/utils/axios');
-jest.mock('../../src/utils/constants');
-jest.mock('../../src/components/layout/notifier/Notifier', () => ({
-  notify: jest.fn(),
-  ToastWithLink: jest.fn(),
+vi.mock('../../src/utils/axios');
+vi.mock('../../src/utils/constants');
+vi.mock('../../src/components/layout/notifier/Notifier', () => ({
+  notify: vi.fn(),
+  ToastWithLink: vi.fn(),
 }));
 
 describe('Contract Deployment Tests', () => {
@@ -35,11 +36,11 @@ describe('Contract Deployment Tests', () => {
     it('should successfully deploy contract', async () => {
       const mockWallet = {
         account: {
-          deployContract: jest.fn().mockResolvedValue({
+          deployContract: vi.fn().mockResolvedValue({
             transaction_hash: mockTransactionHash,
             contract_address: mockContractAddress,
           }),
-          waitForTransaction: jest.fn().mockResolvedValue(true),
+          waitForTransaction: vi.fn().mockResolvedValue(true),
         },
       };
 
@@ -69,11 +70,11 @@ describe('Contract Deployment Tests', () => {
     it('should handle transaction waiting errors', async () => {
       const mockWallet = {
         account: {
-          deployContract: jest.fn().mockResolvedValue({
+          deployContract: vi.fn().mockResolvedValue({
             transaction_hash: mockTransactionHash,
             contract_address: mockContractAddress,
           }),
-          waitForTransaction: jest.fn().mockRejectedValue(new Error('Transaction failed')),
+          waitForTransaction: vi.fn().mockRejectedValue(new Error('Transaction failed')),
         },
       };
 
@@ -93,11 +94,11 @@ describe('Contract Deployment Tests', () => {
       // Mock successful wallet and deployment
       const mockWallet = {
         account: {
-          deployContract: jest.fn().mockResolvedValue({
+          deployContract: vi.fn().mockResolvedValue({
             transaction_hash: mockTransactionHash,
             contract_address: mockContractAddress,
           }),
-          waitForTransaction: jest.fn().mockResolvedValue(true),
+          waitForTransaction: vi.fn().mockResolvedValue(true),
         },
       };
 
@@ -133,7 +134,7 @@ describe('Contract Deployment Tests', () => {
       const mockError = new Error('Backend error');
       axiosInstance.get.mockRejectedValue(mockError);
 
-      console.error = jest.fn();
+      console.error = vi.fn();
 
       await checkAndDeployContract(mockWalletId);
 
@@ -148,11 +149,11 @@ describe('Contract Deployment Tests', () => {
 
       const mockWallet = {
         account: {
-          deployContract: jest.fn().mockResolvedValue({
+          deployContract: vi.fn().mockResolvedValue({
             transaction_hash: mockTransactionHash,
             contract_address: mockContractAddress,
           }),
-          waitForTransaction: jest.fn().mockResolvedValue(true),
+          waitForTransaction: vi.fn().mockResolvedValue(true),
         },
       };
 
@@ -162,7 +163,7 @@ describe('Contract Deployment Tests', () => {
       const mockUpdateError = new Error('Update failed');
       axiosInstance.post.mockRejectedValue(mockUpdateError);
 
-      console.error = jest.fn();
+      console.error = vi.fn();
 
       await checkAndDeployContract(mockWalletId);
 
