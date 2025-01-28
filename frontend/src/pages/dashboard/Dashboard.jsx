@@ -62,6 +62,7 @@ export default function DashboardPage({ telegramId }) {
   const [currentSum, setCurrentSum] = useState(0);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(COLLATERAL);
+  const [depositedData, setDepositedData] = useState({ eth: 0, strk: 0, usdc: 0, usdt: 0 });
 
   // ... (keep existing useEffect logic from the previous implementation)
 
@@ -88,7 +89,13 @@ export default function DashboardPage({ telegramId }) {
         return;
       }
 
-      const { health_ratio, current_sum, start_sum, borrowed, multipliers, balance } = data;
+      const { health_ratio, current_sum, start_sum, borrowed, multipliers, balance, deposit_data } = data;
+
+      // group extra deposits for each token
+      const updatedDepositedData = { eth: 0, strk: 0, usdc: 0, usdt: 0 };
+      deposit_data.forEach((deposit) => {
+        updatedDepositedData[deposit.token.toLowerCase()] += Number(deposit.amount);
+      });
 
       let currencyName = 'Ethereum';
       let currencyIcon = EthIcon;
@@ -126,6 +133,7 @@ export default function DashboardPage({ telegramId }) {
 
       setCardData(updatedCardData);
       setHealthFactor(health_ratio || '0.00');
+      setDepositedData(updatedDepositedData);
       setCurrentSum(current_sum || 0);
       setStartSum(start_sum || 0);
       setLoading(false);
@@ -139,8 +147,6 @@ export default function DashboardPage({ telegramId }) {
     if (currentSum < startSum) return 'current-sum-red';
     return '';
   };
-
-  const depositedData = { eth: 1, strk: 12, usdc: 4, usdt: 9 };
 
   return (
     <DashboardLayout>
