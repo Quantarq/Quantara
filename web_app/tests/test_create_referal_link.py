@@ -9,44 +9,82 @@ Tests include:
 Uses pytest, unittest.mock for mocking, and FastAPI's TestClient for testing the API.
 """
 
-from unittest.mock import MagicMock, patch, Mock
-
 import pytest
 from fastapi.testclient import TestClient
 
+from web_app.db.crud import UserDBConnector
 from web_app.api.referal import app
 
 
 @pytest.fixture
 def client():
-    """Fixture for creating a TestClient instance for API testing."""
-    with TestClient(app) as client:
-        yield client
+    """
+    Returns a TestClient for the FastAPI app.
+    """
+    return TestClient(app)
+
 
 @pytest.fixture
-def mock_db():
-    mock_db = Mock()
-    mock_db.query().filter().first.return_value = None 
-    return mock_db
+def mock_get_user_by_wallet_id(mocker):
+    """
+    Mocks the UserDBConnector's method for fetching a user by wallet_id.
+    """
+    return mocker.patch.object(UserDBConnector, "get_user_by_wallet_id")
 
 
+def test_create_referral_link_for_existing_user(client, mock_get_user_by_wallet_id):
+    """Positive Test Case: Test referral link creation for an existing user"""
+    mock_get_user_by_wallet_id.return_value = {"wallet_id": "valid_wallet_id"}
+    response = client.get("/api/create_referal_link?wallet_id=valid_wallet_id")
 
-@pytest.mark.asyncio
-async def test_create_referal_link_missing_wallet_id(client):
-    """Test error when wallet ID is missing in the request."""
-    response = client.get("/api/create_referal_link")
-    assert response.status_code == 422
-    data = response.json()
-    assert data["detail"][0]["msg"] == "Field required"
+    assert response.status_code == 200
+    assert "wallet_id" in response.json()
+    assert "referral_code" in response.json()
+    assert len(response.json()["referral_code"]) == 16
 
 
-@pytest.mark.asyncio
-async def test_create_referal_link_user_not_found(client, mock_db):
-    """Test error when the user is not found in the database."""
-    with patch("web_app.db.database.get_database", return_value=mock_db):
-        mock_db.query().filter().first.return_value = None
-        response = client.get("/api/create_referal_link?wallet_id=wallet789")
-        assert response.status_code == 404
-        data = response.json()
-        assert data["detail"] == "User with the provided wallet_id does not exist"
+def test_create_referral_link_for_non_existent_user(client, mock_get_user_by_wallet_id):
+    """Negative Test Case: Test referral link creation for a non-existent user"""
+    mock_get_user_by_wallet_id.return_value = None
+    response = client.get("/api/create_referal_link?wallet_id=non_existent_wallet_id")
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "User with the provided wallet_id does not exist"
+    }
+
+
+def test_create_referral_link_with_empty_wallet_id(client):
+    """Negative Test Case: Test referral link creation with an empty wallet ID"""
+    response = client.get("/api/create_referal_link?wallet_id=")
+
+    assert response.status_code == 400
+    assert response.json() == {"detail": "Wallet ID cannot be empty"}
+
+
+def test_create_referral_link_with_malformed_wallet_id(
+    client, mock_get_user_by_wallet_id
+):
+    """Test referral link creation with malformed wallet ID"""
+    mock_get_user_by_wallet_id.return_value = None
+    response = client.get("/api/create_referal_link?wallet_id=@@!invalidwallet")
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "User with the provided wallet_id does not exist"
+    }
+
+
+def test_create_referral_link_for_multiple_users(client, mock_get_user_by_wallet_id):
+    """Test referral link creation with a random referral code for multiple users"""
+    mock_get_user_by_wallet_id.return_value = {"wallet_id": "valid_wallet_id"}
+    response1 = client.get("/api/create_referal_link?wallet_id=valid_wallet_id")
+    referral_code1 = response1.json()["referral_code"]
+    response2 = client.get("/api/create_referal_link?wallet_id=valid_wallet_id")
+    referral_code2 = response2.json()["referral_code"]
+
+    assert response1.status_code == 200
+    assert response2.status_code == 200
+    assert referral_code1 != referral_code2
+
 

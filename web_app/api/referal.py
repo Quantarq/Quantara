@@ -71,6 +71,9 @@ async def create_referal_link(
     Raises:
         HTTPException: If the user is not found in the database
     """
+    
+    if not wallet_id:
+        raise HTTPException(status_code=400, detail="Wallet ID cannot be empty")
 
     user = UserDBConnector.get_user_by_wallet_id(db, wallet_id)
     if not user:
