@@ -30,8 +30,8 @@ function Stake() {
   };
   return (
     <VaultLayout>
-      <div className="stake-wrapper font-primary bg-cover bg-39p min-h-[125vh] h-full flex justify-center w-[calc(100vw-372px)] ml-[372px] mt-[70px] mb-[100px]">
-        <div className="stake-container w-full max-w-[642px] h-[610px] my-0 mx-auto flex flex-col items-center  gap-4 ">
+      <div className=" font-primary bg-cover bg-39p min-h-[125vh] h-full flex justify-center w-[calc(100vw-372px)] ml-[372px] mt-[70px] mb-[100px]">
+        <div className=" w-full max-w-[642px] h-[610px] my-0 mx-auto flex flex-col items-center  gap-4 ">
           <h1 className=" font-semibold text-2xl text-(--primary) mt-10 mb-5">zkLend Staking</h1>
           <div className="w-full flex flex-row justify-between items-center gap-6">
             <MetricCard title="STRK Balance" value="0.046731" icon={STRK} />
@@ -49,12 +49,12 @@ function Stake() {
                 onMouseEnter={() => setShowDrop(true)}
                 onMouseLeave={() => setShowDrop(false)}
               >
-                <div className="network-selector flex items-center justify-between gap-3 bg-[#120721]  text-white py-3 px-4 cursor-pointer text-[1rem] w-full relative z-[10] ">
+                <div className=" flex items-center justify-between gap-3 bg-[#120721]  text-white py-3 px-4 cursor-pointer text-[1rem] w-full relative z-[10] ">
                   <div className="selected-network flex items-center gap-3">
                     <img
                       src={networks.find((network) => network.name === selectedNetwork)?.image}
                       alt={selectedNetwork}
-                      className="network-icon w-6 h-6 rounded-full  "
+                      className=" w-6 h-6 rounded-full  "
                     />
                     <span>{selectedNetwork}</span>
                   </div>
@@ -77,11 +77,11 @@ function Stake() {
                 </div>
 
                 {showDrop && (
-                  <div className="network-dropdown absolute top-[100%] left-0 w-full rounded-sm z-[1] shadow-custom group-hover:block">
+                  <div className=" absolute top-[100%] left-0 w-full rounded-sm z-[1] shadow-custom group-hover:block">
                     {networks.map((network) => (
                       <div
                         key={network.name}
-                        className={`network-option py-[0.75rem] px-[1rem] my-3 bg-[#36294E] text-white flex  items-center gap-[0.75rem] cursor-pointer rounded-[2rem] transition-transform duration-300 ease-in-out ${showDrop ? 'visibile' : 'invisible'} `}
+                        className={` py-[0.75rem] px-[1rem] my-3 bg-[#36294E] text-white flex  items-center gap-[0.75rem] cursor-pointer rounded-[2rem] transition-transform duration-300 ease-in-out ${showDrop ? 'visibile' : 'invisible'} `}
                         onClick={() => handleChange(network)}
                       >
                         <img src={network.image} alt={network.name} className="network-icon" />
