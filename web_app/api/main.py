@@ -19,6 +19,7 @@ from web_app.api.position import router as position_router
 from web_app.api.telegram import router as telegram_router
 from web_app.api.user import router as user_router
 from web_app.api.vault import router as vault_router
+from web_app.api.leaderboard import router as leaderboard_router
 from web_app.contract_tools.blockchain_call import CLIENT
 from web_app.contract_tools.constants import EKUBO_MAINNET_ADDRESS
 
@@ -72,3 +73,4 @@ app.include_router(dashboard_router)
 app.include_router(user_router)
 app.include_router(telegram_router)
 app.include_router(vault_router)
+app.include_router(leaderboard_router)

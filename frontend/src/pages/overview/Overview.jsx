@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import './overview.css';
 import ScrollButton from '@/components/ui/scroll-button/ScrollButton';
 import Sections from '@/components/layout/sections/Sections';
 import Sidebar from '@/components/layout/sidebar/Sidebar';
@@ -66,19 +65,21 @@ const OverviewPage = () => {
   ];
 
   return (
-    <div className="overview-container">
-      <div>
-        <Sidebar items={tableOfContents} title={'Overview'} />
+    <div className="min-h-screen flex flex-row text-white">
+      <div className="lg:w-[375px]">
+        <Sidebar items={tableOfContents} title="Overview" />
       </div>
 
-      <div className="content">
-        <h1 className="content-title">Overview</h1>
-        <div className="section">
+      <div className="ml-4 flex-1 relative min-h-screen px-7 md:px-4 py-6 md:py-12">
+        <h1 className="text-white text-3xl font-bold mt-16 mb-8">Overview</h1>
+        <div className="ml-8 mb-12">
           <Sections sections={sectionsData} />
         </div>
       </div>
 
-      <ScrollButton />
+      <div className="fixed bottom-4 right-4">
+        <ScrollButton />
+      </div>
     </div>
   );
 };

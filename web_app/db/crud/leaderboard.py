@@ -2,7 +2,7 @@
 This module provides CRUD operations for the leaderboard, retrieving the top users by positions.
 
 """
-from sqlalchemy.orm import Session
+from .base import DBConnector
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func
 from web_app.db.models import User, Position
@@ -10,18 +10,11 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class LeaderboardCRUD:
+class LeaderboardDBConnector(DBConnector):
     """
-    A class used to perform CRUD operations related to the leaderboard.
+    Provides database connection and operations management using SQLAlchemy
+    in a FastAPI application context.
     """
-    def __init__(self, session: Session):
-        """
-        Initializes a new instance of the class.
-
-        Args:
-            session (Session): The database session to be used for database operations.
-        """
-        self.Session = session
 
     def get_top_users_by_positions(self) -> list[dict]:
         """
@@ -50,4 +43,33 @@ class LeaderboardCRUD:
 
             except SQLAlchemyError as e:
                 logger.error(f"Error retrieving top users by positions: {e}")
+                return []
+            
+    def get_position_token_statistics(self) -> list[dict]:
+        """
+        Retrieves closed/opened positions groupped by token_symbol.
+        :return: List of dictionaries containing token_symbol and total_positions.
+        """
+        with self.Session() as db:
+            try:
+                results = (
+                    db.query(
+                        Position.token_symbol,
+                        func.count(Position.id).label("total_positions")
+                    )
+                    .filter(Position.status.in_(["closed", "opened"]))
+                    .group_by(Position.token_symbol)
+                    .all()
+                )
+
+                return [
+                    {
+                        "token_symbol": result.token_symbol,
+                        "total_positions": result.total_positions
+                    }
+                    for result in results
+                ]
+
+            except SQLAlchemyError as e:
+                logger.error(f"Error retrieving position token statistics: {e}")
                 return []

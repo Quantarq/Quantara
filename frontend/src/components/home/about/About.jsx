@@ -44,14 +44,14 @@ const About = () => {
     <div className="about-container">
       <StarMaker starData={starData} />
       <h1 className="about-title">How it works</h1>
-      <div className="card-container flex">
+      <div className="card-container flex-center">
         <div className="cards-gradient">
           <div className="card-gradient"></div>
           <div className="card-gradient"></div>
         </div>
         {CardData.map((card, index) => (
-          <div key={index} className="card-about flex">
-            <div className="card-number flex">
+          <div key={index} className="card-about flex-center">
+            <div className="card-number flex-center">
               <h2>{card.number}</h2>
             </div>
             <div className="card-icon-about">

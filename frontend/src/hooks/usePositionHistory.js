@@ -3,11 +3,11 @@ import { axiosInstance } from '../utils/axios';
 import { formatDate } from '../utils/formatDate';
 import { useWalletStore } from '../stores/useWalletStore';
 
-const fetchPositionHistoryTable = async (walletId) => {
+const fetchPositionHistoryTable = async (walletId, start = 0) => {
   if (!walletId) {
     throw new Error('Wallet ID is undefined');
   }
-  const response = await axiosInstance.get(`/api/user-positions/${walletId}`);
+  const response = await axiosInstance.get(`/api/user-positions/${walletId}?start=${start}`);
   return response.data;
 };
 
@@ -25,17 +25,25 @@ const formatPositionHistoryTable = (data) => {
   }));
 };
 
-const usePositionHistoryTable = () => {
+const usePositionHistoryTable = (currentPage, positionsOnPage) => {
   const walletId = useWalletStore((state) => state.walletId);
 
   const { data, isPending, error } = useQuery({
-    queryKey: ['positionHistory', walletId],
-    queryFn: () => fetchPositionHistoryTable(walletId),
+    queryKey: ['positionHistory', walletId, currentPage],
+    queryFn: () =>
+      fetchPositionHistoryTable(
+        walletId,
+        (currentPage - 1) * positionsOnPage,
+        positionsOnPage
+      ),
     enabled: !!walletId,
     onError: (err) => {
       console.error('Error during fetching position history:', err);
     },
-    select: formatPositionHistoryTable,
+    select: (response) => ({
+      ...response,
+      positions: formatPositionHistoryTable(response.positions),
+    }),
   });
 
   const showSpinner = !!walletId && isPending;

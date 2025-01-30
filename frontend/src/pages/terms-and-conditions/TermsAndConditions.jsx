@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import './terms-and-conditions.css';
 import ScrollButton from '@/components/ui/scroll-button/ScrollButton';
 import Sections from '@/components/layout/sections/Sections';
 import Sidebar from '@/components/layout/sidebar/Sidebar';
@@ -61,14 +60,14 @@ const TermsAndConditionsPage = () => {
   ];
 
   return (
-    <div className="overview-container">
-      <div>
+    <div className="flex flex-row min-h-screen relative text-white">
+      <div className="lg:w-[375px]">
         <Sidebar items={tableOfContents} title={'Content'} />
       </div>
 
-      <div className="content">
-        <h1 className="content-title">Terms & Conditions</h1>
-        <div className="section">
+      <div className="ml-4 flex-1 relative min-h-screen px-7 md:px-4 py-6 md:py-12">
+        <h1 className="text-white text-3xl font-bold mt-16 mb-8">Terms & Conditions</h1>
+        <div className="ml-8">
           <Sections sections={sectionsData} />
         </div>
       </div>

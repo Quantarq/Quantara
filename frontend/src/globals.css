@@ -118,6 +118,78 @@ a.svelte-1mtuslq.svelte-1mtuslq {
 
 @import 'tailwindcss';
 
-.button-gradient{
-  background-color: linear-gradient(90deg, #49ABD2 0%, #E01DEE 100%);
+@theme {
+  --color-primary: #fff;
+  --color-dashboard-bg: rgba(11, 12, 16, 1);
+  --color-primary-color: #0b0c10;
+  --color-black: #000;
+  --color-brand: #74d6fd;
+  --color-pink: #e01dee;
+  --color-secondary: #e7ecf0;
+  --color-secondary-color: #1a1c24;
+  --color-collateral: #1d9259;
+  --color-borrow: #f42222;
+  --color-spinner-bgn: rgba(0, 0, 0, 0.5);
+  --color-spinner-content: #393939;
+  --color-footer-bg: #00000d;
+  --color-footer-text: #e7ebf5;
+  --color-footer-line: rgba(231, 235, 245, 0.2);
+  --color-footer-divider: #201338;
+  --color-gray: #83919f;
+  --color-light-purple: #36294e;
+  --color-dark-purple: #120721;
+  --color-light-blue: #74d5fd;
+  --color-slider-gray: #393942;
+  --color-status-opened: #1edc9e;
+  --color-status-closed: #433b5a;
+  --color-status-pending: #83919f;
+  --color-success: #4caf50;
+  --color-error: #ff5a5f;
+  --color-overlay: rgba(0, 0, 0, 0.5);
+  --color-bg: #120721;
+  --color-border-color: #201338;
+  --color-stormy-gray: #83919f;
+  --color-deep-purple: #120721;
+  --color-dark-bg: #130713;
+  --color-light-dark-bg: #130713;
+  --color-text-gray: #798795;
+  --color-modal-border: #170f2e;
+  --color-warning: #bdc000;
+  --color-warning-alt: #272a0a;
+  --color-warning-text: #f0f0f0;
+  --color-nav-button-hover: #49abd2;
+  --color-nav-divider-bg: #36294e;
+  --color-header-bg: rgba(7, 0, 22, 0.8);
+  --color-second-primary: #fdfdfd;
+  --color-plain-button-bg: #0e0a16;
+  --color-header-button-bg: #120721;
+
+  --font-text: "Rethink Sans", sans-serif;
+  --font-primary: "Open Sans", sans-serif;
+  --font-third: "Allerta Stencil", sans-serif;
+  --font-inter: "Inter", sans-serif;
+
+  --bg-app: url("../public/desktop-background.png");
+  --bg-app-mobile: url("../public/mobile-background.png");
+  --bg-main-gradient: linear-gradient(73deg, #74d6fd 1.13%, #e01dee 103.45%);
+  --bg-button-gradient: linear-gradient(55deg, #74d6fd 0%, #e01dee 100%);
+  --bg-button-gradient-hover: linear-gradient(55deg, #74d6fd 0%, #74d6fd 100%);
+  --bg-button-gradient-active: linear-gradient(55deg, #58c4ef 0%, #58c4ef 100%);
+  --bg-second-gradient: linear-gradient(55deg, #e01dee 0%, #49abd2 49%);
+  --bg-border-gradient: linear-gradient(90deg, #49abd2 0%, #df1ced 99.5%);
+  --bg-blue-pink-gradient: linear-gradient(90deg, #74d6fd 0%, #e01dee 100%);
+  --bg-blue-pink-gradient-alt: linear-gradient(90deg, #49abd2 0%, #e01dee 100%);
+  --bg-card-bg-gradient: linear-gradient(135deg, rgba(116, 214, 253, 0.5) 0%, rgba(11, 12, 16, 0.5) 100%);
+  --bg-report-btn-bg-hover: linear-gradient(to right, rgba(147, 51, 234, 0.3), rgba(59, 130, 246, 0.3));
+
+  --shadow-card: inset 4px 4px 9px 0 rgba(153, 234, 255, 0.25), 0 4px 4px 0 rgba(0, 0, 0, 0.15);
+  --blur-card: 42.1875px;
+  --blur-backdrop: 12px;
+
+  --border-purple: 1px;
+  --border-midnight-purple: 1px;
+  --border-midnight-purple-hover: 1px;
+
+  --z-9999: 9999;
+  --z-100: 100;
 }

@@ -16,22 +16,10 @@ import './positionHistory.css';
 function PositionHistory() {
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-
-  const { data: tableData, isPending } = usePositionHistoryTable();
-  const { data: cardData } = useDashboardData();
-
-  const [filteredTableData, setFilteredTableData] = useState(tableData);
   const positionsOnPage = 10;
 
-  const getFilteredData = (data, page, itemsPerPage) => {
-    const start = (page - 1) * itemsPerPage;
-    const end = start + itemsPerPage;
-    return data.slice(start, end);
-  };
-
-  useEffect(() => {
-    if (!isPending && tableData) setFilteredTableData(getFilteredData(tableData, currentPage, positionsOnPage));
-  }, [currentPage, isPending]);
+  const { data: tableData, isPending } = usePositionHistoryTable(currentPage, positionsOnPage);
+  const { data: cardData } = useDashboardData();
 
   const tokenIconMap = {
     STRK: <StrkIcon className="token-icon" />,
@@ -84,12 +72,12 @@ function PositionHistory() {
               </thead>
 
               <tbody>
-                {!tableData || tableData.length === 0 || !filteredTableData ? (
+                {!tableData?.positions || tableData?.positions.length === 0 ? (
                   <tr>
                     <td colSpan="10">No opened positions</td>
                   </tr>
                 ) : (
-                  filteredTableData.map((data, index) => (
+                  tableData?.positions.map((data, index) => (
                     <tr key={data.id}>
                       <td className="index">{index + 1}.</td>
                       <td>
