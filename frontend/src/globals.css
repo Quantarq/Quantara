@@ -117,3 +117,7 @@ a.svelte-1mtuslq.svelte-1mtuslq {
 }
 
 @import 'tailwindcss';
+
+.button-gradient{
+  background-color: linear-gradient(90deg, #49ABD2 0%, #E01DEE 100%);
+}

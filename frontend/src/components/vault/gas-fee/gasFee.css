@@ -1,11 +1,11 @@
-.gas-fee-container {
+/* .gas-fee-container {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0rem 3rem;
   padding-bottom: 1rem;
-}
+} */
 
 .gas-fee-circle {
   width: 32px;
@@ -26,8 +26,8 @@
   height: 16px;
 }
 
-.gas-fee-title {
+/* .gas-fee-title {
   color: var(--stormy-gray);
   font-size: 12px;
   font-weight: 400;
-}
+} */

@@ -13,7 +13,7 @@ function Stake() {
   const [amount, setAmount] = useState('0');
   const [showDrop, setShowDrop] = useState(false);
 
-  const networks = [{ name: 'Starknet', image: STRK }];
+  const networks = [{ name: 'Starknet', image: STRK }, {name: "alephium", image: STRK}];
   const handleChange = (network) => {
     setSelectedNetwork(network.name);
   };
@@ -27,29 +27,24 @@ function Stake() {
   };
   return (
     <VaultLayout>
-      <div className="stake-wrapper bg-cover bg-39p min-h-[125vh] h-full flex justify-center w-[calc(100vw-372px)] ml-[372px]    ">
-        <div className="stake-container w-full max-w-[390px] h-[610px] my-0 mx-auto  ">
-          <div className="balance-display-container">
-            <div className="large-screen-balance block">
-              <div className="main-container w-[642px] gap-6 pt-[37px] rounded-[20px] text-[#fff] text-center flex justify-center flex-col items-center  ">
-                <div className="top-cards flex gap-6 ">
-                  <MetricCard title="STRK Balance" value="0.046731" icon={STRK} />
-                  <MetricCard title="APY Balance" value="0.046731" icon={USDCc} />
-                </div>
-              </div>
-            </div>
-            <div className="mobile-screen-balance none">
-              <BalanceCards />
-            </div>
+      <div className="stake-wrapper font-primary bg-cover bg-39p min-h-[125vh] h-full flex justify-center w-[calc(100vw-372px)] ml-[372px] mt-[70px] mb-[100px]    ">
+        <div className="stake-container w-full max-w-[642px] h-[610px] my-0 mx-auto flex flex-col items-center  gap-4 ">
+
+          <h1 className=' font-semibold ' style={{fontSize: "24px", color: "#F0F0F0"}} >zkLend Staking</h1>
+          <div className='w-full flex flex-row justify-between items-center gap-6' >
+          <MetricCard title="STRK Balance" value="0.046731" icon={STRK} />
+          <MetricCard title="APY Balance" value="0.046731" icon={USDCc} />
           </div>
-          <div className="form mb-8 w-full block my-0 mx-auto ">
-            <h1 className="stake-title text-sm font-normal text-white block mx-0 my-auto text-center items-center py-6 px-0 ">Please submit your leverage details</h1>
-            <div className="main-stake-card p-1 h-auto flex flex-col gap-6 border border-[#36294e] rounded-lg  ">
-              <div
+          <p className=' text-[#F0F0F0] font-normal text-sm ' >Please submit your leverage details</p>
+
+          <div className='border border-[#36294E] w-full max-h-[503px]  rounded-lg py-3 flex  flex-col ' >
+
+           <div className='w-full px-4 ' >
+           <div 
                 onClick={() => setShowDrop(!showDrop)}
-                className={showDrop ? 'clicked-network-selector-container relative w-full' : 'network-selector-container group '}
+                className={ `  py-3 border-b border-b-[#36294E] relative ${showDrop ? 'clicked-network-selector-container  w-full' : 'network-selector-container' }`}
               >
-                <div className="network-selector flex items-center justify-between gap-3 bg-[#120721] border-b-[#36294e] text-white py-3 px-4 cursor-pointer text-[1rem] w-full relative z-[10] ">
+                <div className="network-selector flex items-center justify-between gap-3 bg-[#120721]  text-white py-3 px-4 cursor-pointer text-[1rem] w-full relative z-[10] ">
                   <div className="selected-network flex items-center gap-3">
                     <img
                       src={networks.find((network) => network.name === selectedNetwork)?.image}
@@ -76,10 +71,9 @@ function Stake() {
                   </svg>
                 </div>
 
-                <div className="network-dropdown none absolute top-[100%] left-0 w-full bg-[#83919f] rounded-sm z-[1] shadow-custom group-hover:block ">
+                <div className="network-dropdown absolute top-[100%] left-0 w-full rounded-sm z-[1] shadow-custom group-hover:block {} ">
                   {networks.map((network) => (
-                    <div key={network.name} className="network-option py-[0.75rem] px-[1rem] flex items-center gap-[0.75rem] cursor-pointer rounded-[2rem] transition-transform duration-300 ease-in-out bg-[#FFFFFF33
-] " onClick={() => handleChange(network)}>
+                    <div key={network.name} className={`network-option py-[0.75rem] px-[1rem] my-3 bg-[#36294E] text-white flex  items-center gap-[0.75rem] cursor-pointer rounded-[2rem] transition-transform duration-300 ease-in-out ${showDrop? "visibile" : "invisible" } `} onClick={() => handleChange(network)}>
                       <img src={network.image} alt={network.name} className="network-icon" />
                       <span>{network.name}</span>
                     </div>
@@ -87,40 +81,45 @@ function Stake() {
                 </div>
               </div>
 
-              <div className="amount-input relative w-full max-w-[400px] my-8 mx-auto text-center " aria-labelledby="amount-input-label">
+            </div>
+
+            <div className='w h-[158px] flex flex-row   items-start  my-15 ' aria-labelledby="amount-input-label" >
+              <label className='w-full text-[#393942] min-w-[182px] max-w-[200px]  font-semibold flex flex-col  justify-center gap-3 ' >
                 <input
                   type="text"
                   id="amount-field"
                   value={amount}
                   onChange={handleAmountChange}
                   pattern="^\d*\.?\d*$"
-                  className="amount-field bg-transparent border-none text-[#83919f] text-[64px] font-medium outline-none text-center w-full "
+                  className="amount-field  bg-transparent border-none text-[#83919f] text-[64px] font-semibold outline-none text-center w-full "
                   aria-describedby="currency-symbol"
                   placeholder="0.00"
+                  style={{
+                    fontSize: "64px"
+                  }}
                 />
-                <span id="currency-symbol" className="currency absolute text-[#393942] right-[31%] top-[18%] transform translate-y-[-50%] opacity-[0.5] text-base leading-[20.83px] z-[999999] ">
-                  STRK
-                </span>
+               <h3 style={{ fontWeight: "600", fontSize: "14px" }} >$0.00 APY / year</h3>
+              </label>
+              <div className='self-start text-[#393942] font-medium text-sm  ' >
+              STRK
               </div>
-
-              <div className="apy-rate text-[#393942] text-[0.875rem] mb-5 text-center  ">$0.00 APY / year</div>
-              <div className="parent-divider1">
-                <div className="divider1 h-[1px] w-[80%] m-auto bg-[#201338] "></div>
-              </div>
-
-              <GasFee />
             </div>
+
+            <div className='w-full px-4 ' > <GasFee  /></div>
+           
+            
           </div>
-          <div className="can-stk">
-            <Button variant="secondary" size="lg" className="cancel none">
-              {' '}
-              Cancel
-            </Button>
-            <Button variant="secondary" size="lg" className="stake-button1 w-[642px] h-[60px] py-4 px-6 rounded-lg font-semibold text-sm mt-8 ">
+          <div className='button-gradient p-[4px] rounded-lg' >
+          <Button variant="secondary" size="lg" className="stake-button1 w-[642px] h-[60px] bg-[#120721]  flex items-center text-center py-3.5 outline-none border-none  px-6 rounded-lg font-semibold text-sm mt-8 " style={{padding: "16px 20px"}} >
               Stake
             </Button>
-          </div>
-        </div>
+            </div>
+            
+
+
+
+
+         </div> 
       </div>
     </VaultLayout>
   );

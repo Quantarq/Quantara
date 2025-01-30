@@ -5,7 +5,7 @@ export const Button = ({ variant = 'primary', size = 'md', className = '', child
   const buttonClasses = ['button', `button--${variant}`, `button--${size}`, className].filter(Boolean).join(' ');
 
   return (
-    <button className={buttonClasses} {...props}>
+    <button className={buttonClasses} {...props} style={{outline: "none", backgroundColor: "#120721" }} >
       {children}
     </button>
   );
