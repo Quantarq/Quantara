@@ -52,7 +52,7 @@ useEffect(()=>{
       })
 
       // Determine currency name and icon
-
+      
       let currencyName = "Ethereum"
       let currencyIcon = EthIcon
       if (multipliers) {
