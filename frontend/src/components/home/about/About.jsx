@@ -49,14 +49,14 @@ const About = () => {
         {CardData.map((card, index) => ( 
           <div key={index} className="relative flex flex-col items-center">
             <div className="absolute -top-[2em] md:-top-[1em] lg:-top-[1.5em] 2xl:-top-[1.5em] z-10 left-1/2 -translate-x-1/2">
-              <div className="bg-primary-color border border-[#74d6fd] text-brand font-text font-semibold 
+              <div className="bg-primary-color border border-[#74d6fd] border-[0.8px] text-brand font-text font-semibold 
                 text-[32px] px-4 py-1 rounded-xl min-w-[70px] text-center
                 xl:text-[30px] bg-black lg:text-[25px] lg:min-w-[60px] md:text-[18px] md:min-w-[45px] text-[#74d6fd]">
                 {card.number}
               </div>
             </div>
             
-            <div className="w-[310px] h-[368px] bg- flex flex-col items-center gap-4 px-4 pt-[3em] 2xl:pt-[3em] bg-[linear-gradient(135deg,_rgba(116,_214,_253,_0.5)_0%,_rgba(11,_12,_16,_0.5)_100%)] 
+            <div className="w-[310px] h-[368px]  flex flex-col items-center gap-4 px-4 pt-[3em] 2xl:pt-[3em] bg-[linear-gradient(135deg,_rgba(116,_214,_253,_0.5)_0%,_rgba(11,_12,_16,_0.5)_100%)] 
               rounded-[20px] border border-[#4e7787] shadow-card backdrop-blur-[21.09375px]
               xl:w-[260px] xl:h-[300px] lg:w-[220px] lg:h-[255px] md:w-[175px] md:h-[205px]">
               
@@ -66,11 +66,11 @@ const About = () => {
               </div>
               
               <h4 className="font-text text-[26px] text-primary text-center leading-[108%] font-medium
-                xl:text-[20px] lg:text-[18px] md:text-[15px]">
+                xl:text-[20px] text-white lg:text-[18px] md:text-[15px]">
                 {card.title}
               </h4>
               
-              <p className="font-text text-[20px] text-secondary text-center leading-[140%] font-normal
+              <p className="font-text text-[20px] text-white text-secondary text-center leading-[140%] font-normal
                 xl:text-base lg:text-sm md:text-[11px]">
                 {card.description}
               </p>
