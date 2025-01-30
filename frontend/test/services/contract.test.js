@@ -1,3 +1,4 @@
+//contract.test.js
 import { connect } from 'starknetkit';
 import { getWallet } from '../../src/services/wallet';
 import { axiosInstance } from '../../src/utils/axios';
@@ -52,7 +53,7 @@ describe('Contract Deployment Tests', () => {
 
       const result = await deployContract(mockWalletId);
 
-      expect(getWallet).toHaveBeenCalledWith(mockWalletId);
+      expect(getWallet).toHaveBeenCalled();
       expect(mockWallet.account.deployContract).toHaveBeenCalledWith({
         contractData: 'mockContractData',
       });
@@ -91,7 +92,7 @@ describe('Contract Deployment Tests', () => {
       await checkAndDeployContract(mockWalletId);
 
       expect(axiosInstance.get).toHaveBeenCalledWith(`/api/check-user?wallet_id=${mockWalletId}`);
-      expect(getWallet).toHaveBeenCalledWith(mockWalletId);
+      expect(getWallet).toHaveBeenCalled();
       expect(mockWallet.account.deployContract).toHaveBeenCalledWith({
         contractData: 'mockContractData',
       });
