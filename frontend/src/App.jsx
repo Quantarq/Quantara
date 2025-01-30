@@ -25,6 +25,7 @@ import PositionHistory from '@/pages/position-history/PositionHistory';
 import WithdrawAll from '@/pages/spotnet/dashboard/withdraw-all/WithdrawAll';
 import { DefiSpringPage } from '@/pages/spotnet/defi-spring/DefiSpring';
 import { AddDeposit } from '@/pages/add-deposit/AddDeposit';
+import Leaderboard from '@/pages/leaderboard/Leaderboard';
 
 function App() {
   const { setWalletId, removeWalletId } = useWalletStore();
@@ -114,6 +115,7 @@ function App() {
           <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
           <Route path="/stake" element={<Stake />} />
           <Route path="/defispring" element={<DefiSpringPage />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
         </Routes>
       </main>
       <Footer />
