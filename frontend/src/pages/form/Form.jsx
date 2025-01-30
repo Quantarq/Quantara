@@ -76,7 +76,7 @@ const Form = () => {
   };
 
   return (
-    <div className="form-content-wrapper">
+    <div className="flex flex-col gap-[30px] justify-start items-center py-4 min-h-screen md:gap-0">
       <BalanceCards className="balance-card" />
 
       {isClosePositionOpen && (
@@ -95,25 +95,26 @@ const Form = () => {
           cancelAction={handleCloseModal}
         />
       )}
-      <form className="form-container" onSubmit={handleSubmit}>
-        <div className="form-title">
+      <form className="flex justify-center flex-col gap-[10px] pb-[60px] w-[626px] text-primary md:mx-0 md:p-4 md:w-full " onSubmit={handleSubmit}>
+        <div className="form-title md:px-4 text-center font-normal text-xl mb-[10px] md:text-base">
           <h1>Please submit your leverage details</h1>
         </div>
 
         <TokenSelector
           selectedToken={selectedToken}
           setSelectedToken={setSelectedToken}
-          className="form-token-selector"
+          className="form-token-selector md:px-4"
         />
-        <label>Select Multiplier</label>
+        <label className='md:px-4 md:text-xs text-base text-gray'>Select Multiplier</label>
         <MultiplierSelector
           setSelectedMultiplier={setSelectedMultiplier}
           selectedToken={selectedToken}
           sliderValue={selectedMultiplier}
         />
-        <div className="token-label">
-          <label className="token-amount">Token Amount</label>
+        <div className="flex flex-col gap-[5px] mt-[60px] md:px-4 md:mt-0">
+          <label className="md:mt-[25px] mt-5 mb-3">Token Amount</label>
           <input
+          className='bg-transparent md:rounded-2xl md:text-sm rounded-[50px] py-5 px-[30px] text-gray border border-' //light purpule
             type="number"
             placeholder="Enter Token Amount"
             value={tokenAmount}
@@ -121,7 +122,7 @@ const Form = () => {
           />
         </div>
         <div>
-          <div className="form-health-factor">
+          <div className="flex items-end justify-self-end w-fit m-[2px] text-gray self-end gap-[5px] md:px-4">
             <p>Estimated Health Factor Level:</p>
             <p>{isHealthFactorLoading ? 'Loading...' : healthFactor}</p>
           </div>

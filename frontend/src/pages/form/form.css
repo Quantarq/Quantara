@@ -1,4 +1,4 @@
-.form-content-wrapper {
+/* .form-content-wrapper {
   display: flex;
   flex-direction: column;
   gap: 30px;
@@ -8,23 +8,23 @@
   padding-bottom: 1rem;
   font-family: var(--font-family);
   min-height: 100vh;
-}
+} */
 
-.form-container {
+/* .form-container {
   display: flex;
   justify-content: center;
   flex-direction: column;
   gap: 10px;
   padding-bottom: 60px;
   width: 626px;
-}
+} */
 
-.form-title h1 {
+/* .form-title h1 {
   text-align: center;
   font-weight: normal;
   font-size: 20px;
   margin-bottom: 10px;
-}
+} */
 
 .token-card {
   width: 148px;
@@ -39,33 +39,33 @@
   height: 100%;
 }
 
-.token-label {
+/* .token-label {
   display: flex;
   flex-direction: column;
   gap: 5px;
   margin-top: 60px;
-}
+} */
 
-.token-label input {
+/* .token-label input {
   background-color: transparent;
   border: 1px solid var(--light-purple);
   border-radius: 50px;
   padding: 20px 30px;
   color: var(--gray);
-}
+} */
 
-.form-container > * {
+/* .form-container > * {
   color: var(--primary);
 }
 
 .form-container label {
   color: var(--gray);
   font-size: 1rem;
-}
+} */
 
-.token-amount {
+/* .token-amount {
   margin: 20px 0 12px 0;
-}
+} */
 
 .form-token {
   display: flex;
@@ -170,21 +170,21 @@ input[type='number'].error {
 /* Responsiveness */
 /* Mobile */
 @media (max-width: 768px) {
-  .form-content-wrapper {
+  /* .form-content-wrapper {
     gap: 0;
-  }
-
+  } */
+/* 
   .form-container {
     padding: 0;
     margin-left: 0;
     margin-right: 0;
     width: 100%;
     padding: 1rem;
-  }
+  } */
 
-  .form-container > form {
+  /* .form-container > form {
     padding: 0 1rem;
-  }
+  } */
 
   .form-button {
     font-size: 16px;
@@ -197,26 +197,26 @@ input[type='number'].error {
     scrollbar-width: none;
   }
 
-  .form-container label {
+  /* .form-container label {
     font-size: 12px;
-  }
+  } */
 
   .multiplier-card {
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     display: grid;
   }
 
-  .form-title h1 {
+  /* .form-title h1 {
     text-align: center;
     font-weight: normal;
     font-size: 1rem;
     margin-bottom: 20px;
-  }
+  } */
 
-  .token-label input {
+  /* .token-label input {
     border-radius: 16px;
     font-size: 14px;
-  }
+  } */
 
   .token-card label {
     border-radius: 12px;
@@ -224,12 +224,12 @@ input[type='number'].error {
     padding: 4px 8px;
   }
 
-  .token-label {
+  /* .token-label {
     margin-top: 0;
-  }
-  .token-amount {
+  } */
+  /* .token-amount {
     margin: 25px 0 12px 0;
-  }
+  } */
 }
 
 @media (max-width: 480px) {
@@ -241,11 +241,11 @@ input[type='number'].error {
   }
 }
 
-@media (max-width: 375px) {
+/* @media (max-width: 375px) {
   .token-amount {
     margin: 20px 0 12px 0;
   }
-}
+} */
 
 /* Tablet devices */
 @media screen and (min-width: 600px) and (max-width: 900px) {
@@ -274,7 +274,7 @@ input[type='number'].error {
   }
 }
 
-.form-health-factor {
+/* .form-health-factor {
   display: flex;
   flex-direction: row;
   align-items: end;
@@ -284,4 +284,4 @@ input[type='number'].error {
   color: gray;
   align-self: flex-end;
   gap: 5px;
-}
+} */
