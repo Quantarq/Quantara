@@ -9,29 +9,33 @@ import {
   getWallet,
   getConnectors,
 } from '../../src/services/wallet';
-import { ETH_ADDRESS, STRK_ADDRESS, USDC_ADDRESS } from '../../src/utils/constants';
 
-jest.mock('starknetkit', () => ({
-  connect: jest.fn(),
-  disconnect: jest.fn(),
-  getSelectedConnectorWallet: jest.fn(),
+import * as walletService from '../../src/services/wallet';
+
+import { ETH_ADDRESS, STRK_ADDRESS, USDC_ADDRESS } from '../../src/utils/constants';
+import { expect, describe, it, beforeEach, vi } from 'vitest';
+
+vi.mock('starknetkit', () => ({
+  connect: vi.fn(),
+  disconnect: vi.fn(),
+  getSelectedConnectorWallet: vi.fn(),
 }));
 
-jest.mock(
+vi.mock(
   'starknetkit/injected',
   () => ({
-    InjectedConnector: jest.fn().mockImplementation((options) => options),
+    InjectedConnector: vi.fn().mockImplementation((options) => options),
   }),
   { virtual: true }
 );
 
 describe('Wallet Services', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
-    jest.resetModules();
+    vi.resetModules();
   });
 
   describe('checkForCRMToken', () => {
@@ -47,9 +51,9 @@ describe('Wallet Services', () => {
         wallet: {
           isConnected: true,
           provider: {
-            callContract: jest.fn().mockResolvedValue({ result: ['1'] }),
+            callContract: vi.fn().mockResolvedValue({ result: ['1'] }),
           },
-          enable: jest.fn(),
+          enable: vi.fn(),
         },
       };
 
@@ -65,13 +69,13 @@ describe('Wallet Services', () => {
         wallet: {
           isConnected: true,
           provider: {
-            callContract: jest.fn().mockResolvedValue({ result: ['0'] }),
+            callContract: vi.fn().mockResolvedValue({ result: ['0'] }),
           },
-          enable: jest.fn(),
+          enable: vi.fn(),
         },
       };
 
-      global.alert = jest.fn();
+      global.alert = vi.fn();
 
       connect.mockResolvedValue(mockStarknet);
 
@@ -83,7 +87,7 @@ describe('Wallet Services', () => {
 
   describe('getConnectors', () => {
     it('should return connectors array with injected connectors', () => {
-      const mockGetItem = jest.fn();
+      const mockGetItem = vi.fn();
       Object.defineProperty(window, 'localStorage', {
         value: {
           getItem: mockGetItem.mockReturnValue(null),
@@ -101,7 +105,7 @@ describe('Wallet Services', () => {
 
     ['argentX', 'braavos'].forEach((connector) => {
       it(`should return connectors array with injected connectors from local storage (${connector})`, () => {
-        const mockGetItem = jest.fn();
+        const mockGetItem = vi.fn();
         Object.defineProperty(window, 'localStorage', {
           value: {
             getItem: mockGetItem.mockReturnValue(connector),
@@ -127,15 +131,15 @@ describe('Wallet Services', () => {
         const mockStarknet = {
           wallet: {
             isConnected: true,
-            enable: jest.fn(),
+            enable: vi.fn(),
             selectedAddress: expectedAddress,
           },
         };
 
         connect.mockResolvedValue(mockStarknet);
 
-        const mockGetItem = jest.fn().mockReturnValue(connectorId);
-        const mockSetItem = jest.fn();
+        const mockGetItem = vi.fn().mockReturnValue(connectorId);
+        const mockSetItem = vi.fn();
 
         Object.defineProperty(window, 'localStorage', {
           value: {
@@ -170,14 +174,14 @@ describe('Wallet Services', () => {
       const mockStarknet = {
         wallet: {
           isConnected: true,
-          enable: jest.fn(),
+          enable: vi.fn(),
           selectedAddress: '0x123',
         },
       };
 
       connect.mockResolvedValue(mockStarknet);
 
-      const mockGetItem = jest.fn().mockReturnValue(null);
+      const mockGetItem = vi.fn().mockReturnValue(null);
 
       Object.defineProperty(window, 'localStorage', {
         value: {
@@ -217,7 +221,7 @@ describe('Wallet Services', () => {
     it('should successfully connect wallet and return address', async () => {
       const mockStarknet = {
         wallet: {
-          enable: jest.fn(),
+          enable: vi.fn(),
           isConnected: true,
           selectedAddress: '0x123',
         },
@@ -248,7 +252,7 @@ describe('Wallet Services', () => {
     it('should throw error when wallet connection fails', async () => {
       const mockStarknet = {
         wallet: {
-          enable: jest.fn(),
+          enable: vi.fn(),
           isConnected: false,
         },
       };
@@ -265,7 +269,7 @@ describe('Wallet Services', () => {
         wallet: {
           isConnected: true,
           provider: {
-            callContract: jest.fn().mockImplementation(({ contractAddress }) => {
+            callContract: vi.fn().mockImplementation(({ contractAddress }) => {
               const balances = {
                 [ETH_ADDRESS]: { result: ['1000000000000000000'] },
                 [USDC_ADDRESS]: { result: ['2000000'] },
@@ -274,7 +278,7 @@ describe('Wallet Services', () => {
               return balances[contractAddress];
             }),
           },
-          enable: jest.fn(),
+          enable: vi.fn(),
         },
       };
 
@@ -291,16 +295,19 @@ describe('Wallet Services', () => {
   });
 
   describe('getBalances', () => {
-    it('should update balances state with token balances', async () => {
-      const mockSetBalances = jest.fn();
-      const mockWalletId = '0x123';
-      const mockTokenBalances = [
-        { name: 'ETH', balance: '1.0000', icon: 'ETH-icon' },
-        { name: 'USDC', balance: '2.0000', icon: 'USDC-icon' },
-        { name: 'STRK', balance: '3.0000', icon: 'STRK-icon' },
-      ];
+    const mockTokenBalances = [
+      { name: 'ETH', balance: '1.0000', icon: 'ETH-icon' },
+      { name: 'USDC', balance: '2.0000', icon: 'USDC-icon' },
+      { name: 'STRK', balance: '3.0000', icon: 'STRK-icon' },
+    ];
 
-      jest.spyOn(require('../../src/services/wallet'), 'getTokenBalances').mockResolvedValue(mockTokenBalances);
+    it('should update balances state with token balances', async () => {
+      const mockSetBalances = vi.fn();
+      const mockWalletId = '0x123';
+
+      // vi.spyOn(require('../../src/services/wallet'), 'getTokenBalances').mockResolvedValue(mockTokenBalances);
+
+      vi.spyOn(walletService, 'getTokenBalances').mockResolvedValue(mockTokenBalances);
 
       await getBalances(mockWalletId, mockSetBalances);
       await mockSetBalances(mockTokenBalances);
@@ -309,8 +316,10 @@ describe('Wallet Services', () => {
     });
 
     it('should not fetch balances if wallet ID is not provided', async () => {
-      const mockSetBalances = jest.fn();
-      const mockGetTokenBalances = jest.spyOn(require('../../src/services/wallet'), 'getTokenBalances');
+      const mockSetBalances = vi.fn();
+      // const mockGetTokenBalances = vi.spyOn(require('../../src/services/wallet'), 'getTokenBalances');
+
+      const mockGetTokenBalances = vi.spyOn(walletService, 'getTokenBalances').mockResolvedValue(mockTokenBalances);
 
       await getBalances(null, mockSetBalances);
 
@@ -321,7 +330,7 @@ describe('Wallet Services', () => {
 
   describe('logout', () => {
     it('should clear wallet ID from local storage', async () => {
-      const mockRemoveItem = jest.fn();
+      const mockRemoveItem = vi.fn();
       Object.defineProperty(window, 'localStorage', {
         value: {
           removeItem: mockRemoveItem,

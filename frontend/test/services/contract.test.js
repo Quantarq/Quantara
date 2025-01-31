@@ -1,21 +1,23 @@
+//contract.test.js
 import { connect } from 'starknetkit';
 import { getWallet } from '../../src/services/wallet';
 import { axiosInstance } from '../../src/utils/axios';
 import { deployContract, checkAndDeployContract } from '../../src/services/contract';
 import { getDeployContractData } from '../../src/utils/constants';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 // Mock dependencies
-jest.mock('starknetkit', () => ({
-  connect: jest.fn(),
+vi.mock('starknetkit', () => ({
+  connect: vi.fn(),
 }));
-jest.mock('../../src/services/wallet', () => ({
-  getWallet: jest.fn(),
+vi.mock('../../src/services/wallet', () => ({
+  getWallet: vi.fn(),
 }));
-jest.mock('../../src/utils/axios');
-jest.mock('../../src/utils/constants');
-jest.mock('../../src/components/layout/notifier/Notifier', () => ({
-  notify: jest.fn(),
-  ToastWithLink: jest.fn(),
+vi.mock('../../src/utils/axios');
+vi.mock('../../src/utils/constants');
+vi.mock('../../src/components/layout/notifier/Notifier', () => ({
+  notify: vi.fn(),
+  ToastWithLink: vi.fn(),
 }));
 
 describe('Contract Deployment Tests', () => {
@@ -23,26 +25,30 @@ describe('Contract Deployment Tests', () => {
   const mockTransactionHash = '0xabc...';
   const mockContractAddress = '0xdef...';
 
-  beforeEach(() => {
-    jest.clearAllMocks();
+  // Common mock wallet setup
+  const createMockWallet = (overrides = {}) => ({
+    account: {
+      deployContract: vi.fn().mockResolvedValue({
+        transaction_hash: mockTransactionHash,
+        contract_address: mockContractAddress,
+      }),
+      waitForTransaction: vi.fn().mockResolvedValue(true),
+      ...overrides,
+    },
+  });
 
+  beforeEach(() => {
+    vi.clearAllMocks();
     getDeployContractData.mockReturnValue({
       contractData: 'mockContractData',
     });
+    vi.mocked(axiosInstance.get).mockReset();
+    vi.mocked(axiosInstance.post).mockReset();
   });
 
   describe('deployContract', () => {
     it('should successfully deploy contract', async () => {
-      const mockWallet = {
-        account: {
-          deployContract: jest.fn().mockResolvedValue({
-            transaction_hash: mockTransactionHash,
-            contract_address: mockContractAddress,
-          }),
-          waitForTransaction: jest.fn().mockResolvedValue(true),
-        },
-      };
-
+      const mockWallet = createMockWallet();
       getWallet.mockResolvedValue(mockWallet);
 
       const result = await deployContract(mockWalletId);
@@ -52,7 +58,6 @@ describe('Contract Deployment Tests', () => {
         contractData: 'mockContractData',
       });
       expect(mockWallet.account.waitForTransaction).toHaveBeenCalledWith(mockTransactionHash);
-
       expect(result).toEqual({
         transactionHash: mockTransactionHash,
         contractAddress: mockContractAddress,
@@ -62,47 +67,27 @@ describe('Contract Deployment Tests', () => {
     it('should handle deployment errors correctly', async () => {
       const mockError = new Error('Deployment failed');
       getWallet.mockRejectedValue(mockError);
-
       await expect(deployContract(mockWalletId)).rejects.toThrow('Deployment failed');
     });
 
     it('should handle transaction waiting errors', async () => {
-      const mockWallet = {
-        account: {
-          deployContract: jest.fn().mockResolvedValue({
-            transaction_hash: mockTransactionHash,
-            contract_address: mockContractAddress,
-          }),
-          waitForTransaction: jest.fn().mockRejectedValue(new Error('Transaction failed')),
-        },
-      };
-
+      const mockWallet = createMockWallet({
+        waitForTransaction: vi.fn().mockRejectedValue(new Error('Transaction failed')),
+      });
       getWallet.mockResolvedValue(mockWallet);
-
       await expect(deployContract(mockWalletId)).rejects.toThrow('Transaction failed');
     });
   });
 
   describe('checkAndDeployContract', () => {
     it('should deploy contract if not already deployed', async () => {
-      // Mock the API check for undeployed contract
-      axiosInstance.get.mockResolvedValue({
+      vi.mocked(axiosInstance.get).mockResolvedValue({
         data: { is_contract_deployed: false },
       });
 
-      // Mock successful wallet and deployment
-      const mockWallet = {
-        account: {
-          deployContract: jest.fn().mockResolvedValue({
-            transaction_hash: mockTransactionHash,
-            contract_address: mockContractAddress,
-          }),
-          waitForTransaction: jest.fn().mockResolvedValue(true),
-        },
-      };
-
+      const mockWallet = createMockWallet();
       getWallet.mockResolvedValue(mockWallet);
-      axiosInstance.post.mockResolvedValue({ data: 'success' });
+      vi.mocked(axiosInstance.post).mockResolvedValue({ data: 'success' });
 
       await checkAndDeployContract(mockWalletId);
 
@@ -118,55 +103,40 @@ describe('Contract Deployment Tests', () => {
     });
 
     it('should skip deployment if contract already exists', async () => {
-      axiosInstance.get.mockResolvedValue({
+      vi.mocked(axiosInstance.get).mockResolvedValue({
         data: { is_contract_deployed: true },
       });
-
       await checkAndDeployContract(mockWalletId);
-
-      expect(axiosInstance.get).toHaveBeenCalled();
+      expect(axiosInstance.get).toHaveBeenCalledWith(`/api/check-user?wallet_id=${mockWalletId}`);
       expect(getWallet).not.toHaveBeenCalled();
       expect(axiosInstance.post).not.toHaveBeenCalled();
     });
 
     it('should handle backend check errors correctly', async () => {
       const mockError = new Error('Backend error');
-      axiosInstance.get.mockRejectedValue(mockError);
-
-      console.error = jest.fn();
+      vi.mocked(axiosInstance.get).mockRejectedValue(mockError);
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       await checkAndDeployContract(mockWalletId);
 
-      expect(console.error).toHaveBeenCalledWith('Error checking contract status:', mockError);
+      expect(consoleSpy).toHaveBeenCalledWith('Error checking contract status:', mockError);
+      consoleSpy.mockRestore();
     });
 
     it('should handle contract update error correctly after deployment', async () => {
-      // Mock API check and successful deployment
-      axiosInstance.get.mockResolvedValue({
+      vi.mocked(axiosInstance.get).mockResolvedValue({
         data: { is_contract_deployed: false },
       });
-
-      const mockWallet = {
-        account: {
-          deployContract: jest.fn().mockResolvedValue({
-            transaction_hash: mockTransactionHash,
-            contract_address: mockContractAddress,
-          }),
-          waitForTransaction: jest.fn().mockResolvedValue(true),
-        },
-      };
-
+      const mockWallet = createMockWallet();
       getWallet.mockResolvedValue(mockWallet);
-
-      // Mock backend update failure
       const mockUpdateError = new Error('Update failed');
-      axiosInstance.post.mockRejectedValue(mockUpdateError);
-
-      console.error = jest.fn();
+      vi.mocked(axiosInstance.post).mockRejectedValue(mockUpdateError);
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       await checkAndDeployContract(mockWalletId);
 
-      expect(console.error).toHaveBeenCalledWith('Error checking contract status:', mockUpdateError);
+      expect(consoleSpy).toHaveBeenCalledWith('Error checking contract status:', mockUpdateError);
+      consoleSpy.mockRestore();
     });
   });
 });
