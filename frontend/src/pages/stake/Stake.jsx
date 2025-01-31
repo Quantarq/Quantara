@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import MetricCard from '@/components/vault/stake-card/StakeCard';
+import MetricCard from '@/components/vault/metric-card/MetricCard';
 import STRK from '@/assets/icons/strk.svg';
 import USDCc from '@/assets/icons/apy_icon.svg';
 import { VaultLayout } from '@/components/vault/VaultLayout';
@@ -127,6 +127,7 @@ hover:from-[#e01dee] hover:to-[#74d6fd] transition duration-100 ease-in-out ">
             </div>
           </div>
         </div>
+        
       </div>
     </VaultLayout>
   );
