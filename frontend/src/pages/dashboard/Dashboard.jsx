@@ -15,6 +15,7 @@ export default function DashboardPage({ telegramId }) {
   const { walletId } = useWalletStore()
 
   const { 
+    data,
     cardData, 
     healthFactor, 
     startSum, 
