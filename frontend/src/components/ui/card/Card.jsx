@@ -1,10 +1,10 @@
 function Card({ label, icon, value = '', cardData = [] }) {
   return (
-    <div className="flex flex-col grow justify-center items-center text-center border-1 border-light-purple rounded-lg p-4 lg:w-[317px] h-[101px] sm:w-full sm:h-[90px] xs:h-auto bg-transparent">
+    <div className="flex flex-col   grow justify-center items-center text-center border-1 border-light-purple rounded-lg p-4 lg:w-[317px] h-[101px] sm:w-full sm:h-[90px] xs:h-auto bg-transparent">
       {/* Card Header */}
       <div className="flex items-center justify-center mb-2">
         {icon}
-        <span className="text-sm font-semibold sm:font-normal ml-2">{label}</span>
+        <span className="text-sm font-semibold sm:font-normal text-gray ml-2">{label}</span>
       </div>
 
       {/* Card Value */}

@@ -38,7 +38,7 @@ export default function DashboardLayout({ children, title = 'zkLend Position' })
   <div className="min-h-screen flex w-screen lg:w-[calc(100vw-372px)] lg:ml-[372px] md:justify-center ">
       <Sidebar items={dashboardItems} />
       <div className="relative flex justify-center border border-solid  items-center w-full h-full">
-        <div className="flex flex-col justify-center gap-2.5 p-6 pt-5 mt-24 mb-12 h-full">
+        <div className="flex flex-col justify-center gap-2.5 p-6 pt-5 mt-24 mb-12 h-full w-full md:w-auto max-w-[400px] md:max-w-none">
           <h1 className="mt-4 text-2xl font-semibold text-second-primary text-center">{title}</h1>
         <div className="w-full gap-6  rounded-2xl  text-second-primary text-center flex justify-center flex-col ">
             {children}

@@ -47,12 +47,12 @@ export const AddDeposit = () => {
 
   return (
     <DashboardLayout title="Add Deposit">
-      <div className="flex flex-col items-center justify-center gap-0.5 pt-6 rounded-lg text-primary text-center">
-      <div className="flex gap-2">
-          <Card 
-            label="Health Factor" 
-            value={dashboardData?.health_ratio} 
-            icon={<HealthIcon className="mr-[5px] w-4 h-4" />} 
+      <div className="flex flex-col w-full items-center justify-center gap-0.5 pt-6 rounded-lg text-primary text-center">
+        <div className="flex flex-col md:flex-row w-full gap-2">
+          <Card
+            label="Health Factor"
+            value={dashboardData?.health_ratio}
+            icon={<HealthIcon className="mr-[5px] w-4 h-4" />}
             labelClassName="text-stormy-gray"
           />
           <Card
@@ -63,9 +63,7 @@ export const AddDeposit = () => {
           />
         </div>
       </div>
-      <h1 className="text-xl font-normal text-primary text-center mt-8 mb-0 md:mt-0">
-        Please make a deposit
-      </h1>
+      <h1 className="text-xl font-normal text-primary text-center mt-8 mb-0 md:mt-0">Please make a deposit</h1>
       <TokenSelector
         selectedToken={selectedToken}
         setSelectedToken={setSelectedToken}
@@ -83,8 +81,8 @@ export const AddDeposit = () => {
           placeholder="0.00"
           disabled={isLoading || isDashboardLoading}
         />
-        <span 
-          id="currency-symbol" 
+        <span
+          id="currency-symbol"
           className="absolute text-dark-gray top-[18%] -translate-x-1/2 -translate-y-1/2 opacity-50 text-base leading-[20.83px] z-[999999]"
         >
           {selectedToken}

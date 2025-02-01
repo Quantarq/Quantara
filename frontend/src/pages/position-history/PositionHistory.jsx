@@ -35,7 +35,7 @@ function PositionHistory() {
   return (
     <DashboardLayout title="Position History">
       <div className="flex flex-col items-center justify-center gap-0.5 pt-6 rounded-lg text-primary text-center">
-        <div className="flex justify-center gap-2 w-full">
+        <div className="flex flex-col md:flex-row gap-2 w-full">
           <Card
             label="Health Factor"
             value={cardData?.health_ratio || '0.00'}
@@ -53,7 +53,7 @@ function PositionHistory() {
           <p>Position History</p>
         </div>
 
-        <div className="border w-full border-[#36294E] rounded-lg overflow-auto ]">
+        <div className="border w-full border-[#36294E] rounded-lg overflow-auto [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-track]:bg-[#12072180] [&::-webkit-scrollbar-thumb]:bg-[#36294E] [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-[#4b3b69]">
           {isPending ? (
             <div className="flex justify-center items-center">
               <Spinner loading={isPending} />

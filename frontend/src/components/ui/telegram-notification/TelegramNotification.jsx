@@ -25,8 +25,10 @@ export function TelegramNotification({ telegramId }) {
         className="w-full max-w-[642px] h-[60px] flex items-center justify-center gap-2"
         onClick={handleOpen}
       >
-        <TelegramIcon className="w-6 h-6" />
-        Enable telegram notification bot
+        <span className="flex items-center justify-center gap-2">
+          <TelegramIcon className="w-6 h-6" />
+          Enable telegram notification bot
+        </span>
       </Button>
       {showModal && (
         <ActionModal

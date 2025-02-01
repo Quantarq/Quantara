@@ -1,5 +1,4 @@
 import React from 'react';
-import './withdraw.css';
 import DiamondIcon from '@/assets/icons/diamond.svg?react';
 import TimeIcon from '@/assets/icons/time.svg?react';
 import SettingIcon from '@/assets/icons/settings.svg?react';
