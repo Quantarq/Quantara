@@ -20,7 +20,7 @@ const TokenSelector = ({ selectedToken, setSelectedToken, className }) => {
       <div className="flex justify-center items-center gap-2 w-full">
         {Tokens.map((token) => (
           <div
-            className={`relative w-full text-center rounded-xl border border-border-color h-16 grid place-content-center ${selectedToken === token.label ? 'selected' : ''}`}
+            className={`relative w-full text-center rounded-xl border border-border-color h-16 grid place-content-center ${selectedToken === token.label ? "after:content[''] after:absolute after:inset-0 after:p-0.5 after:rounded-xl after:bg-gradient-to-r after:from-nav-button-hover after:to-pink after:[mask:conic-gradient(#000_0_0)_content-box_exclude,conic-gradient(#000_0_0)]" : ''}`}
             key={token.id}
             onClick={() => handleTokenChange(token)}
           >
@@ -35,9 +35,7 @@ const TokenSelector = ({ selectedToken, setSelectedToken, className }) => {
             />
             <div className="w-full flex gap-1 items-center py-4">
               <div className="bg-border-color rounded-full w-8 h-8 grid place-content-center">
-                <span className="rounded-full h-5 w-5 flex justify-center items-center">
-                  {token.component}
-                </span>
+                <span className="rounded-full h-5 w-5 flex justify-center items-center">{token.component}</span>
               </div>
               <label htmlFor={token.id} className="text-base font-semibold text-primary leading-6">
                 {token.label}

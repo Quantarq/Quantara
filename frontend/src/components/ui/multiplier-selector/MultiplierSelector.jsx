@@ -105,7 +105,7 @@ const MultiplierSelector = ({ setSelectedMultiplier, selectedToken }) => {
   if (isLoading) return <div className="bg-white py-3 px-4 text-black rounded-xs">Loading multiplier data...</div>;
 
   return (
-    <div className="w-full border-none pt-9 max-h-24 px-2 md:px-0">
+    <div className="w-full pt-9 max-h-24 px-2 md:px-0">
       <div className="relative h-2 w-full cursor-pointer">
         <div className="mt-3.5 mr-0 -mb-2.5">
           <div className="mt-2.5 w-full">
@@ -115,29 +115,24 @@ const MultiplierSelector = ({ setSelectedMultiplier, selectedToken }) => {
               onMouseDown={handleMouseDown}
               onTouchStart={handleTouchStart}
             >
-              <div className="absolute h-full w-full rounded-full outline-hidden border border-border-color">
+              <div className="absolute h-full w-full rounded-full border border-border-color">
                 <div
-                  className="absolute h-full bg-gradient-to-r from-nav-button-hover to-pink"
+                  className="absolute h-full rounded-full bg-gradient-to-r from-nav-button-hover to-pink"
                   style={{
                     width: `${calculateSliderPercentage(actualValue)}%`,
                   }}
                 ></div>
               </div>
               <div
-                className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 transition-colors duration-300"
+                className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 transition-colors duration-300 w-8 h-8 sm:w-[40px] sm:h-10"
                 style={{
                   left: `${calculateSliderPercentage(actualValue)}%`,
                 }}
               >
-                <div className="absolute h-8 w-12 bottom-8 md:bottom-8 left-4 -translate-x-1/2 bg-pinky-blue- text-primary text-sm py-1.5 px-2 opacity-[0.9] rounded-[7.17px] transition-opacity duration-200 ease-in-out text-center after:content-[''] after:absolute after:-bottom-3.5 after:left-1/2 after:-translate-x-1/2 after:border-8 after:border-solid after:border-transparent after:border-t-[#2c5475] p-1">
+                <div className="bg-[#2c5475] absolute h-8 w-12 bottom-10 sm:bottom-12 left-5 -translate-x-1/2 text-primary text-sm py-1.5 px-2 rounded-[7.17px] transition-opacity duration-200 ease-in-out text-center after:content-[''] after:absolute after:-bottom-3.5 after:left-1/2 after:-translate-x-1/2 after:border-8 after:border-solid after:border-transparent after:border-t-[#2c5475] p-1">
                   {actualValue.toFixed(1)}
                 </div>
-                <img
-                  src={sliderThumb}
-                  className="h-8 w-8"
-                  alt="slider thumb"
-                  draggable="false"
-                />
+                <img src={sliderThumb} className="h-full w-full" alt="slider thumb" draggable="false" />
               </div>
             </div>
           </div>

@@ -255,18 +255,6 @@ a.svelte-1mtuslq.svelte-1mtuslq {
 }
  
 
-.selected::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  padding: 1px;
-  background: linear-gradient(90deg, #49abd2 0%, #e01dee 100%);
-  border-radius: inherit;
-  mask:
-    conic-gradient(#000 0 0) content-box exclude,
-    conic-gradient(#000 0 0);
-}
-
 @import 'tailwindcss';
 
 @theme {

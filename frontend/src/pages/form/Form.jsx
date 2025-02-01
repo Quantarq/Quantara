@@ -76,7 +76,7 @@ const Form = () => {
 
   return (
     <div className="flex flex-col gap-4 items-center py-4 min-h-screen">
-      <BalanceCards className="balance-card" />
+      <BalanceCards />
 
       {isClosePositionOpen && (
         <ActionModal
@@ -98,8 +98,8 @@ const Form = () => {
         className="flex justify-center flex-col gap-2.5 pb-3  max-w-2xl w-full text-primary px-2"
         onSubmit={handleSubmit}
       >
-        <div className=" font-normal text-sm mb-2.5">
-          <h2 className='text-xl text-center'>Please submit your leverage details</h2>
+        <div className=" font-normal text-sm md:mb-2.5 my-3.5">
+          <h2 className="text-xl text-center">Please submit your leverage details</h2>
         </div>
         <TokenSelector
           selectedToken={selectedToken}
@@ -119,7 +119,7 @@ const Form = () => {
         <div className="flex flex-col gap-1.5 mt-16 w-full mb-2">
           <label className="text-start w-full text-gray pt-5">Token Amount</label>
           <input
-            className="rounded-xl text-[14px] bg-transparent sm:rounded-full py-4 px-8 border-light-purple border w-full"
+            className="rounded-xl text-sm bg-transparent py-5 px-8 border-light-purple border w-full focus:outline-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             type="number"
             placeholder="Enter Token Amount"
             value={tokenAmount}
