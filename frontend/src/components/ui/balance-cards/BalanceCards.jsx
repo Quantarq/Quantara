@@ -3,10 +3,9 @@ import { useMatchMedia } from '@/hooks/useMatchMedia';
 import { getBalances } from '@/services/wallet';
 import { useWalletStore } from '@/stores/useWalletStore';
 
-import ETH from '@/assets/icons/ethereum.svg?react';
-import USDC from '@/assets/icons/borrow_usdc.svg?react';
-import STRK from '@/assets/icons/strk.svg?react';
-import './balanceCards.css';
+import ETH from '@/assets/icons/ethereum.svg';
+import USDC from '@/assets/icons/borrow_usdc.svg';
+import STRK from '@/assets/icons/strk.svg';
 
 const BalanceCards = ({ className }) => {
   const { walletId } = useWalletStore();
@@ -18,35 +17,43 @@ const BalanceCards = ({ className }) => {
   }, [walletId]);
 
   const [balances, setBalances] = useState([
-    { icon: <ETH />, title: 'ETH', balance: '0.00' },
-    { icon: <USDC />, title: 'USDC', balance: '0.00' },
-    { icon: <STRK />, title: 'STRK', balance: '0.00' },
+    { icon: ETH, title: 'ETH', balance: '0.00' },
+    { icon: USDC, title: 'USDC', balance: '0.00' },
+    { icon: STRK, title: 'STRK', balance: '0.00' },
   ]);
 
   return (
-    <div className={`balance-card ${className}`}>
-      <div className="balance-container">
+    <div className="mt-3 mx-auto max-w-2xl px-3 w-full overflow-x-auto no-scrollbar">
+      <div className="grid grid-cols-3 w-full rounded-[8px] gap-5  min-w-md">
         {balances.map((balance) =>
           isMobile ? (
-            <div className="balance-item" key={balance.title}>
-              <div className="title-container">
-                <label htmlFor="icon" className="balance-title">
-                  <span className="token-icon">{balance.icon}</span>
-                </label>
-                <label htmlFor={balance.title}>
-                  <span className="balance-text">{balance.title} Balance</span>
-                </label>
-              </div>
-              <label htmlFor={balance.title}>{balance.balance}</label>
-            </div>
-          ) : (
-            <div className="balance-item" key={balance.title}>
-              <label htmlFor={balance.title} className={'balance-title'}>
-                <span className="token-icon blend">{balance.icon}</span>
-                <span className="balance-text">{balance.title} Balance</span>
+            <div
+              className="border flex flex-col items-center text-center border- py-3 rounded-xl border-nav-divider-bg px-1"
+              key={balance.title}
+            >
+              <label htmlFor={balance.title} className={'flex text-[#83919F] gap-1 items-center'}>
+                <div className="h-6 w-6 rounded-full bg-border-color flex justify-center p-1">
+                  <img src={balance.icon} className="w-full h-full" />
+                </div>
+                <span className="text-sm">{balance.title} Balance</span>
               </label>
               <label htmlFor={balance.title}>
-                <span className="balance-amount">{balance.balance}</span>
+                <span className="font-semibold text-2xl text-white">{balance.balance}</span>
+              </label>
+            </div>
+          ) : (
+            <div
+              className="border flex flex-col items-center text-center border- py-4 px-6 rounded-xl border-nav-divider-bg "
+              key={balance.title}
+            >
+              <label htmlFor={balance.title} className={'flex text-[#83919F] gap-1'}>
+                <div className="h-6 w-6 rounded-full bg-border-color flex justify-center p-1">
+                  <img src={balance.icon} className="w-full h-full" />
+                </div>
+                <span className="">{balance.title} Balance</span>
+              </label>
+              <label htmlFor={balance.title}>
+                <span className="font-semibold text-2xl text-white">{balance.balance}</span>
               </label>
             </div>
           )

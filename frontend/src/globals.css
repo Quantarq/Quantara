@@ -302,7 +302,6 @@ a.svelte-1mtuslq.svelte-1mtuslq {
   --color-second-primary: #fdfdfd;
   --color-plain-button-bg: #0e0a16;
   --color-header-button-bg: #120721;
-  --color-btn-dark: rgb(18, 7, 33);
 
   --font-text: 'Rethink Sans', sans-serif;
   --font-primary: 'Open Sans', sans-serif;
@@ -333,4 +332,17 @@ a.svelte-1mtuslq.svelte-1mtuslq {
 
   --z-9999: 9999;
   --z-100: 100;
+}
+
+@layer utilities {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-x: hidden;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
 }
