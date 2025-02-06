@@ -1,10 +1,11 @@
 import React from 'react';
 import { connect, disconnect, getSelectedConnectorWallet } from 'starknetkit';
 import { InjectedConnector } from 'starknetkit/injected';
-import { ETH_ADDRESS, STRK_ADDRESS, USDC_ADDRESS } from '../utils/constants';
+import { ETH_ADDRESS, STRK_ADDRESS, USDC_ADDRESS, kSTRK_ADDRESS } from '../utils/constants';
 import ETH from '../assets/icons/ethereum.svg?react';
 import USDC from '../assets/icons/borrow_usdc.svg?react';
 import STRK from '../assets/icons/strk.svg?react';
+import kSTRK from '../assets/icons/kstrk.svg?react';
 
 const CRM_TOKEN_ADDRESS = '0x051c4b1fe3bf6774b87ad0b15ef5d1472759076e42944fff9b9f641ff13e5bbe';
 
@@ -108,6 +109,7 @@ export async function getTokenBalances(walletAddress) {
       ETH: await getTokenBalance(wallet, walletAddress, ETH_ADDRESS),
       USDC: await getTokenBalance(wallet, walletAddress, USDC_ADDRESS),
       STRK: await getTokenBalance(wallet, walletAddress, STRK_ADDRESS),
+      kSTRK: await getTokenBalance(wallet, walletAddress, kSTRK_ADDRESS),
     };
 
     return tokenBalances;
@@ -156,6 +158,11 @@ export const getBalances = async (walletId, setBalances) => {
         icon: <STRK />,
         title: 'STRK',
         balance: data.STRK !== undefined ? data.STRK.toString() : '0.00',
+      },
+      {
+        icon: <kSTRK />,
+        title: 'kSTRK',
+        balance: data.kSTRK !== undefined ? data.kSTRK.toString() : '0.00',
       },
       // { icon: <DAI />, title: 'DAI', balance: data.DAI !== undefined ? data.DAI.toString() : '0.00' },  dont have DAI in the constants file
     ];

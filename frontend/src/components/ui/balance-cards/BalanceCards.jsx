@@ -6,6 +6,7 @@ import { useWalletStore } from '@/stores/useWalletStore';
 import ETH from '@/assets/icons/ethereum.svg?react';
 import USDC from '@/assets/icons/borrow_usdc.svg?react';
 import STRK from '@/assets/icons/strk.svg?react';
+import kSTRK from '@/assets/icons/kstrk.svg?react';
 
 const BalanceCards = ({ className }) => {
   const { walletId } = useWalletStore();
@@ -20,6 +21,7 @@ const BalanceCards = ({ className }) => {
     { icon: <ETH />, title: 'ETH', balance: '0.00' },
     { icon: <USDC />, title: 'USDC', balance: '0.00' },
     { icon: <STRK />, title: 'STRK', balance: '0.00' },
+    { icon: <kSTRK />, title: 'kSTRK', balance: '0.00' },
   ]);
 
   return (

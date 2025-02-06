@@ -1,5 +1,6 @@
 import EthIcon from '@/assets/icons/ethereum.svg?react';
 import StrkIcon from '@/assets/icons/strk.svg?react';
+import kStrkIcon from '@/assets/icons/kstrk.svg?react';
 import UsdIcon from '@/assets/icons/usdc-icon.svg?react';
 
 const IconWrapper = ({ children }) => <div>{children}</div>;
@@ -24,6 +25,16 @@ function Deposited({ data }) {
             <p>STRK</p>
           </div>
           <p className="text-gray">{data.strk}</p>
+        </div>
+
+        <div className="bg-border-color h-[1px] w-full rounded-lg md:h-0.5" />
+
+        <div className="flex items-center justify-between text-base font-semibold">
+          <div className="text-warning-text-colour flex items-center gap-1">
+            <kStrkIcon className="bg-border-color flex size-5 items-center justify-center rounded-[900px] p-1 md:size-8 md:p-2" />
+            <p>kSTRK</p>
+          </div>
+          <p className="text-gray">{data.kstrk}</p>
         </div>
 
         <div className="bg-border-color h-[1px] w-full rounded-lg md:h-0.5" />

@@ -4,6 +4,7 @@ import { axiosInstance } from '../utils/axios';
 import { useWalletStore } from '../stores/useWalletStore';
 import EthIcon from '@/assets/icons/ethereum.svg?react';
 import StrkIcon from '@/assets/icons/strk.svg?react';
+import kStrkIcon from '@/assets/icons/kstrk.svg?react';
 import UsdIcon from '@/assets/icons/usd_coin.svg?react';
 import CollateralIcon from '@/assets/icons/collateral_dynamic.svg?react';
 import BorrowIcon from '@/assets/icons/borrow_dynamic.svg?react';
@@ -36,11 +37,12 @@ const useDashboardData = () => {
           ...acc,
           [token.toLowerCase()]: (acc[token.toLowerCase()] || 0) + Number(amount),
         }),
-        { eth: 0, strk: 0, usdc: 0, usdt: 0 }
+        { eth: 0, strk: 0, usdc: 0, usdt: 0, kstrk: 0 }
       );
 
       const currencyMap = {
         STRK: { name: 'STRK', icon: StrkIcon },
+        kSTRK: { name: 'kSTRK', icon: kStrkIcon },
         ETH: { name: 'Ethereum', icon: EthIcon },
         USDC: { name: 'USDC', icon: UsdIcon },
       };
@@ -87,7 +89,7 @@ const useDashboardData = () => {
     healthFactor: data?.healthFactor || '0.00',
     startSum: data?.startSum || 0,
     currentSum: data?.currentSum || 0,
-    depositedData: data?.depositedData || { eth: 0, strk: 0, usdc: 0, usdt: 0 },
+    depositedData: data?.depositedData || { eth: 0, strk: 0, usdc: 0, usdt: 0, kstrk: 0 },
     isLoading,
     error,
   };
