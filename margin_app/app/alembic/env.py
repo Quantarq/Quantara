@@ -1,4 +1,3 @@
-from spotnet.models.deposit import Deposit
 """
 Alembic environment configuration for database migrations.
 """
@@ -7,6 +6,7 @@ import os
 import asyncio
 from logging.config import fileConfig
 
+from app.models.deposit import Deposit  
 from app.models import BaseModel
 from app.models.pool import Pool, UserPool  
 from sqlalchemy import pool
