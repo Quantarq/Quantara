@@ -29,7 +29,6 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.BaseModel.metadata
 
-# Make sure the models are imported before creating the metadata
 target_metadata = BaseModel.metadata
 
 # other values from the config, defined by the needs of env.py,
