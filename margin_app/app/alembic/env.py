@@ -1,3 +1,4 @@
+from spotnet.models.deposit import Deposit
 """
 Alembic environment configuration for database migrations.
 """
