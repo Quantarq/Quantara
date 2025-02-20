@@ -1,9 +1,14 @@
+"""
+Core configuration settings for the application.
+"""
+
 from pydantic import Field, computed_field
 from pydantic_settings import BaseSettings
 from sqlalchemy import URL
 
 
 class Settings(BaseSettings):
+    """Configuration settings for the application."""
     # Application settings
     app_env: str = "development"
     secret_key: str = "SECRET_KEY"

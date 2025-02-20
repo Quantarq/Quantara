@@ -1,3 +1,7 @@
+"""
+Alembic environment configuration for database migrations.
+"""
+
 import os
 import asyncio
 from logging.config import fileConfig

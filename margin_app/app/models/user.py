@@ -1,3 +1,7 @@
+"""
+User model definitions for the application.
+"""
+
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 

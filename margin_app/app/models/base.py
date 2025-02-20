@@ -1,3 +1,7 @@
+"""
+Base model definitions for the application.
+"""
+
 import uuid
 from datetime import datetime
 
