@@ -42,14 +42,16 @@ class DBConnector:
         """
         Asynchronous context manager for handling database sessions.
 
-        This method creates and yields an asynchronous database session using `self.session_maker()`.  
+        This method creates and yields an asynchronous 
+            database session using `self.session_maker()`.  
         It ensures proper handling of transactions and session cleanup.
 
         Yields:
             AsyncSession: An asynchronous database session.
 
         Raises:
-            Exception: If a database operation fails, an exception is raised after rolling back the transaction.
+            Exception: If a database operation fails, 
+            an exception is raised after rolling back the transaction.
 
         Example:
             async with db.session() as session:

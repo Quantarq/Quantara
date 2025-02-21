@@ -1,4 +1,6 @@
-
+"""
+This module contains the session configuration.
+"""
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -13,5 +15,9 @@ AsyncSessionLocal = sessionmaker(engine, expire_on_commit=False, class_=AsyncSes
 
 # Dependency for FastAPI routes
 async def get_db():
+    """
+    Creates the database session
+    :return: AsyncSessionLocal
+    """
     async with AsyncSessionLocal() as session:
         yield session
