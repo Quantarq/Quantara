@@ -5,7 +5,7 @@ This module contains the base crud database configuration.
 import logging
 import uuid
 from typing import Type, TypeVar
-from margin_app.app.models.base import BaseModel
+from app.models.base import BaseModel
 
 from typing import AsyncIterator
 from sqlalchemy.exc import SQLAlchemyError
