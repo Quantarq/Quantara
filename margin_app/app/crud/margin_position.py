@@ -1,4 +1,6 @@
-"""This module contains the MarginPositionCRUD Class for opening and closing margin positions. """
+"""
+This module contains the MarginPositionCRUD Class for opening ,updating and closing margin positions.
+"""
 
 import uuid
 from app.crud.base import DBConnector
