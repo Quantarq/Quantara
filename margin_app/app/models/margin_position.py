@@ -40,7 +40,7 @@ class MarginPosition(BaseModel):
     transaction_id: Mapped[str] = mapped_column(String, nullable=False)
     liquidated_at: Mapped[datetime] = mapped_column(nullable=True)
 
-    user: Mapped["User"] = relationship(back_populates="margin_positions")
+    user: Mapped["User"] = relationship(back_populates="margin_position")
 
     __table_args__ = (
         CheckConstraint('multiplier >= 1 AND multiplier <= 20', name='check_multiplier_range'),
