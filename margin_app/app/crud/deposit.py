@@ -60,23 +60,18 @@ class DepositCRUD(DBConnector):
             logger.error(f"Failed to create deposit: {e}")
             raise Exception("Could not create deposit") from e
 
-    async def update_deposit(
-        self, deposit_id: uuid.UUID, update_data: Dict[str, Any]
-    ) -> Optional[Deposit]:
+    async def update_deposit(self, deposit_id: uuid.UUID,
+                             update_data: Dict[str, Any]) -> Optional[Deposit]:
         """
         Updates the deposit amount for a given deposit ID.
-
         Args:
             deposit_id (uuid.UUID): The unique identifier of the deposit to update.
             update_data (Dict[str, Any]): Dictionary containing the fields to update. May include: token, amount, transaction_id
-
         Returns:
             Optional[Deposit]: The updated deposit object if found, None otherwise.
-
         Raises:
             SQLAlchemyError: If the database operation fails
         """
-
         try:
             async with self.session() as db:
                 deposit = await db.get(Deposit, deposit_id)
@@ -98,14 +93,19 @@ class DepositCRUD(DBConnector):
             logger.error(f"Error updating deposit with ID {deposit_id}: {e}")
             raise
 
-
 #  Test Code
 if __name__ == "__main__":
-
     async def test_deposit_crud():
         # Initialize the DepositCRUD instance
         db = DepositCRUD()
-
+        '''
+        Tests the DepositCRUD class by performing the following operations:
+        1. Initializes a DepositCRUD instance.
+        2. Creates a deposit entry with sample data.
+        3. Updates the deposit amount for the created entry.
+        4. Prints the created deposit ID and updated amount.
+        Handles exceptions to catch database operation failures.
+        '''
         # Test data for creating a deposit
         test_user_id = uuid.uuid4()
         test_data = {
@@ -114,7 +114,6 @@ if __name__ == "__main__":
             "amount": Decimal("1.5"),
             "transaction_id": f"tx-{uuid.uuid4()}",
         }
-
         #  Create a deposit
         try:
             deposit = await db.create_deposit(
@@ -134,7 +133,6 @@ if __name__ == "__main__":
                 print("Failed to update deposit")
         except Exception as e:
             print(f"Test failed: {e}")
-
 
 # Run the async test function
 asyncio.run(test_deposit_crud())
