@@ -66,7 +66,8 @@ class DepositCRUD(DBConnector):
         Updates the deposit amount for a given deposit ID.
         Args:
             deposit_id (uuid.UUID): The unique identifier of the deposit to update.
-            update_data (Dict[str, Any]): Dictionary containing the fields to update. May include: token, amount, transaction_id
+            update_data (Dict[str, Any]): Dictionary containing the fields to update. 
+            May include: token, amount, transaction_id
         Returns:
             Optional[Deposit]: The updated deposit object if found, None otherwise.
         Raises:
