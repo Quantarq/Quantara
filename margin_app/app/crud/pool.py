@@ -4,8 +4,8 @@ CRUD operations for the UserPool model.
 """
 
 import uuid
-import asyncio
 from decimal import Decimal
+from typing import Optional
 from app.models.pool import UserPool
 from app.crud.base import DBConnector
 
@@ -16,7 +16,8 @@ class UserPoolCRUD(DBConnector):
     """
 
     async def create_user_pool(self, user_id: uuid.UUID,
-                               pool_id: uuid.UUID, token: str, amount: Decimal):
+                               pool_id: uuid.UUID, 
+                               token: str, amount: Decimal) -> UserPool:
         """
         Create a new user pool entry.
 
@@ -37,7 +38,8 @@ class UserPoolCRUD(DBConnector):
             return user_pool
 
     async def update_user_pool(self, user_pool_id: uuid.UUID, 
-                               token: str = None, amount: Decimal = None):
+                               token: Optional[str] = None, amount:
+                                   Optional[Decimal] = None) -> Optional[UserPool]:
         """
         Update user pool details.
 
@@ -47,7 +49,7 @@ class UserPoolCRUD(DBConnector):
             amount (Decimal, optional): The new amount value.
 
         Returns:
-            UserPool | None: The updated user pool entry, or None if not found.
+            Optional[UserPool]: The updated user pool entry, or None if not found.
         """
         async with self.session() as db:
             user_pool = await db.get(UserPool, user_pool_id)
@@ -62,22 +64,3 @@ class UserPoolCRUD(DBConnector):
             await db.commit()
             await db.refresh(user_pool)
             return user_pool
-
-
-async def test_crud():
-    """
-    Test function to create and update a user pool entry.
-    """
-    db = UserPoolCRUD()
-    
-    user_pool = await db.create_user_pool(
-        user_id=uuid.uuid4(), pool_id=uuid.uuid4(), token="TEST", amount=Decimal("100.50")
-    )
-    print("Created:", user_pool)
-
-    updated_pool = await db.update_user_pool(user_pool.id, amount=Decimal("150.75"))
-    print("Updated:", updated_pool)
-
-
-if __name__ == "__main__":
-    asyncio.run(test_crud())
