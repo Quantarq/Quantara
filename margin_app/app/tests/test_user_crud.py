@@ -22,6 +22,7 @@ async def test_test_connection(user_crud: UserCRUD) -> None:
     result = await user_crud.test_connection()
     assert "PostgreSQL version:" in result
 #----------------------------------------------------------------------------------
+
 @pytest.mark.asyncio
 async def test_create_user_happy_path(user_crud: UserCRUD) -> None:
     """
@@ -29,8 +30,6 @@ async def test_create_user_happy_path(user_crud: UserCRUD) -> None:
     """
     user = await user_crud.create_user(wallet_id = "wallet_123")
     assert user.id is not None # Ensure the user has a valid id
-    
-    
 
 @pytest.mark.asyncio
 async def test_create_user_empty_wallet_id(user_crud: UserCRUD) -> None:
@@ -48,9 +47,9 @@ async def test_create_user_duplicate_wallet_id(user_crud: UserCRUD) -> None:
     """
     Negative test for create_user method: duplicate wallet_id
     """
-    await user_crud.create_user(wallet_id = "wallet_123")
+    wallet_id = "wallet_123"
     with pytest.raises(IntegrityError, match="duplicate key value violates unique constraint"):
-        await user_crud.create_user(wallet_id = "wallet_123")
+        await user_crud.create_user(wallet_id = wallet_id)
 #----------------------------------------------------------------------------------
 
 @pytest.mark.asyncio
