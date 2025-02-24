@@ -7,6 +7,7 @@ import uuid
 from typing import Optional
 from uuid import UUID
 from sqlalchemy.sql import text
+from sqlalchemy.exc import IntegrityError
 from decimal import Decimal
 import pytest
 
@@ -39,12 +40,20 @@ class UserCRUD(DBConnector):
         :return: User
         """
 
-        new_user = User(wallet_id=wallet_id)
         if not wallet_id:
             raise ValueError("wallet_id cannot be empty")
-        
+
         new_user = User(wallet_id=wallet_id)
-        return await self.write_to_db(new_user)
+
+        try:
+            self.session.add(new_user)
+            await self.session.commit()
+            await self.session.refresh(new_user)
+            return new_user
+        except IntegrityError as e:
+            await self.session.rollback()
+            raise ValueError("Duplicate key value violates unique constraint") from e
+      
 
     async def update_user(self, user_id: UUID, **kwargs) -> Optional[User]:
         """
