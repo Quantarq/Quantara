@@ -1,3 +1,7 @@
+"""
+This module contains tests for the deposit CRUD functionality.
+"""
+
 import uuid
 from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock
