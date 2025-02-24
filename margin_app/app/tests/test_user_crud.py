@@ -22,8 +22,6 @@ async def test_test_connection(user_crud_instance: UserCRUD) -> None:
     result = await user_crud_instance.test_connection()
     assert "PostgreSQL version:" in result
 #----------------------------------------------------------------------------------
-#Create User
-#Happy Path
 @pytest.mark.asyncio
 async def test_create_user_happy_path(user_crud_instance: UserCRUD) -> None:
     """
@@ -33,7 +31,6 @@ async def test_create_user_happy_path(user_crud_instance: UserCRUD) -> None:
     assert user.wallet_id == "wallet_123"
     assert user.id is not None # Ensure the user has a valid id
 
-#Negative Test Cases
 @pytest.mark.asyncio
 async def test_create_user_empty_wallet_id(user_crud_instance: UserCRUD) -> None:
     """
@@ -42,7 +39,6 @@ async def test_create_user_empty_wallet_id(user_crud_instance: UserCRUD) -> None
     with pytest.raises(ValueError, match="wallet_id cannot be empty"):
         await user_crud_instance.create_user(wallet_id = "") 
 
-#Negative Test Cases
 @pytest.mark.asyncio
 async def test_create_user_duplicate_wallet_id(user_crud_instance: UserCRUD) -> None:
     """
@@ -52,8 +48,6 @@ async def test_create_user_duplicate_wallet_id(user_crud_instance: UserCRUD) -> 
     with pytest.raises(ValueError, match="wallet_id already exists"):
         await user_crud_instance.create_user(wallet_id = "wallet_123")
 #----------------------------------------------------------------------------------
-#Update_user
-#Happy path
 @pytest.mark.asyncio
 async def test_update_user_happy_path(user_crud_instance: UserCRUD) -> None:
     """
@@ -63,7 +57,6 @@ async def test_update_user_happy_path(user_crud_instance: UserCRUD) -> None:
     updated_user = await user_crud_instance.update_user(user.id, wallet_id = "wallet_456")
     assert updated_user.wallet_id == "wallet_456"
 
-#Negative Test Cases
 @pytest.mark.asyncio
 async def test_update_user_non_existent(user_crud_instance: UserCRUD) -> None:
     """
@@ -73,8 +66,6 @@ async def test_update_user_non_existent(user_crud_instance: UserCRUD) -> None:
     with pytest.raises(ValueError, match="User does not exist"):
         await user_crud_instance.delete_user(non_existent_id)
 #----------------------------------------------------------------------------------
-#Delete User
-#Happy Path
 @pytest.mark.asyncio
 async def test_delete_user_happy_path(user_crud_instance: UserCRUD) -> None:
     """
@@ -86,7 +77,6 @@ async def test_delete_user_happy_path(user_crud_instance: UserCRUD) -> None:
     assert deleted_user is None
 
 
-#Negative Test Cases
 @pytest.mark.asyncio
 async def test_delete_user_non_existent(user_crud_instance: UserCRUD) -> None:
     """
@@ -96,8 +86,6 @@ async def test_delete_user_non_existent(user_crud_instance: UserCRUD) -> None:
     with pytest.raises(ValueError, match="User does not exist"):
         await user_crud_instance.delete_user(non_existent_id)
 #----------------------------------------------------------------------------------
-#Add Deposit
-#Happy Path
 @pytest.mark.asyncio 
 async def test_add_deposit_happy_path(user_crud_instance: UserCRUD) -> None:
     """
@@ -109,7 +97,7 @@ async def test_add_deposit_happy_path(user_crud_instance: UserCRUD) -> None:
     assert deposit.amount == Decimal("100.00")
 
 
-#Negative Test Cases
+
 @pytest.mark.asyncio
 async def test_add_deposit_non_existent_user(user_crud_instance: UserCRUD) -> None:
     """
@@ -119,7 +107,6 @@ async def test_add_deposit_non_existent_user(user_crud_instance: UserCRUD) -> No
     with pytest.raises(ValueError, match="User {non_existent_id} does not exist"):
         await user_crud_instance.add_deposit(non_existent_id, amount=Decimal("100.00"))
 
-#Negative Test Cases
 @pytest.mark.asyncio
 async def test_add_deposit_invalid_amount(user_crud_instance: UserCRUD) -> None:
     """
@@ -129,8 +116,6 @@ async def test_add_deposit_invalid_amount(user_crud_instance: UserCRUD) -> None:
     with pytest.raises(ValueError, match="Amount must be greater than zero"):
         await user_crud_instance.add_deposit(user.id, amount=Decimal("0.00"))
 #----------------------------------------------------------------------------------
-#Add Margin Position
-#Happy Path
 @pytest.mark.asyncio
 async def test_add_margin_position_happy_path(user_crud_instance: UserCRUD) -> None:
     """
@@ -143,8 +128,6 @@ async def test_add_margin_position_happy_path(user_crud_instance: UserCRUD) -> N
     assert margin_position.size == Decimal("100.00")
     assert margin_position.leverage == 5
 
-
-#Negative Test Cases
 @pytest.mark.asyncio
 async def test_add_margin_position_non_existent_user(user_crud_instance: UserCRUD) -> None:
     """
@@ -155,7 +138,6 @@ async def test_add_margin_position_non_existent_user(user_crud_instance: UserCRU
         await user_crud_instance.add_margin_position(
             non_existent_id, size=Decimal("100.00"), leverage=5)
 
-#Negative Test Cases 
 @pytest.mark.asyncio
 async def test_add_margin_position_invalid_size(user_crud_instance: UserCRUD) -> None:
     """
@@ -165,7 +147,6 @@ async def test_add_margin_position_invalid_size(user_crud_instance: UserCRUD) ->
     with pytest.raises(ValueError, match="Leverage must be greater than zero"):
         await user_crud_instance.add_margin_position(user.id, size=Decimal("0.00"), leverage=5)
 
-#Negative Test Cases
 @pytest.mark.asyncio
 async def test_add_margin_position_invalid_leverage(user_crud_instance: UserCRUD) -> None:
     """
