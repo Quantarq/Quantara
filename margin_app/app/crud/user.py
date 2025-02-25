@@ -48,7 +48,6 @@ class UserCRUD(DBConnector):
         :param user_id: UUID
         :return: User
         """
-
         async with self.session() as session:
             user = await session.get(User, user_id)
             if not user:
