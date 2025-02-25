@@ -73,7 +73,7 @@ async def test_delete_user_non_existent(user_crud: UserCRUD) -> None:
     Negative test for delete_user method: non-existent user
     """
     non_existent_id = uuid.uuid4()
-    non_existent_check = await user_crud.delete_user(User, non_existent_id)
+    non_existent_check = await user_crud.delete_user(non_existent_id)
     assert non_existent_check is None
 
 #----------------------------------------------------------------------------------
