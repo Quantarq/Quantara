@@ -6,7 +6,15 @@
   ],
   "include": ["src/**/*"],
   "compilerOptions": {
+    "baseUrl": "./",
     "allowUnreachableCode": false,
-    "strict": true
+    "strict": true,
+    "paths": {
+      "@/*": ["src/*"],
+      "@ui/*": ["src/ui/*"],
+      "@utils/*": ["src/utils/*"],
+      "@routes/*": ["src/routes/*"],
+      "@assets/*": ["src/assets/*"]
+    }
   }
 }
