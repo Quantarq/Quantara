@@ -1,23 +1,22 @@
-from fastapi import APIRouter, Depends, HTTPException
+"""
+This module contains the API routes for the user.
+"""
+from fastapi import APIRouter, HTTPException, status, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from pydantic import BaseModel
-from typing import Optional
-from datetime import datetime
 from ..database import get_db
-from ..crud.user import create_user as crud_create_user
+from ..crud.user import user_crud as crud_create_user
+from app.schemas.user import UserResponse, UserCreate
 
 router = APIRouter()
 
-class UserCreate(BaseModel):
-    wallet_id: str
 
-class UserResponse(BaseModel):
-    id: int
-    wallet_id: str
-    created_at: datetime
+@router.post(
+    "/users", 
+    response_model=UserResponse,
+    status_code=status.HTTP_201_CREATED,
+    )
 
-@router.post("/users/", response_model=UserResponse)
-async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
+async def user_crud(user: UserCreate, db: AsyncSession = Depends(get_db))-> UserResponse:
     """
     Create a new user.
 

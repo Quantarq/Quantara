@@ -8,12 +8,13 @@ from fastapi import FastAPI, Request
 from loguru import logger
 
 from app.api.pools import router as pool_router
+from app.api.user import router as user_router
 
 # Initialize FastAPI app
 app = FastAPI()
 app.include_router(pool_router, prefix="/api/pool", tags=["Pool"])
 
-app.include_router(user.router, prefix="/api/v1")
+app.include_router(user_router, prefix="/api/user", tags=["User"])
 
 
 # Configure Loguru
