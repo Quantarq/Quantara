@@ -7,14 +7,16 @@ from fastapi import FastAPI, Request
 from loguru import logger
 
 from app.api.liquidation import router as liquidation_router
+from app.api.margin_position import router as margin_position_router
 from app.api.pools import router as pool_router
 
 # Initialize FastAPI app
 app = FastAPI()
 
 # Include routers
-app.include_router(liquidation_router, prefix="/api/liquidation", tags=["liquidation"])
+app.include_router(liquidation_router, prefix="/api/liquidation", tags=["Liquidation"])
 app.include_router(pool_router, prefix="/api/pool", tags=["Pool"])
+app.include_router(margin_position_router, prefix="/api/margin", tags=["MarginPosition"])
 
 # Configure Loguru
 logger.remove()  # Remove default logger to configure custom settings
@@ -27,7 +29,6 @@ logger.add(
     diagnose=True,
 )
 
-
 @app.on_event("startup")
 async def startup_event():
     """
@@ -36,15 +37,13 @@ async def startup_event():
     """
     logger.info("Application startup: Initializing resources.")
 
-
 @app.on_event("shutdown")
 async def shutdown_event():
     """
     Code to run when the app shuts down.
-    For example, closing database connections or cleaning up.
+    For example, closing database connections or cleaning up resources.
     """
     logger.info("Application shutdown: Cleaning up resources.")
-
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
@@ -56,7 +55,6 @@ async def log_requests(request: Request, call_next):
     logger.info(f"Response: {response.status_code} {request.url}")
     return response
 
-
 # Example route
 @app.get("/")
 async def read_root():
@@ -65,7 +63,6 @@ async def read_root():
     """
     logger.info("Root endpoint accessed.")
     return {"message": "Welcome to the FastAPI application!"}
-
 
 # Additional route
 @app.get("/health")
