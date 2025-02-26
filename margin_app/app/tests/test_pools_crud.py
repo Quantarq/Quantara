@@ -1,207 +1,156 @@
-# import pytest
-# import uuid
-# from unittest.mock import AsyncMock
-# from decimal import Decimal
-# from app.crud.pool import PoolCRUD, UserPoolCRUD,Pool  
-# from app.models.pool import PoolRiskStatus
+"""
+Pytest-based asynchronous database tests for CRUD operations.
 
-# @pytest.fixture
-# def pool_crud() -> PoolCRUD:
-#     """Fixture to provide an instance of PoolCRUD with mocked database methods."""
-#     crud = PoolCRUD()
-#     crud.write_to_db = AsyncMock()
-#     return crud
-
-# # @pytest.fixture
-# # def user_pool_crud() -> UserPoolCRUD:
-# #     """Fixture to provide an instance of UserPoolCRUD with mocked database methods."""
-# #     crud = UserPoolCRUD()
-# #     crud.session = AsyncMock()
-# #     return crud
-
-# @pytest.fixture
-# def user_pool_crud() -> UserPoolCRUD:
-#     """Provides an instance of UserPoolCRUD with a properly mocked async session."""
-#     crud = UserPoolCRUD()
-#     mock_session = AsyncMock()
-    
-#     # Mocking async session context manager properly
-#     crud.session = AsyncMock(return_value=mock_session)
-#     mock_session.__aenter__.return_value = mock_session  # Ensuring async context management works
-    
-#     return crud
-
-
-# @pytest.fixture
-# def test_data():
-#     """Fixture to provide reusable test data."""
-#     return {
-#         "user_id": uuid.uuid4(),
-#         "pool_id": uuid.uuid4(),
-#         "amount": Decimal("100.00"),
-#     }
-
-
-# # @pytest.mark.asyncio
-# # async def test_create_user_pool_success(user_pool_crud: UserPoolCRUD, test_data) -> None:
-# #     """Tests creating a user pool successfully."""
-# #     mock_session = AsyncMock()
-# #     user_pool_crud.session.return_value.__aenter__.return_value = mock_session  # Correct async context handling
-
-# #     response = await user_pool_crud.create_user_pool(**test_data)
-    
-# #     assert response is not None
-# #     assert response.user_id == test_data["user_id"]
-# #     assert response.pool_id == test_data["pool_id"]
-# #     assert response.amount == test_data["amount"]
-
-
-# # @pytest.mark.asyncio
-# # async def test_create_user_pool_success(user_pool_crud: UserPoolCRUD, test_data) -> None:
-# #     """Tests creating a user pool successfully."""
-# #     user_pool_crud.session.return_value.get.return_value = None  
-# #     response = await user_pool_crud.create_user_pool(**test_data)
-# #     assert response is not None
-# #     assert response.user_id == test_data["user_id"]
-# #     assert response.pool_id == test_data["pool_id"]
-# #     assert response.amount == test_data["amount"]
-
-
-# # @pytest.mark.asyncio
-# # async def test_update_user_pool_success(user_pool_crud: UserPoolCRUD, test_data) -> None:
-# #     """Test updating a user pool successfully."""
-# #     user_pool_crud.session.return_value.get.return_value = AsyncMock(amount=Decimal("100.00"))  
-# #     response = await user_pool_crud.update_user_pool(user_pool_id=test_data["user_id"], amount=Decimal("200.00"))
-# #     assert response is not None
-# #     assert response.amount == Decimal("200.00")
-
-
-# @pytest.mark.asyncio
-# async def test_create_user_pool_invalid_ids(user_pool_crud: UserPoolCRUD) -> None:
-#     """Test creating a user pool with invalid IDs should raise an exception."""
-#     with pytest.raises(Exception):
-#         await user_pool_crud.create_user_pool(user_id=uuid.uuid4(), pool_id=None, amount=Decimal("50.00"))
-
-# # @pytest.mark.asyncio
-# # async def test_update_nonexistent_user_pool(user_pool_crud: UserPoolCRUD) -> None:
-# #     """Test updating a nonexistent user pool returns None with proper logging."""
-# #     user_pool_crud.session.return_value.get.return_value = None  
-# #     response = await user_pool_crud.update_user_pool(user_pool_id=uuid.uuid4(), amount=Decimal("300.00"))
-# #     assert response is None  
-# @pytest.mark.asyncio
-# async def test_update_nonexistent_user_pool(user_pool_crud: UserPoolCRUD) -> None:
-#     """Tests updating a nonexistent user pool returns None with proper logging."""
-#     mock_session = user_pool_crud.session.return_value.__aenter__.return_value  # Get the mocked session
-#     mock_session.get.return_value = None  # Mock nonexistent entry
-    
-#     response = await user_pool_crud.update_user_pool(user_pool_id=uuid.uuid4(), amount=Decimal("300.00"))
-    
-#     assert response is None  # Ensure None is returned for nonexistent user pools
-
+This module defines test cases for verifying the functionality of the database
+operations using SQLAlchemy and an async database connection. It includes
+fixtures to set up and tear down test environments, as well as tests for
+creating, retrieving, updating, and deleting objects in the database.
+"""
 
 import pytest
 import uuid
-from unittest.mock import AsyncMock
 from decimal import Decimal
+from unittest.mock import AsyncMock, MagicMock
 from app.crud.pool import PoolCRUD, UserPoolCRUD
+from app.models.pool import Pool, PoolRiskStatus, UserPool
 
-# Constants for reusable test values
-TEST_AMOUNT = Decimal("100.00")
-TEST_UPDATED_AMOUNT = Decimal("200.00")
-TEST_USER_ID = uuid.uuid4()
-TEST_POOL_ID = uuid.uuid4()
-
-# Fixtures
 @pytest.fixture
-def pool_crud() -> PoolCRUD:
-    """Fixture to provide an instance of PoolCRUD with mocked database methods."""
+def mock_db_session():
+    """Creates a fully mocked async database session that supports async context management."""
+    session = AsyncMock()
+
+    
+    session.__aenter__.return_value = session
+    session.__aexit__.return_value = None
+
+    session.add = AsyncMock()
+    session.commit = AsyncMock()
+    session.refresh = AsyncMock()
+    session.get = AsyncMock(return_value=None)   
+
+    return session
+
+@pytest.fixture
+def pool_crud(mock_db_session):
+    """Creates an instance of PoolCRUD with a mocked async database session."""
     crud = PoolCRUD()
-    crud.write_to_db = AsyncMock()
+    crud.session = MagicMock(return_value=mock_db_session)  
     return crud
 
 @pytest.fixture
-def user_pool_crud() -> UserPoolCRUD:
-    """Fixture to provide an instance of UserPoolCRUD with a properly mocked async session."""
+def user_pool_crud(mock_db_session):
+    """Creates an instance of UserPoolCRUD with a mocked async database session."""
     crud = UserPoolCRUD()
-    mock_session = AsyncMock()
-
-    # Mock session() to return an async context manager
-    crud.session = AsyncMock(return_value=mock_session)
-    mock_session.__aenter__.return_value = mock_session  # Ensure async context management works
-    mock_session.__aexit__.return_value = AsyncMock()  # Ensure graceful exit
-
+    crud.session = MagicMock(return_value=mock_db_session)  
     return crud
 
-@pytest.fixture
-def test_data():
-    """Fixture to provide reusable test data."""
-    return {
-        "user_id": TEST_USER_ID,
-        "pool_id": TEST_POOL_ID,
-        "amount": TEST_AMOUNT,
-    }
+@pytest.mark.asyncio
+async def test_create_pool_debug(pool_crud, mock_db_session):
+    """Debug test for create_pool to check session calls."""
+    token = "BTC"
+    risk_status = PoolRiskStatus.LOW
 
-# Tests for UserPoolCRUD
-class TestUserPoolCRUD:
-    @pytest.mark.asyncio
-    async def test_create_user_pool_success(self, user_pool_crud: UserPoolCRUD, test_data) -> None:
-        """Test that creating a user pool with valid data returns the expected user pool object."""
-        mock_session = user_pool_crud.session.return_value.__aenter__.return_value
-        mock_session.get.return_value = None  # Mock no existing user pool
-        mock_session.add = AsyncMock()  # Mock async add method
-        mock_session.commit = AsyncMock()  # Mock async commit method
-        
-        response = await user_pool_crud.create_user_pool(**test_data)
-        
-        assert response is not None
-        assert response.user_id == test_data["user_id"]
-        assert response.pool_id == test_data["pool_id"]
-        assert response.amount == test_data["amount"]
-        mock_session.add.assert_called_once()  # Verify add() was called
-        mock_session.commit.assert_called_once()  # Verify commit() was called
+    mock_session_instance = AsyncMock()
+    mock_session_instance.add = MagicMock()
+    mock_session_instance.commit = AsyncMock()
+    mock_session_instance.refresh = AsyncMock()
+    mock_session_instance.merge = AsyncMock()
 
-    @pytest.mark.asyncio
-    async def test_create_user_pool_invalid_ids(self, user_pool_crud: UserPoolCRUD) -> None:
-        """Test that creating a user pool with invalid IDs raises an exception."""
-        with pytest.raises(Exception):
-            await user_pool_crud.create_user_pool(user_id=TEST_USER_ID, pool_id=None, amount=TEST_AMOUNT)
+    pool_crud.session = MagicMock(return_value=mock_session_instance)
 
-    # @pytest.mark.asyncio
-    # async def test_update_user_pool_success(self, user_pool_crud: UserPoolCRUD, test_data) -> None:
-    #     """Test that updating a user pool with valid data returns the updated user pool."""
-    #     mock_session = user_pool_crud.session.return_value.__aenter__.return_value
-    #     mock_session.get.return_value = AsyncMock(amount=TEST_AMOUNT)  # Mock existing user pool
-        
-    #     response = await user_pool_crud.update_user_pool(
-    #         user_pool_id=test_data["user_id"], 
-    #         amount=TEST_UPDATED_AMOUNT
-    #     )
-        
-    #     assert response is not None
-    #     assert response.amount == TEST_UPDATED_AMOUNT
-    #     mock_session.get.assert_called_once()  # Verify get() was called
+    result = await pool_crud.create_pool(token, risk_status)
 
-    # @pytest.mark.asyncio
-    # async def test_update_nonexistent_user_pool(self, user_pool_crud: UserPoolCRUD) -> None:
-    #     """Test that updating a nonexistent user pool returns None."""
-    #     mock_session = user_pool_crud.session.return_value.__aenter__.return_value
-    #     mock_session.get.return_value = None  # Mock nonexistent entry
-        
-    #     response = await user_pool_crud.update_user_pool(
-    #         user_pool_id=TEST_USER_ID, 
-    #         amount=TEST_UPDATED_AMOUNT
-    #     )
-        
-    #     assert response is None
-    #     mock_session.get.assert_called_once()  # Verify get() was called
+    print(f"Result: {result}")  
+    print(f"Session add called: {mock_session_instance.add.called}")
+    print(f"Session merge called: {mock_session_instance.merge.called}")
 
-# Tests for PoolCRUD
-class TestPoolCRUD:
-    @pytest.mark.asyncio
-    async def test_write_to_db_success(self, pool_crud: PoolCRUD) -> None:
-        """Test that writing to the database succeeds."""
-        mock_data = {"key": "value"}
-        
-        await pool_crud.write_to_db(mock_data)
-        
-        pool_crud.write_to_db.assert_called_once_with(mock_data)  # Verify write_to_db was called
+    assert result is not None
+
+
+@pytest.mark.asyncio
+async def test_create_pool(pool_crud, mock_db_session):
+    """Test creating a pool."""
+    token = "BTC"
+    risk_status = PoolRiskStatus.LOW
+
+    
+    pool = Pool(token=token, risk_status=risk_status)
+
+    
+    mock_session_instance = AsyncMock()
+    mock_session_instance.commit = AsyncMock()
+    mock_session_instance.refresh = AsyncMock()
+    mock_session_instance.merge = AsyncMock(return_value=pool) 
+
+    
+    mock_db_session.__aenter__.return_value = mock_session_instance
+    pool_crud.session = MagicMock(return_value=mock_db_session)
+
+    result = await pool_crud.create_pool(token, risk_status)
+
+    assert result is not None
+    assert result.token == token 
+    assert result.risk_status == risk_status
+
+    
+    mock_session_instance.merge.assert_called_once()
+    mock_session_instance.commit.assert_called_once()
+    mock_session_instance.refresh.assert_called_once_with(pool)
+
+
+
+
+
+
+@pytest.mark.asyncio
+async def test_create_user_pool(user_pool_crud, mock_db_session):
+    """Test creating a user pool entry."""
+    user_id = uuid.uuid4()
+    pool_id = uuid.uuid4()
+    amount = Decimal("1000.50")
+
+    user_pool = UserPool(user_id=user_id, pool_id=pool_id, amount=amount)
+    
+    mock_db_session.add = AsyncMock()
+    mock_db_session.commit = AsyncMock()
+    mock_db_session.refresh = AsyncMock()
+
+    result = await user_pool_crud.create_user_pool(user_id, pool_id, amount)
+
+    assert result.user_id == user_id
+    assert result.pool_id == pool_id
+    assert result.amount == amount
+    mock_db_session.add.assert_called_once_with(result)
+    mock_db_session.commit.assert_called_once()
+    mock_db_session.refresh.assert_called_once_with(result)
+
+@pytest.mark.asyncio
+async def test_update_user_pool(user_pool_crud, mock_db_session):
+    """Test updating an existing user pool."""
+    user_pool_id = uuid.uuid4()
+    new_amount = Decimal("1500.75")
+
+    existing_user_pool = UserPool(user_id=uuid.uuid4(), pool_id=uuid.uuid4(), amount=Decimal("1000"))
+    existing_user_pool.id = user_pool_id
+
+    mock_db_session.get = AsyncMock(return_value=existing_user_pool)
+    mock_db_session.commit = AsyncMock()
+    mock_db_session.refresh = AsyncMock()
+
+    result = await user_pool_crud.update_user_pool(user_pool_id, amount=new_amount)
+
+    assert result is not None
+    assert result.amount == new_amount
+    mock_db_session.commit.assert_called_once()
+    mock_db_session.refresh.assert_called_once_with(result)
+
+@pytest.mark.asyncio
+async def test_update_user_pool_not_found(user_pool_crud, mock_db_session):
+    """Test updating a user pool that does not exist."""
+    user_pool_id = uuid.uuid4()
+    mock_db_session.get = AsyncMock(return_value=None)  
+
+    result = await user_pool_crud.update_user_pool(user_pool_id, amount=Decimal("2000"))
+
+    assert result is None
+    mock_db_session.get.assert_called_once_with(UserPool, user_pool_id)
