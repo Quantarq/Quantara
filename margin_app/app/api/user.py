@@ -18,7 +18,6 @@ router = APIRouter()
     response_model=UserResponse,
     status_code=status.HTTP_201_CREATED,
     )
-
 async def create_user(user: UserCreate)-> UserResponse:
 
     """
