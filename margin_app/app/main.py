@@ -4,13 +4,12 @@ Main entry point for the application.
 
 import sys
 
-from fastapi import FastAPI, Request
-from loguru import logger
-
 from app.api.deposit import router as deposit_router
 from app.api.margin_position import router as margin_position_router
 from app.api.pools import router as pool_router
 from app.api.user import router as user_router
+from fastapi import FastAPI, Request
+from loguru import logger
 
 # Initialize FastAPI app
 app = FastAPI()

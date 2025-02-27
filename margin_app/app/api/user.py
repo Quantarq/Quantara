@@ -2,16 +2,15 @@
 API for handling user endpoints
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from loguru import logger
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.crud.deposit import deposit_crud
 from app.crud.user import UserCRUD
 from app.db.sessions import get_db
 from app.schemas.user import (AddMarginPositionRequest,
                               AddMarginPositionResponse, AddUserDepositRequest,
                               AddUserDepositResponse)
+from fastapi import APIRouter, Depends, HTTPException, status
+from loguru import logger
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
 
@@ -44,7 +43,6 @@ async def add_user_deposit(user_deposit: AddUserDepositRequest):
 @router.post("/add_margin_position", response_model=AddMarginPositionResponse)
 async def add_margin_position(
     request: AddMarginPositionRequest,
-    db: AsyncSession = Depends(get_db),
 ):
     """
     Adds a margin position for a user.
@@ -59,7 +57,6 @@ async def add_margin_position(
         - multiplier (int): The leverage multiplier.
         - token (str): The asset token for the margin position.
         - transaction_id (str): The associated transaction ID.
-    - db (AsyncSession): The database session dependency.
 
     Returns:
     - AddMarginPositionResponse: A response containing the created margin position ID.
@@ -67,7 +64,7 @@ async def add_margin_position(
     Raises:
     - HTTPException (400): If the user does not exist or any validation fails.
     """
-    user_crud = UserCRUD(db)
+    user_crud = UserCRUD()
 
     try:
         margin_position = await user_crud.add_margin_position(
