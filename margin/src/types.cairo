@@ -6,7 +6,7 @@ pub type Timestamp = u128;
 #[derive(Serde, Drop)]
 pub struct PositionParameters {
     pub initial_token: ContractAddress,
-    pub debt_token: ContractAddress, 
+    pub debt_token: ContractAddress,
     pub amount: TokenAmount,
 }
 
