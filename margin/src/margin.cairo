@@ -32,6 +32,10 @@ pub mod Margin {
 
     #[abi(embed_v0)]
     impl Margin of IMargin<ContractState> {
+        /// Deposits specified amount of ERC20 tokens into the contract's treasury
+        /// @param token The contract address of the ERC20 token to deposit
+        /// @param amount The amount of tokens to deposit
+        /// @dev Transfers tokens from caller to contract and updates balances
         fn deposit(ref self: ContractState, token: ContractAddress, amount: TokenAmount) {
             assert(amount.is_non_zero(), 'Amount is zero');
             let token_dispatcher = IERC20Dispatcher { contract_address: token };
@@ -52,6 +56,7 @@ pub mod Margin {
 
             self.emit(Deposit { depositor, token, amount });
         }
+
         fn withdraw(ref self: ContractState, token: ContractAddress, amount: TokenAmount) {}
 
         // TODO: Add Ekubo data for swap
