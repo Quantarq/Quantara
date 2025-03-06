@@ -13,8 +13,7 @@ export const kSTRK_ADDRESS = '0x045cd05ee2caaac3459b87e5e2480099d201be2f62243f83
 
 export const ONE_HOUR_IN_MILLISECONDS = 3600000;
 
-export const TELEGRAM_BOT_LINK = 'https://t.me/emarc99bot'
-// 'https://t.me/spotnet_bot';
+export const TELEGRAM_BOT_LINK = 'https://t.me/spotnet_bot';
 
 export function getDeployContractData(walletId) {
   return {
