@@ -8,9 +8,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi import FastAPI, status
 from fastapi.testclient import TestClient
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.api.order import router
-from app.main import app
 from app.models.order import Order
 
 
@@ -75,7 +75,7 @@ def test_create_order_success(client, mock_add_new_order):
     assert response.status_code == status.HTTP_201_CREATED
     data = response.json()
     assert "id" in data
-    assert data["price"] == mock_order.price
+    assert data["price"] == str(mock_order.price)
     assert data["token"] == mock_order.token
     assert data["user_id"] == str(mock_order.user_id)
     assert data["position"] == str(mock_order.position)
@@ -107,7 +107,7 @@ def test_create_order_invalid_data(client, mock_add_new_order):
 
 def test_create_order_database_error(client, mock_add_new_order):
     """Test order creation with database error"""
-    mock_add_new_order.side_effect = Exception("Database error")
+    mock_add_new_order.side_effect = SQLAlchemyError("Database error")
     user_id = uuid.uuid4()
     position_id = uuid.uuid4()
 

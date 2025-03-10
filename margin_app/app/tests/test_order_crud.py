@@ -3,6 +3,7 @@ Unit tests for the OrderCRUD class.
 """
 
 import uuid
+from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -14,7 +15,7 @@ from app.models.order import Order
 TEST_USER_ID = uuid.uuid4()
 TEST_POSITION_ID = uuid.uuid4()
 TEST_ORDER_ID = uuid.uuid4()
-TEST_PRICE = 100.50
+TEST_PRICE = Decimal("100.50")
 TEST_TOKEN = "BTC"
 
 
@@ -110,12 +111,12 @@ async def test_execute_order_exception(order_crud):
     with patch.object(
         order_crud, "get_object", new_callable=AsyncMock
     ) as mock_get_object:
-        mock_get_object.side_effect = Exception("Unexpected error")
+        mock_get_object.side_effect = SQLAlchemyError("Database error")
 
-        result = await order_crud.execute_order(TEST_ORDER_ID)
+        with pytest.raises(Exception):
+            _ = await order_crud.execute_order(TEST_ORDER_ID)
 
         mock_get_object.assert_called_once_with(Order, TEST_ORDER_ID)
-        assert result is False
 
 
 @pytest.mark.asyncio

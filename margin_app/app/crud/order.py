@@ -4,6 +4,7 @@ This module contains CRUD operations for orders.
 
 import logging
 import uuid
+from decimal import Decimal
 
 from app.crud.base import DBConnector
 from app.models.order import Order
@@ -21,7 +22,7 @@ class OrderCRUD(DBConnector):
     """
 
     async def add_new_order(
-        self, user_id: uuid.UUID, price: float, token: str, position: uuid.UUID
+        self, user_id: uuid.UUID, price: Decimal, token: str, position: uuid.UUID
     ) -> Order:
         """
         Creates a new order in the database.
@@ -36,14 +37,8 @@ class OrderCRUD(DBConnector):
             Order: The newly created order object
         """
         order = Order(user_id=user_id, price=price, token=token, position=position)
-
-        try:
-            order = await self.write_to_db(order)
-            logger.info(f"New order created with ID: {order.id}")
-            return order
-        except Exception as e:
-            logger.error(f"Error creating order: {str(e)}")
-            raise
+        order = await self.write_to_db(order)
+        return order
 
     async def execute_order(self, order_id: uuid.UUID) -> bool:
         """
@@ -55,19 +50,12 @@ class OrderCRUD(DBConnector):
         Returns:
             bool: True if the order was successfully executed, False otherwise
         """
-        try:
-            order = await self.get_object(Order, order_id)
-            if not order:
-                logger.warning(f"Order with ID {order_id} not found")
-                return False
-
-            # Order execution logic would go here
-            logger.info(f"Order {order_id} executed successfully")
-            return True
-
-        except Exception as e:
-            logger.error(f"Failed to execute order {order_id}: {str(e)}")
+        order = await self.get_object(Order, order_id)
+        if not order:
             return False
+
+        # Order execution logic would go here
+        return True
 
 
 order_crud = OrderCRUD()

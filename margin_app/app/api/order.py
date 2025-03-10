@@ -3,6 +3,7 @@ API endpoints for order management.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.order import order_crud
@@ -44,7 +45,7 @@ async def create_order(
             position=order_data.position,
         )
         return order
-    except Exception as e:
+    except SQLAlchemyError as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create order: {str(e)}",
