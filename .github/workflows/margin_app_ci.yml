@@ -32,13 +32,13 @@ jobs:
           echo "Waiting for containers to be ready..."
           sleep 30
 
-      - name: Run Integration Tests with Coverage
-        run: |
-          docker compose -f margin_app/docker-compose.yml exec backend python -m pytest app/tests -v
-
       - name: Check generator
         run: |
           docker compose -f margin_app/docker-compose.yml exec backend python app/db/seed_data.py
+
+      - name: Run Integration Tests with Coverage
+        run: |
+          docker compose -f margin_app/docker-compose.yml exec backend python -m pytest app/tests -v
 
       - name: Clean Up
         if: always()
