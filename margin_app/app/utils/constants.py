@@ -1,3 +1,11 @@
+"""
+Module containing constant definitions for the margin trading system.
+
+This module defines various constants, enums, and configuration values
+that are used throughout the margin trading application. These include
+event types, status codes, and other system-wide constants.
+"""
+
 from enum import Enum
 
 class EventName(Enum):
