@@ -56,13 +56,18 @@ async def update_deposit(
     )
 
 @router.get("", response_model=List[DepositResponse], status_code=status.HTTP_200_OK)
-async def get_all_deposits() -> List[DepositResponse]:
+async def get_all_deposits(
+    limit: Optional[int] = Query(25, description="Number of deposits to retrive"),
+    offset: Optional[int] = Query(0, description="Number of deposits to skip")
+) -> List[DepositResponse]:
     """
-    Get all deposit records from the database.
+    Get all deposit records from the database with pagination.
+    :param limit: Max number of records to retrieve
+    :param offset: Number of records to skip
     :return: List of DepositResponse schemas
     """
     try:
-        deposits = await deposit_crud.get_objects(model=Deposit)
+        deposits = await deposit_crud.get_objects(model=Deposit, limit=limit, offset=offset)
         return deposits
     except Exception as e:
         raise HTTPException(

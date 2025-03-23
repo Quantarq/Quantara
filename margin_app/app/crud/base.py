@@ -97,20 +97,6 @@ class DBConnector:
         async with self.session() as db:
             return await db.get(model, obj_id)
 
-    async def get_objects(
-        self, model: Type[ModelType] = None, **kwargs
-    ) -> list[ModelType]:
-        """
-        Retrieves a list of objects from the database that match the specified criteria if provided.
-        :param model: type[Base] = None - Model class to query
-        :param kwargs: Filtering criteria
-        :return: list[Base] - List of matching model instances
-            (returns empty list if no matches found)
-        """
-        async with self.session() as db:
-            stmt = select(model).filter_by(**kwargs)
-            result = await db.execute(stmt)
-            return result.scalars().all()
 
     async def get_object_by_field(
         self, model: Type[ModelType] = None, field: str = None, value: str = None
