@@ -21,6 +21,15 @@ class UserOrderCRUD(DBConnector):
     - execute_order: Process and execute an existing order
     """
 
+    async def get_all(self, limit: int = 25, offset: int = 0) -> list[UserOrder]:
+        """
+        Retrieves all orders.
+        :param limit: Optional[int] - max orders to be retrieved
+        :param offset: Optional[int] - start retrieving at.
+        :return: list[UUserOrderser]
+        """
+        return await self.get_objects(UserOrder, limit, offset)
+
     async def add_new_order(
         self, user_id: uuid.UUID, price: Decimal, token: str, position: uuid.UUID
     ) -> UserOrder:

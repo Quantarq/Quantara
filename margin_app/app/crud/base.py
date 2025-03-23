@@ -6,7 +6,7 @@ import logging
 import uuid
 
 from contextlib import asynccontextmanager
-from typing import AsyncIterator, Callable, Type, TypeVar, List, Optional 
+from typing import AsyncIterator, Callable, Type, TypeVar, List, Optional
 
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
@@ -96,16 +96,6 @@ class DBConnector:
         """
         async with self.session() as db:
             return await db.get(model, obj_id)
-    
-    async def get_objects(self, model: Type[ModelType]) -> list[ModelType]:
-        """
-        Retrieves all objects with model type from the database.
-        :param: model: Type[Base]
-        :return: list[Base]
-        """
-        async with self.session() as db:
-            result = await db.execute(select(model))
-            return result.scalars().all()
 
     async def get_objects(
         self, model: Type[ModelType] = None, **kwargs
@@ -174,7 +164,7 @@ class DBConnector:
         Retrieves objects by filter from the database.
         :param: model: type[Base] = None
         :param limit: Optional[int] = None
-        :param offset: Optional[int] = None       
+        :param offset: Optional[int] = None
         :return: list[Base] | None
         """
         async with self.session() as db:
@@ -182,5 +172,5 @@ class DBConnector:
             if kwargs:
                 query = query.filter_by(**kwargs)
 
-            result = await db.execute(query)            
+            result = await db.execute(query)
             return result.scalars().all()
