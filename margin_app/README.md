@@ -51,4 +51,10 @@ alembic upgrade head
 
 You need to use [this link](http://127.0.0.1:8000), for access to API.
 
+### 5. Seed data generator
+To generate test data, run the following command:
+```bash
+docker compose -f margin_app/docker-compose.yml exec backend python app/db/seed_data.py
+```
+
 Good luck! 😁

@@ -1,7 +1,6 @@
 """
 This module contains authentication related services.
 """
-
 from typing import Annotated
 from datetime import datetime, timedelta, timezone
 import os

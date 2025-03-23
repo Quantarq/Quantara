@@ -2,28 +2,62 @@
 API endpoints for order management.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.order import order_crud
-from app.models.order import Order
-from app.schemas.order import OrderCreate, OrderResponse
+from app.models.user_order import UserOrder
+from app.schemas.order import UserOrderCreate, UserOrderResponse
+
+from typing import Optional
 
 router = APIRouter()
 
 
+@router.get(
+    "/get_all_orders",
+    status_code=status.HTTP_200_OK,
+    summary="Get all orders",
+    description="Gets all orders from database",
+)
+async def get_all_orders(
+    limit: Optional[int] = Query(25, gt=0), offset: Optional[int] = Query(0, ge=0)
+) -> list[UserOrderResponse]:
+    """
+    Return all orders.
+
+    Parameters:
+    - limit: Optional[int] - max orders to be retrieved
+    - offset: Optional[int] - start retrieving at
+
+    Returns:
+    - list[UserOrder]: a list of orders
+
+    Raises:
+        HTTPException: If there's an error retrieving orders
+    """
+    try:
+        orders = await order_crud.get_all(limit, offset)
+        return orders
+    except SQLAlchemyError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get orders: {str(e)}",
+        )
+
+
 @router.post(
     "/create_order",
-    response_model=OrderResponse,
+    response_model=UserOrderResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create a new order",
     description="Creates a new order in the system",
 )
 async def create_order(
-    order_data: OrderCreate,
+    order_data: UserOrderCreate,
     db: AsyncSession = Depends(order_crud.session),
-) -> Order:
+) -> UserOrder:
     """
     Create a new order with the provided order data.
 
