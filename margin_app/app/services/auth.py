@@ -16,7 +16,7 @@ load_dotenv()
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-def create_access_token(wallet_id: str, expires_delta: timedelta | None = None):
+def create_access_token(email: str, expires_delta: timedelta | None = None):
     """
     Generates auth jwt token for a given wallet ID
 
@@ -30,7 +30,7 @@ def create_access_token(wallet_id: str, expires_delta: timedelta | None = None):
         expire = datetime.now(timezone.utc) + expires_delta
     else:
         expire = datetime.now(timezone.utc) + timedelta(minutes=15)
-    to_encode = {"sub": wallet_id, "exp": expire}
+    to_encode = {"sub": email, "exp": expire}
     return jwt.encode(
         to_encode,
         os.environ.get("SECRET_KEY"),
