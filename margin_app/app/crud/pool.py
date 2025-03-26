@@ -85,6 +85,13 @@ class UserPoolCRUD(DBConnector):
             await db.refresh(user_pool)
             return user_pool
 
+    async def get_all_user_pools(self) -> list[UserPool]:
+        """
+        Fetches all user pool entries from the database.
+        :return: List[UserPool]: List of all pool records fetched from the database
+        """
+        return await self.get_objects(UserPool)
+
 
 pool_crud = PoolCRUD()
 user_pool_crud = UserPoolCRUD()
