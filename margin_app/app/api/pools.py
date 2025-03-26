@@ -131,3 +131,24 @@ async def update_user_pool(user_pool: UserPoolUpdate) -> UserPoolUpdateResponse:
         ) from e
 
     return updated_pool
+
+@router.get(
+    "/get_all_user_pools",
+    response_model=list[UserPoolResponse],
+    status_code=status.HTTP_200_OK,
+)
+async def get_all_user_pools() -> list[UserPoolResponse]:
+    """
+    Fetch all user pools
+
+    :return: List[UserPoolResponse] - List of all user pool entries fetched from the database.
+        An empty list is returned if no user pools exist)
+    """
+    try:
+        return await user_pool_crud.get_all_user_pools()
+    except Exception as e:
+        logger.error(f"Error fetching user pools: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Something went wrong.",
+        ) from e
