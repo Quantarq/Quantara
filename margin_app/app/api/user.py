@@ -114,7 +114,7 @@ async def get_user_by_id(user_id: str) -> UserResponse:
 @router.get(
     "/wallet_id/{wallet_id}",
     response_model=UserResponse,
-    status_code=status.HTTP_201_CREATED,
+    status_code=status.HTTP_200_OK,
 )
 async def get_user_by_wallet_id(wallet_id: str) -> UserResponse:
     """
