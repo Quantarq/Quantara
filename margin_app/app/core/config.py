@@ -5,6 +5,7 @@ Core configuration settings for the application.
 from pydantic import Field, computed_field
 from pydantic_settings import BaseSettings
 from sqlalchemy import URL
+from typing import Optional
 
 
 class Settings(BaseSettings):
@@ -21,8 +22,14 @@ class Settings(BaseSettings):
     db_name: str = Field(default="db_name", alias="POSTGRES_DB")
     db_user: str = Field(default="user", alias="POSTGRES_USER")
     db_password: str = Field(default="password", alias="POSTGRES_PASSWORD")
-    db_host: str = Field(default="localhost", alias="DB_HOST")
+    db_host: str = "localhost"
     db_port: int = 5432
+
+    # Email settings
+    sendgrid_api_key: Optional[str] = None
+    email_sender: Optional[str] = None
+    email_sender_name: Optional[str] = None
+    email_test_mode: bool = False
 
     @computed_field
     @property

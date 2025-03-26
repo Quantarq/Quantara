@@ -33,6 +33,7 @@ pytest-cov = "^6.0.0"
 trio = "^0.29.0"
 pyjwt = "^2.10.1"
 faker = "^37.0.2"
+sendgrid = "^6.9.0"
 
 [build-system]
 requires = ["poetry-core"]
