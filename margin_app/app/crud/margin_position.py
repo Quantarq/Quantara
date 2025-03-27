@@ -54,7 +54,7 @@ class MarginPositionCRUD(DBConnector):
     async def get_all_positions(
             self,
             limit: Optional[int] = None,
-            offset: int = 0,
+            offset: Optional[int] = None,
     ) -> List[MarginPositionResponse]:
         """
         Retrieves all margin positions from the database.

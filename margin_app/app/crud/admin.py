@@ -23,7 +23,7 @@ class AdminCRUD(DBConnector):
 
 
     async def get_all(
-        self, limit:int = 25, offset:int = 0
+        self, limit: Optional[int] = None, offset: Optional[int] = None
     ) -> list[Admin]:
         """
         Retrieves all admins.

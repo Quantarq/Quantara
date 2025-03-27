@@ -142,8 +142,8 @@ class DBConnector:
     async def get_objects(
         self,
         model: Type[ModelType] = None,
-        limit: Optional[int] = 25,
-        offset: Optional[int] = 0,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
         where_clause: Optional[Any] = None,
         **kwargs,
     ) -> list[ModelType] | None:

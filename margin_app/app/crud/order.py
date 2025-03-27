@@ -5,6 +5,7 @@ This module contains CRUD operations for orders.
 import logging
 import uuid
 from decimal import Decimal
+from typing import Optional
 
 from app.crud.base import DBConnector
 from app.models.user_order import UserOrder
@@ -21,7 +22,9 @@ class UserOrderCRUD(DBConnector):
     - execute_order: Process and execute an existing order
     """
 
-    async def get_all(self, limit: int = 25, offset: int = 0) -> list[UserOrder]:
+    async def get_all(
+        self, limit: Optional[int] = None, offset:  Optional[int] = None
+    ) -> list[UserOrder]:
         """
         Retrieves all orders.
         :param limit: Optional[int] - max orders to be retrieved
