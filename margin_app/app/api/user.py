@@ -1,6 +1,7 @@
 """
 This module contains the API routes for the user.
 """
+
 from app.crud.deposit import deposit_crud
 from app.crud.user import user_crud
 from app.db.sessions import get_db
@@ -20,13 +21,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
 
+
 @router.post(
     "/",
     response_model=UserResponse,
     status_code=status.HTTP_201_CREATED,
-    )
-async def create_user(user: UserCreate)-> UserResponse:
-
+)
+async def create_user(user: UserCreate) -> UserResponse:
     """
     Create a new user.
 
@@ -37,11 +38,15 @@ async def create_user(user: UserCreate)-> UserResponse:
     - UserResponse: The created user object
     """
 
-    user_db = await user_crud.get_object_by_field(field="wallet_id", value=user.wallet_id)
+    user_db = await user_crud.get_object_by_field(
+        field="wallet_id", value=user.wallet_id
+    )
 
     if user_db:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="User with such wallet_id laready exist.")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User with such wallet_id laready exist.",
+        )
 
     try:
         user = await user_crud.create_user(user.wallet_id)
@@ -63,6 +68,7 @@ async def get_all_users(
     limit: Optional[int] = Query(25, gt=0),
     offset: Optional[int] = Query(0, ge=0)
 ) -> UserGetAllResponse:
+
     """
     Return all users and total users count.
 
@@ -76,24 +82,44 @@ async def get_all_users(
     Raises:
     - HTTPException (400): If any validation fails.
     - HTTPException (422): If query params are invalid.
-    """   
+    """
     try:
         return await user_crud.get_all(limit, offset)       
     except ValueError as e:        
         raise HTTPException(status_code=400, detail=str(e)) from e
 
 
+@router.get(
+    "/user_id/{user_id}", response_model=UserResponse, status_code=status.HTTP_200_OK
+)
+async def get_user_by_id(user_id: str) -> UserResponse:
+    """
+    Get user by user id.
 
+    Parameters:
+    - user_id: str, the ID of the user
+
+    Returns:
+    - UserResponse: The user object
+    """
+    user = await user_crud.get_object_by_field(field="id", value=user_id)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found."
+        )
+
+    return user
 
 
 @router.get(
-    "/{wallet_id}",
+    "/wallet_id/{wallet_id}",
     response_model=UserResponse,
-    status_code=status.HTTP_201_CREATED,
-    )
-async def get_user(wallet_id: str)-> UserResponse:
+    status_code=status.HTTP_200_OK,
+)
+async def get_user_by_wallet_id(wallet_id: str) -> UserResponse:
     """
-    Get user.
+    Get user by wallet id.
 
     Parameters:
     - wallet_id: str, the wallet ID of the user
@@ -104,7 +130,9 @@ async def get_user(wallet_id: str)-> UserResponse:
     user = await user_crud.get_object_by_field(field="wallet_id", value=wallet_id)
 
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found."
+        )
 
     return user
 

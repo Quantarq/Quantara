@@ -89,6 +89,64 @@ def test_create_user_success(client, mock_create_user, mock_get_user):
     mock_create_user.assert_called_once_with(wallet_id)
 
 
+def test_get_user_by_id(client, mock_get_user):
+    """Test found by user_id response"""
+    wallet_id = "0x1234567890abcdef1234567890abcdef12345678"
+    user_id = uuid.uuid4()
+
+    mock_get_user.return_value = UserResponse(
+        id=user_id,
+        wallet_id=wallet_id,
+    )
+
+    response = client.get(USER_URL + "user_id/" + str(user_id))
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "id": str(user_id),
+        "wallet_id": wallet_id,
+        "deposit": [],
+    }
+
+
+def test_get_user_by_id_not_found(client):
+    """Test not found response"""
+    user_id = uuid.uuid4()
+    response = client.get(USER_URL + "user_id/" + str(user_id))
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "User not found."}
+
+
+def test_get_user_by_wallet_id(client, mock_get_user):
+    """Test found by wallet_id response"""
+    wallet_id = "0x1234567890abcdef1234567890abcdef12345678"
+    user_id = uuid.uuid4()
+
+    mock_get_user.return_value = UserResponse(
+        id=user_id,
+        wallet_id=wallet_id,
+    )
+
+    response = client.get(USER_URL + "wallet_id/" + wallet_id)
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "id": str(user_id),
+        "wallet_id": wallet_id,
+        "deposit": [],
+    }
+
+
+def test_get_user_by_wallet_id_not_found(client):
+    """Test not found response"""
+    wallet_id = "0x1234567890abcdef1234567890abcdef12345678"
+    response = client.get(USER_URL + "wallet_id/" + wallet_id)
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "User not found."}
+
+
 def test_create_user_error(client, mock_create_user, mock_get_user):
     """Test error handling when creating a user."""
     wallet_id = "0x1234567890abcdef1234567890abcdef12345678"
@@ -295,12 +353,13 @@ def test_get_all_users(client, mock_get_all):
     mock_get_all.return_value = {"users": users[-3:], "total": 3}  
     response = client.get(USER_URL + "get_all_users" + f"?limit=3&offset=7")
     assert response.status_code == 200
-    assert response.json() =={"users": users[-3:], "total": 3}  
-
+    assert response.json() =={"users": users[-3:], "total": 3}
+    
     mock_get_all.return_value ={"users":  users[-5:], "total": 5} 
     response = client.get(USER_URL + "get_all_users" + f"?offset=5")
     assert response.status_code == 200
     assert response.json() =={"users":  users[-5:], "total": 5} 
+
 
 
 def test_get_all_users_invalid_params(client, mock_get_all):
