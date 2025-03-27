@@ -20,6 +20,14 @@ import requests
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+def get_expire_time(minutes: int) -> datetime:
+    """
+    Get the expiration time for the token.
+
+    :param minutes: The number of minutes to add to the current time.
+    :return: The expiration time.
+    """
+    return datetime.utcnow() + timedelta(minutes=minutes)
 
 def create_access_token(email: str, expires_delta: timedelta | None = None):
     """
