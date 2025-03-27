@@ -14,8 +14,6 @@ from app.core.config import settings
 from app.crud.admin import admin_crud
 from app.models.admin import Admin
 from app.schemas.admin import AdminResponse
-from app.crud.admin import admin_crud
-from fastapi import Request
 import requests
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 30
     reset_password_expire_minutes: int = 15
     host: str = "localhost"
-    forget_password_url: str = "/admin/reset-password"
+    forget_password_url: str = "/auth/reset_password"
 
     # Database settings
     db_driver: str = "postgresql+asyncpg"
@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     # Google authentication settings
     google_client_id: Optional[str] = None
     google_client_secret: Optional[str] = None
-    google_redirect_url: Optional[str] = None
+    google_redirect_url: str = "/auth/google"
 
     @computed_field
     @property
