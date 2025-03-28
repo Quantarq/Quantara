@@ -7,7 +7,7 @@ from decimal import Decimal
 from uuid import UUID
 from app.schemas.deposit import DepositResponse
 from app.models.margin_position import MarginPositionStatus
-from margin_app.app.schemas.base import BaseSchema
+from .base import BaseSchema
 
 
 class UserBase(BaseSchema):

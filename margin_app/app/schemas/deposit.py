@@ -7,7 +7,8 @@ from uuid import UUID
 from typing import Optional
 from datetime import datetime
 
-from margin_app.app.schemas.base import BaseSchema
+from .base import BaseSchema
+
 
 
 class DepositBase(BaseSchema):

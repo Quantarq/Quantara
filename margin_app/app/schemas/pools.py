@@ -2,7 +2,7 @@
 This module contains Pydantic schemas for Pools.
 """
 
-from margin_app.app.schemas.base import BaseSchema
+from .base import BaseSchema
 from uuid import UUID
 from typing import Optional
 from decimal import Decimal
