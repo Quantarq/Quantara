@@ -128,6 +128,7 @@ def test_create_order_database_error(client, mock_add_new_order):
 
 
 def test_get_order_success(client, mock_get_order):
+    """Test successful order retrieval."""
     mock_order = create_mock_order()
     mock_get_order.return_value = mock_order
 
@@ -142,6 +143,7 @@ def test_get_order_success(client, mock_get_order):
 
 
 def test_get_order_not_found(client, mock_get_order):
+    """Test order retrieval when order doesn't exist."""
     mock_get_order.return_value = None
     order_id = uuid.uuid4()
 
@@ -152,11 +154,13 @@ def test_get_order_not_found(client, mock_get_order):
 
 
 def test_get_order_invalid_id(client):
+    """Test order retrieval with invalid UUID."""
     response = client.get("/order/not-a-uuid")
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
 @pytest.fixture
 def mock_get_order():
+    """Mock for order_crud.get_by_id method."""
     with patch("app.api.order.order_crud.get_by_id") as mock:
         yield mock

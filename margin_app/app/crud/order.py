@@ -70,7 +70,14 @@ class UserOrderCRUD(DBConnector):
         return True
 
     async def get_by_id(self, order_id: uuid.UUID) -> UserOrder | None:
-        """Get order by ID."""
+        """Get order by ID from database
+        
+        Args:
+            order_id (uuid.UUID): ID of the order to get
+
+        Returns:
+            UserOrder | None: The order object if found, None otherwise
+        """
         return await self.get_object(UserOrder, order_id)
 
 
