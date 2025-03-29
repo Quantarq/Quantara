@@ -12,8 +12,8 @@ from app.crud.admin import admin_crud
 from app.crud.base import DBConnector
 from app.models.admin import Admin
 from app.schemas.admin import AdminRequest, AdminResponse, AdminResetPassword
-from app.services.auth import get_admin_user_from_state, verify_password
-from margin_app.auth.security import get_password_hash
+from app.auth.base import get_admin_user_from_state
+from app.services.auth.security import get_password_hash, verify_password
 from app.services.emails import email_service
 from fastapi.responses import JSONResponse
 from pydantic import EmailStr

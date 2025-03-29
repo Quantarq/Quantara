@@ -5,7 +5,7 @@ CRUD operations for Admin model
 from typing import Optional, List
 from sqlalchemy import select
 
-from margin_app.auth.security import get_password_hash
+from app.services.auth.security import get_password_hash
 from app.models.admin import Admin
 from .base import DBConnector
 
