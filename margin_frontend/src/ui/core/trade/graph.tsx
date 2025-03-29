@@ -21,9 +21,9 @@ export function Graph({ className = "" }: GraphProps) {
         const delta = state.max - state.min;
         return [
             state.max,
-            state.min + delta / 4,
-            state.min + delta / 4 * 2,
             state.min + delta / 4 * 3,
+            state.min + delta / 4 * 2,
+            state.min + delta / 4,
             state.min
         ].map(price => price.toFixed(4))
     }, [state])
@@ -251,7 +251,7 @@ export function Graph({ className = "" }: GraphProps) {
             if (prevState.min !== min || prevState.max !== max) {
                 return { ...prevState, min, max };
             }
-            return prevState; 
+            return prevState;
         });
         const rect = canvas.getBoundingClientRect();
 
@@ -342,7 +342,7 @@ export function Graph({ className = "" }: GraphProps) {
                             className="bg-[url('src/assets/img/trade-graph-bg.png')] absolute
                           left-[35px] top-0 right-[70px] bottom-[35px] bg-repeat opacity-30"></div>
 
-                       
+
                         <canvas ref={canvasRef} className="w-full h-full max-h-[200px] pr-[10px]"></canvas>
 
                         <div className="absolute bottom-0 flex  justify-around items-center  h-[35px]
@@ -371,7 +371,7 @@ export function Graph({ className = "" }: GraphProps) {
                         <span className="grow border-1 w-full border-dashed border-[#2A3335]"></span>
                         <span className="bg-[#2A3335] rounded-full w-[8px] h-[8px]"></span>
                         <span className="bg-[#00D1FF] px-[10px] py-[8px] rounded-full text-xs
-									text-[#06336E] font-semibold ml-[8px]">3.6784</span>
+									text-[#06336E] font-semibold ml-[8px]">4.0024</span>
                     </div>
                 </div>
             </div>
