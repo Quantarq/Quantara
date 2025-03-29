@@ -45,17 +45,17 @@ class AdminCRUD(DBConnector):
         return await self.get_objects(Admin, limit, offset)
 
     async def create_admin(
-        self, email: str, name: str, password: str, is_super_admin: bool = False
+        self, email: str, name: str, password: Optional[str] = None, is_super_admin: bool = False
     ) -> Admin:
         """
         Create a new admin in the database.
         :param email: str
         :param name: str
-        :param password: str
+        :param password: Optional[str]
         :param is_super_admin: bool
         :return: Admin
         """
-        hashed_password = get_password_hash(password)
+        hashed_password = get_password_hash(password) if password else None
         new_admin = Admin(
             name=name,
             email=email,
