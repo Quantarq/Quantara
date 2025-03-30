@@ -41,7 +41,7 @@ function Pool() {
 		},
 	];
 	return (
-		<div className="flex-1  mx-auto w-full px-8 pb-6 pt-2 ">
+		<div className="flex-1 max-w-7xl mx-auto w-full px-8 pb-6 pt-2 ">
 			<div className="flex md:hidden items-center justify-between mb-8">
 				<div className="relative flex-1 max-w-md">
 					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#848484]" />
@@ -63,11 +63,22 @@ function Pool() {
 				</p>
 			</div>
 
-			<div className="grid lg:grid-cols gap-4 ">
+			<div className="grid lg:grid-cols-7 gap-4 ">
 				<div className="col-span-5">
 					<Tabs defaultActiveIndex={0} tabs={Tab} />
 				</div>
 				
+				<div className="col-span-2 hidden lg:block">
+					<div className="flex  items-center justify-between mb-8">
+						<div className="relative flex-1 max-w-md">
+							<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#848484]" />
+							<Input
+								placeholder="Search..."
+								className="pl-10 h-[48px] w-full max-w-[305px]  bg-transparent border-grayborder border-solid border-1 rounded-full text-[#848484] bricolage"
+							/>
+						</div>
+					</div>
+					</div>
 			</div>
 		</div>
 	);

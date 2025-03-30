@@ -1,5 +1,5 @@
 import { useIsMobile } from "../hooks/use-mobile";
-import { Button } from "./button";
+
 import PoolCard from "./pool-card";
 import PoolHeader from "./pool-head";
 interface Pool {
@@ -27,7 +27,7 @@ export default function PoolTable({ pools }: PoolTableProps) {
 					))}
 				</div>
 			) : (
-				<table className="w-full  border-collapse mx-auto  bricolage table-fixed">
+				<table className="w-full  border-collapse mx-auto  table-fixed">
 					<thead className="">
 						<tr className="text-left text-tableHeads py-4">
 							<th className="text-sm font-semibold pb-4 w-1/4 lg:w-1/3 pl-4">Pool</th>
@@ -70,12 +70,12 @@ export default function PoolTable({ pools }: PoolTableProps) {
                     </td>
 					<td className="py-4 text-riskandliquidity text-sm">{pool.liquidity}</td>
 								<td className="py-4">
-									<Button
-										variant="outline"
-										className="bg-transparent border-grayborder hover:bg-[#333] text-white py-2 min-w-[142px] h-[37px]"
+									<button
+										
+										className="bg-gray-800/50 border-grayborder hover:bg-[#333] text-gray-400 py-3 px-8 rounded-full text-sm font-semibold"
 									>
 										DEPOSIT
-									</Button>
+									</button>
 								</td>
 							</tr>
 						))}
