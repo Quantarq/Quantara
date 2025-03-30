@@ -292,7 +292,7 @@ export function Graph({ className = "" }: GraphProps) {
 
     return (
         <div className={classBuilder(className,`w-full h-[426px] bg-[#0E1116] p-[20px] flex flex-col
-				 mt-[20px] border-1 border-[#12181F]  rounded-[12px]`)}>
+				 border-1 border-[#12181F]  rounded-[12px]`)}>
             <div className="flex items-center">
                 <button className="px-[8px] py-[4px] text-[#A2B1C6] flex items-center gap-[8px] cursor-pointer">
                     <span>ETH / USD</span>
