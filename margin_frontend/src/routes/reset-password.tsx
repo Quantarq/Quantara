@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 
 
-export const Route = createFileRoute("/reset_password")({
+export const Route = createFileRoute("/reset-password")({
   component: ResetPassword,
 });
 

@@ -13,7 +13,7 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as TradeImport } from './routes/trade'
 import { Route as SignUpImport } from './routes/sign-up'
-import { Route as ResetpasswordImport } from './routes/reset_password'
+import { Route as ResetPasswordImport } from './routes/reset-password'
 import { Route as PoolImport } from './routes/pool'
 import { Route as LoginImport } from './routes/login'
 import { Route as ChangePasswordImport } from './routes/change-password'
@@ -33,9 +33,9 @@ const SignUpRoute = SignUpImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const ResetpasswordRoute = ResetpasswordImport.update({
-  id: '/reset_password',
-  path: '/reset_password',
+const ResetPasswordRoute = ResetPasswordImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -95,11 +95,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PoolImport
       parentRoute: typeof rootRoute
     }
-    '/reset_password': {
-      id: '/reset_password'
-      path: '/reset_password'
-      fullPath: '/reset_password'
-      preLoaderRoute: typeof ResetpasswordImport
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordImport
       parentRoute: typeof rootRoute
     }
     '/sign-up': {
@@ -126,7 +126,7 @@ export interface FileRoutesByFullPath {
   '/change-password': typeof ChangePasswordRoute
   '/login': typeof LoginRoute
   '/pool': typeof PoolRoute
-  '/reset_password': typeof ResetpasswordRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sign-up': typeof SignUpRoute
   '/trade': typeof TradeRoute
 }
@@ -136,7 +136,7 @@ export interface FileRoutesByTo {
   '/change-password': typeof ChangePasswordRoute
   '/login': typeof LoginRoute
   '/pool': typeof PoolRoute
-  '/reset_password': typeof ResetpasswordRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sign-up': typeof SignUpRoute
   '/trade': typeof TradeRoute
 }
@@ -147,7 +147,7 @@ export interface FileRoutesById {
   '/change-password': typeof ChangePasswordRoute
   '/login': typeof LoginRoute
   '/pool': typeof PoolRoute
-  '/reset_password': typeof ResetpasswordRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sign-up': typeof SignUpRoute
   '/trade': typeof TradeRoute
 }
@@ -159,7 +159,7 @@ export interface FileRouteTypes {
     | '/change-password'
     | '/login'
     | '/pool'
-    | '/reset_password'
+    | '/reset-password'
     | '/sign-up'
     | '/trade'
   fileRoutesByTo: FileRoutesByTo
@@ -168,7 +168,7 @@ export interface FileRouteTypes {
     | '/change-password'
     | '/login'
     | '/pool'
-    | '/reset_password'
+    | '/reset-password'
     | '/sign-up'
     | '/trade'
   id:
@@ -177,7 +177,7 @@ export interface FileRouteTypes {
     | '/change-password'
     | '/login'
     | '/pool'
-    | '/reset_password'
+    | '/reset-password'
     | '/sign-up'
     | '/trade'
   fileRoutesById: FileRoutesById
@@ -188,7 +188,7 @@ export interface RootRouteChildren {
   ChangePasswordRoute: typeof ChangePasswordRoute
   LoginRoute: typeof LoginRoute
   PoolRoute: typeof PoolRoute
-  ResetpasswordRoute: typeof ResetpasswordRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SignUpRoute: typeof SignUpRoute
   TradeRoute: typeof TradeRoute
 }
@@ -198,7 +198,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChangePasswordRoute: ChangePasswordRoute,
   LoginRoute: LoginRoute,
   PoolRoute: PoolRoute,
-  ResetpasswordRoute: ResetpasswordRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SignUpRoute: SignUpRoute,
   TradeRoute: TradeRoute,
 }
@@ -217,7 +217,7 @@ export const routeTree = rootRoute
         "/change-password",
         "/login",
         "/pool",
-        "/reset_password",
+        "/reset-password",
         "/sign-up",
         "/trade"
       ]
@@ -234,8 +234,8 @@ export const routeTree = rootRoute
     "/pool": {
       "filePath": "pool.tsx"
     },
-    "/reset_password": {
-      "filePath": "reset_password.tsx"
+    "/reset-password": {
+      "filePath": "reset-password.tsx"
     },
     "/sign-up": {
       "filePath": "sign-up.tsx"
