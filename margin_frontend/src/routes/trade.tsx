@@ -52,6 +52,9 @@ function RouteComponent() {
 						
 						<TradeView></TradeView>
 					</div>
+					<div className="w-full">
+
+					</div>
 
 					<form className="max-w-lg min-w-md block  border-1 border-[#17191B]
 			 			rounded-xl p-[24px] h-fit basis-full mx-auto  md:mr-0">
