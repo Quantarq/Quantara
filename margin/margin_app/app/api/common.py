@@ -2,10 +2,24 @@
 Common API for get all endpoints.
 """
 
-from typing import Any, Optional
+from typing import Any, Optional, Dict, Protocol
 import logging
 from fastapi import HTTPException, status
-from typing import Dict
+
+
+class PaginationCrudInterface(Protocol):
+    """
+    Interface for GetAllMediator.crud_object which requires
+    support of used pagination methods
+    """
+
+    async def get_objects(self, limit: Optional[int], offset: Optional[int]) -> Any:
+        """Fetch objects with supplied limit and offset"""
+        ...
+
+    async def get_objects_amounts(self) -> int:
+        """Fetch total amount of objects"""
+        ...
 
 
 class GetAllMediator:
@@ -13,7 +27,12 @@ class GetAllMediator:
     Mediator for handling "get all" requests.
     """
 
-    def __init__(self, crud_object: Any, limit: Optional[int], offset: int):
+    def __init__(
+        self,
+        crud_object: PaginationCrudInterface,
+        limit: Optional[int],
+        offset: Optional[int],
+    ):
         self.crud_object = crud_object
         self.limit = limit
         self.offset = offset
