@@ -5,7 +5,7 @@ from sqlalchemy.sql.compiler import DDLCompiler
 
 
 class CreateView(ExecutableDDLElement):
-    def __init__(self, name: str, selectable):
+    def __init__(self, name: str, selectable: sa.Select):
         self.name = name
         self.selectable = selectable
 
@@ -16,7 +16,7 @@ class DropView(ExecutableDDLElement):
 
 
 @compiler.compiles(CreateView)
-def _create_view(element, ddlcompiler: DDLCompiler, **kw):
+def _create_view(element: sa.Table, ddlcompiler: DDLCompiler, **kw):
     return "CREATE VIEW %s AS %s" % (
         element.name,
         ddlcompiler.sql_compiler.process(element.selectable, literal_binds=True),
@@ -24,7 +24,7 @@ def _create_view(element, ddlcompiler: DDLCompiler, **kw):
 
 
 @compiler.compiles(DropView)
-def _drop_view(element, ddlcompiler: DDLCompiler, **kw):
+def _drop_view(element: sa.Table, ddlcompiler: DDLCompiler, **kw):
     return "DROP VIEW %s" % (element.name)
 
 
@@ -36,7 +36,7 @@ def _view_doesnt_exist(ddl, target, connection, **kw):
     return not _view_exists(ddl, target, connection, **kw)
 
 
-def create_view(name, metadata, selectable: sa.Select):
+def create_view(name: str, metadata: sa.MetaData, selectable: sa.Select):
     t = sa.table(
         name,
         *(

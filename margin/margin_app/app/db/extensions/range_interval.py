@@ -20,7 +20,7 @@ class RangeInterval(int):
 
     def __abs__(self):  # type: ignore
         # abs(range_[0]) called in SQLCompiler._format_frame_clause
-        return str(self)
+        return str(super().__abs__())
 
     def __str__(self):
         return f"INTERVAL '{super().__str__()}' SECONDS"
