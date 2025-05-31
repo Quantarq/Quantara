@@ -4,13 +4,13 @@ API endpoints for auth logic.
 
 from datetime import timedelta
 
-from fastapi import APIRouter, HTTPException, status, Request
-from fastapi.responses import RedirectResponse, JSONvvResponse
+from fastapi import APIRouter, HTTPException, status, Request, Response
+from fastapi.responses import RedirectResponse, JSONResponse
 from loguru import logger
 from pydantic import EmailStr
 
 from app.core.config import settings
-from app.services.auth.base import google_auth, create_access_token, get_current_user
+from app.services.auth.base import google_auth, create_access_token, create_refresh_token, get_current_user
 from app.crud.admin import admin_crud
 from app.schemas.admin import AdminResetPassword
 from app.crud.user import user_crud
@@ -161,7 +161,7 @@ async def reset_password(data: AdminResetPassword, token: str):
     summary="user login",
     description="login user with email and password",
     )
-async def login_user(data: UserLogin):
+async def login_user(data: UserLogin, response: Response):
     """
     handles user login by email and password
     Args:
@@ -187,4 +187,22 @@ async def login_user(data: UserLogin):
             detail="Invalid credentials",
         )
     
-    access_token = 
+    access_token = create_access_token(
+            user.email,
+            expires_delta=timedelta(minutes=settings.access_token_expire_minutes),
+        )
+
+    refresh_token = create_refresh_token(
+            user.email,
+            expires_delta=timedelta(minutes=settings.refresh_token_expire_minutes),
+        )
+
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=True,
+        path="/",
+    )
+
+    return {"access_token": access_token, "token_type": "bearer"}
