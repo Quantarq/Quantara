@@ -10,7 +10,12 @@ from loguru import logger
 from pydantic import EmailStr
 
 from app.core.config import settings
-from app.services.auth.base import google_auth, create_access_token, create_refresh_token, get_current_user
+from app.services.auth.base import (
+    google_auth,
+    create_access_token,
+    create_refresh_token,
+    get_current_user
+    )
 from app.crud.admin import admin_crud
 from app.schemas.admin import AdminResetPassword
 from app.crud.user import user_crud
@@ -206,4 +211,3 @@ async def login_user(data: UserLogin, response: Response):
     )
 
     return {"access_token": access_token, "token_type": "bearer"}
-    

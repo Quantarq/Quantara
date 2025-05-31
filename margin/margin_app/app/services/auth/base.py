@@ -56,7 +56,8 @@ def create_refresh_token(email: str, expires_delta: timedelta | None = None):
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.refresh_token_expire_minutes)
+        minutes = settings.refresh_token_expire_minutes
+        expire = datetime.now(timezone.utc) + timedelta(minutes=minutes)
     to_encode = {
         "sub": email,
         "exp": expire,
