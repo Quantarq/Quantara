@@ -25,6 +25,30 @@ def get_expire_time(minutes: int) -> datetime:
     return datetime.utcnow() + timedelta(minutes=minutes)
 
 
+def decode_signup_token(token: str) -> str:
+    """
+    Decode the signup JWT token and extract the email address.
+
+    Parameters:
+    - token (str): The JWT token containing the email address.
+
+    Returns:
+    - str: The email address extracted from the token.
+
+    Raises:
+    - Exception("Invalid token"): if token is invalid or missing email
+    - Exception("Token expired"): if token has expired
+    """
+    try:
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+        email = payload.get("sub")
+        if email is None:
+            raise Exception("Invalid token")
+        return email
+    except InvalidTokenError as e:
+        raise Exception("Token expired") from e
+
+
 def create_access_token(email: str, expires_delta: timedelta | None = None):
     """
     Generates auth jwt token for a given wallet ID

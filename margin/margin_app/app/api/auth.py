@@ -4,15 +4,21 @@ API endpoints for auth logic.
 
 from datetime import timedelta
 
-from fastapi import APIRouter, HTTPException, status, Request
+from fastapi import APIRouter, HTTPException, status, Request, Response
 from fastapi.responses import RedirectResponse, JSONResponse
 from loguru import logger
 from pydantic import EmailStr
 
 from app.core.config import settings
-from app.services.auth.base import google_auth, create_access_token, get_current_user
+from app.services.auth.base import (
+    google_auth,
+    create_access_token,
+    get_current_user,
+    decode_signup_token,
+)
 from app.crud.admin import admin_crud
 from app.schemas.admin import AdminResetPassword
+from app.schemas.auth import SignupConfirmation
 from app.services.auth.security import (
     get_password_hash,
     verify_password,
@@ -151,3 +157,75 @@ async def reset_password(data: AdminResetPassword, token: str):
     admin.password = get_password_hash(data.new_password)
     await admin_crud.write_to_db(admin)
     return JSONResponse(content={"message": "Password was changed"})
+
+
+@router.post("/signup-confirmation", status_code=status.HTTP_200_OK)
+async def signup_confirmation(
+    confirmation: SignupConfirmation,
+    response: Response,
+):
+    """
+    Handle user registration confirmation with JWT token.
+
+    Parameters:
+    - confirmation: SignupConfirmation
+        The confirmation request containing token, password, and name
+    - response: Response
+        The HTTP response object to set cookies
+
+    Returns:
+    - dict: The access token and token type
+
+    Raises:
+    - HTTPException: If token is invalid, expired, or user already exists
+    """
+    try:
+        email = decode_signup_token(confirmation.token)
+
+        existing_user = await admin_crud.get_by_email(email)
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User already exists",
+            )
+
+        # Create new user
+        hashed_password = get_password_hash(confirmation.password)
+        user = await admin_crud.create_admin(
+            email=email,
+            name=confirmation.name,
+            password=hashed_password,
+        )
+
+        access_token = create_access_token(
+            email,
+            expires_delta=timedelta(minutes=settings.access_token_expire_minutes),
+        )
+
+        refresh_token = create_access_token(
+            email,
+            expires_delta=timedelta(days=settings.refresh_token_expire_days),
+        )
+
+        response.set_cookie(
+            key="refresh_token",
+            value=refresh_token,
+            httponly=True,
+            secure=True,
+            path="/",
+            max_age=settings.refresh_token_expire_seconds,
+        )
+
+        return {"access_token": access_token, "token_type": "bearer"}
+
+    except Exception as e:
+        logger.error(f"Failed to confirm signup: {str(e)}")
+        if str(e) in ["Invalid token", "Token expired"]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(e),
+            )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to confirm signup",
+        )

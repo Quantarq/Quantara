@@ -8,7 +8,11 @@ import uuid
 import pytest
 import jwt
 from app.core.config import settings
-from app.services.auth.base import create_access_token, get_current_user
+from app.services.auth.base import (
+    create_access_token,
+    get_current_user,
+    decode_signup_token
+)
 from app.models.admin import Admin
 from app.crud.admin import admin_crud
 
@@ -108,3 +112,34 @@ async def test_get_current_user_fails_if_usr_not_found():
         get_by_email.return_value = None
         with pytest.raises(Exception, match="User not found"):
             await get_current_user(token)
+
+
+def test_decode_signup_token_success():
+    """Test successfully decoding signup token and extracting email"""
+    email = "test@example.com"
+    token = create_access_token(email)
+    
+    decoded_email = decode_signup_token(token)
+    assert decoded_email == email
+
+
+def test_decode_signup_token_invalid():
+    """Test decoding invalid signup token"""
+    to_encode = {"exp": datetime.now(timezone.utc) + timedelta(minutes=25)}
+    token = jwt.encode(to_encode, settings.secret_key, algorithm=ALGORITHM)
+
+    with pytest.raises(Exception, match="Invalid token"):
+        decode_signup_token(token)
+
+
+def test_decode_signup_token_expired():
+    """Test decoding expired signup token"""
+    email = "test@example.com"
+    to_encode = {
+        "sub": email,
+        "exp": datetime.now(timezone.utc) - timedelta(minutes=25),
+    }
+    token = jwt.encode(to_encode, settings.secret_key, algorithm=ALGORITHM)
+
+    with pytest.raises(Exception, match="Token expired"):
+        decode_signup_token(token)
