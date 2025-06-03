@@ -13,11 +13,14 @@ from app.core.config import settings
 from app.services.auth.base import (
     google_auth,
     create_access_token,
+    create_refresh_token,
     get_current_user,
     decode_signup_token,
-)
+    )
+
 from app.crud.admin import admin_crud
-from app.crud.user import user_crud 
+from app.crud.user import user_crud
+from app.schemas.user import UserLogin
 from app.schemas.admin import AdminResetPassword
 from app.schemas.auth import SignupConfirmation
 from app.services.auth.security import (
@@ -98,13 +101,65 @@ async def auth_google(code: str, request: Request, response: Response):
         )
 
         return {"access_token": access_token, "token_type": "bearer"}
-    
+
     except Exception as e:
         logger.error(f"Failed to authenticate admin: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Failed to authenticate admin.",
         )
+
+@router.post(
+    "/login",
+    status_code=status.HTTP_200_OK,
+    summary="user login",
+    description="login user with email and password",
+    )
+async def login_user(data: UserLogin, response: Response):
+    """
+    handles user login by email and password
+    Args:
+        data (UserLogin): A JSON object containing email and password
+    Raises:
+        HTTPException: If the user with the given email is not found.
+        HTTPException: if the password is incorrect
+    Returns:
+        JSONResponse: A response with the acess token
+    """
+
+    user = await user_crud.get_object_by_field("email", data.email)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User with this email not found.",
+        )
+
+    if not verify_password(data.password, user.password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+        )
+
+    access_token = create_access_token(
+            user.email,
+            expires_delta=timedelta(minutes=settings.access_token_expire_minutes),
+        )
+
+    refresh_token = create_refresh_token(
+            user.email,
+            expires_delta=timedelta(minutes=settings.refresh_token_expire_days),
+        )
+
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=True,
+        path="/",
+    )
+
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 @router.post(

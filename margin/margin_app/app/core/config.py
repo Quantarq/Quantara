@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     secret_key: str = "SECRET_KEY"
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
+
     refresh_token_expire_days: int = 7
     reset_password_expire_minutes: int = 15
     refresh_token_expire_days: int = 7
