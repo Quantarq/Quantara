@@ -16,6 +16,8 @@ from app.services.auth.base import (
 )
 from app.models.admin import Admin
 from app.crud.admin import admin_crud
+from app.services.auth.blacklist_token import token_blacklist
+from app.services.auth.base import create_refresh_token
 from types import SimpleNamespace
 
 ALGORITHM = settings.algorithm
@@ -538,3 +540,142 @@ class TestAdminLogout:
         )
 
         assert refresh_cookie_cleared, "refresh_token cookie should be removed"
+
+    @patch("app.api.auth.admin_crud.get_by_email", new_callable=AsyncMock)
+    @patch("app.api.auth.get_admin_user_from_state", new_callable=AsyncMock)
+    def test_refresh_token_blacklisted_on_logout(
+        self, mock_get_admin_state, mock_get_by_email, client
+    ):
+        """Test that refresh token is blacklisted when admin logs out."""
+
+        token_blacklist.clear_blacklist()
+
+        admin_email = "admin@test.com"
+        mock_admin = make_admin_obj(
+            {
+                "id": "123",
+                "email": admin_email,
+                "name": "Test Admin",
+                "is_super_admin": True,
+            }
+        )
+
+        mock_get_admin_state.return_value = None
+        mock_get_by_email.return_value = mock_admin
+
+        access_token = create_access_token(admin_email)
+        refresh_token = create_refresh_token(admin_email)
+
+        client.cookies.set("refresh_token", refresh_token)
+
+        assert not token_blacklist.is_blacklisted(refresh_token)
+
+        response = client.post(
+            "/api/auth/logout", headers={"Authorization": f"Bearer {access_token}"}
+        )
+
+        assert response.status_code == 200
+
+        assert token_blacklist.is_blacklisted(refresh_token)
+
+    @patch("app.api.auth.admin_crud.get_by_email", new_callable=AsyncMock)
+    def test_blacklisted_refresh_token_cannot_be_used(self, mock_get_by_email, client):
+        """Test that blacklisted refresh tokens cannot be used to get new access tokens."""
+        token_blacklist.clear_blacklist()
+
+        admin_email = "admin@test.com"
+        mock_admin = make_admin_obj(
+            {
+                "id": "123",
+                "email": admin_email,
+                "name": "Test Admin",
+                "is_super_admin": True,
+            }
+        )
+
+        mock_get_by_email.return_value = mock_admin
+
+        refresh_token = create_refresh_token(admin_email)
+
+        token_blacklist.blacklist_token(refresh_token)
+
+        response = client.post(
+            "/api/auth/refresh", cookies={"refresh_token": refresh_token}
+        )
+
+        assert response.status_code == 401
+        assert "Refresh token has been invalidated" in response.json()["detail"]
+
+    @patch("app.api.auth.admin_crud.get_by_email", new_callable=AsyncMock)
+    @patch("app.api.auth.get_admin_user_from_state", new_callable=AsyncMock)
+    def test_logout_without_refresh_token_cookie_still_works(
+        self, mock_get_admin_state, mock_get_by_email, client
+    ):
+        """Test that logout works even when no refresh token cookie is present."""
+        admin_email = "admin@test.com"
+        mock_admin = make_admin_obj(
+            {
+                "id": "123",
+                "email": admin_email,
+                "name": "Test Admin",
+                "is_super_admin": True,
+            }
+        )
+
+        mock_get_admin_state.return_value = None
+        mock_get_by_email.return_value = mock_admin
+
+        access_token = create_access_token(admin_email)
+
+        response = client.post(
+            "/api/auth/logout", headers={"Authorization": f"Bearer {access_token}"}
+        )
+
+        assert response.status_code == 200
+        assert response.json() == {"message": "Admin logged out successfully"}
+
+    @patch("app.api.auth.admin_crud.get_by_email", new_callable=AsyncMock)
+    @patch("app.api.auth.get_admin_user_from_state", new_callable=AsyncMock)
+    def test_complete_logout_flow_prevents_refresh_token_reuse(
+        self, mock_get_admin_state, mock_get_by_email, client
+    ):
+        """Test complete logout flow: login -> logout -> try to use old refresh token."""
+        token_blacklist.clear_blacklist()
+
+        admin_email = "admin@test.com"
+        mock_admin = make_admin_obj(
+            {
+                "id": "123",
+                "email": admin_email,
+                "name": "Test Admin",
+                "is_super_admin": True,
+            }
+        )
+
+        mock_get_admin_state.return_value = None
+        mock_get_by_email.return_value = mock_admin
+
+        access_token = create_access_token(admin_email)
+        refresh_token = create_refresh_token(admin_email)
+
+        client.cookies.set("refresh_token", refresh_token)
+
+        refresh_response = client.post(
+            "/api/auth/refresh", cookies={"refresh_token": refresh_token}
+        )
+        assert refresh_response.status_code == 200
+
+        logout_response = client.post(
+            "/api/auth/logout", headers={"Authorization": f"Bearer {access_token}"}
+        )
+        assert logout_response.status_code == 200
+
+        refresh_after_logout = client.post(
+            "/api/auth/refresh", cookies={"refresh_token": refresh_token}
+        )
+
+        assert refresh_after_logout.status_code == 401
+        assert (
+            "Refresh token has been invalidated"
+            in refresh_after_logout.json()["detail"]
+        )
