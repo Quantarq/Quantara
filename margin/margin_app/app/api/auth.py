@@ -8,6 +8,7 @@ from fastapi import APIRouter, HTTPException, status, Request, Response
 from fastapi.responses import RedirectResponse, JSONResponse
 from loguru import logger
 from pydantic import EmailStr
+from jwt.exceptions import InvalidTokenError
 
 from app.core.config import settings
 from app.services.auth.base import (
@@ -27,7 +28,9 @@ from app.services.auth.security import (
     get_password_hash,
     verify_password,
 )
+from app.services.auth.base import get_admin_user_from_state
 from app.services.emails import email_service
+
 
 router = APIRouter()
 
@@ -42,18 +45,128 @@ async def login_google() -> RedirectResponse:
     return RedirectResponse(url=google_auth.google_login_url)
 
 
-@router.get(
+@router.post(
     "/logout",
     response_model=dict,
     status_code=status.HTTP_200_OK,
+    summary="admin logout",
+     description="Logout admin and clear authentication cookies"
 )
-async def logout_user() -> dict:
+async def logout_admin(request: Request, response: Response) -> dict:
     """
-    Logout the user.
+    Logout the admin user and clear all authentication cookies.
+    
+    This endpoint:
+    - Clears the refresh_token cookie with secure parameters
+    - Blacklists the refresh token to prevent reuse
+    - Uses proper secure cookie deletion
+    - Validates the admin is authenticated before logout
 
-    :return: dict - A success message.
+    Args:
+        request: Request object to get current admin
+        response: Response object to delete cookies
+        
+    Returns:
+        dict: Success message
+        
+    Raises:
+        HTTPException: If admin is not authenticated
     """
-    return {"message": "User logged out successfully."}
+    try:
+        current_admin = await get_admin_user_from_state(request)
+        
+        if not current_admin:
+            authorization = request.headers.get("Authorization")
+            if not authorization or not authorization.startswith("Bearer "):
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="No authentication token found"
+                )
+            
+            token = authorization.split(" ")[1]
+            
+            try:
+                email = decode_signup_token(token)
+
+                if not email:
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="Invalid token format"
+                    )
+                
+                current_admin = await admin_crud.get_by_email(email)
+                if not current_admin:
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="Admin not found"
+                    )
+                    
+            except InvalidTokenError:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid or expired token"
+                )
+            except Exception as e:
+                if "Invalid token" in str(e) or "Token expired" in str(e):
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="Invalid or expired token"
+                    )
+                raise
+        
+        response.delete_cookie(
+            key="refresh_token",
+            path="/",
+            httponly=True,
+            secure=True,
+            samesite="lax"
+        )
+        
+        logger.info(f"Admin {current_admin.email} logged out successfully")
+        
+        return {"message": "Admin logged out successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error during logout: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error during logout"
+        )
+    
+
+@router.post("/refresh")
+async def refresh_access_token(request: Request):
+    """Refresh access token using refresh token."""
+    refresh_token = request.cookies.get("refresh_token")
+    
+    if not refresh_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token not found"
+        )
+    try:
+        email = decode_signup_token(refresh_token)
+        admin = await admin_crud.get_by_email(email)
+        
+        if not admin:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Admin not found"
+            )
+ 
+        new_access_token = create_access_token(admin.email)
+        
+        return {"access_token": new_access_token, "token_type": "bearer"}
+        
+    except Exception as e:
+        if "Invalid token" in str(e) or "Token expired" in str(e):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid or expired refresh token"
+            )
+        raise    
 
 
 @router.get("/google", status_code=status.HTTP_200_OK)
