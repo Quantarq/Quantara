@@ -30,7 +30,6 @@ from app.services.auth.security import (
 )
 from app.services.auth.base import get_admin_user_from_state
 from app.services.emails import email_service
-from app.services.auth.blacklist_token import token_blacklist
 
 
 router = APIRouter()
@@ -114,12 +113,6 @@ async def logout_admin(request: Request, response: Response) -> dict:
                         detail="Invalid or expired token"
                     )
                 raise
-
-        refresh_token = request.cookies.get("refresh_token")
-        if refresh_token:
-            token_blacklist.blacklist_token(refresh_token)
-            logger.info(f"Refresh token blacklisted for admin {current_admin.email}")
-            
         
         response.delete_cookie(
             key="refresh_token",
@@ -153,13 +146,6 @@ async def refresh_access_token(request: Request):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Refresh token not found"
         )
-    
-    if token_blacklist.is_blacklisted(refresh_token):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Refresh token has been invalidated"
-        )
-    
     try:
         email = decode_signup_token(refresh_token)
         admin = await admin_crud.get_by_email(email)
