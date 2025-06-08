@@ -13,7 +13,7 @@ class AdminBase(BaseModel):
     Admin base model
     """
 
-    name: Optional[str]
+    name: Optional[str] = None
     email: EmailStr
 
 

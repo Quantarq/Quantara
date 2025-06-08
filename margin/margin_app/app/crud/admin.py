@@ -37,14 +37,14 @@ class AdminCRUD(DBConnector):
     async def create_admin(
         self,
         email: str,
-        name: str,
+        name: Optional[str] = None,
         password: Optional[str] = None,
         is_super_admin: bool = False,
     ) -> Admin:
         """
         Create a new admin in the database.
         :param email: str
-        :param name: str
+        :param name: Optional[str]
         :param password: Optional[str]
         :param is_super_admin: bool
         :return: Admin

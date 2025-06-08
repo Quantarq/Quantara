@@ -25,7 +25,7 @@ class Admin(BaseModel):
         nullable=False,
         comment="The unique email address of the admin."
     )
-    name: Mapped[str] = mapped_column(
+    name: Mapped[Optional[str]] = mapped_column(
         String(255),
         nullable=True,
         comment="The full name of the admin."
