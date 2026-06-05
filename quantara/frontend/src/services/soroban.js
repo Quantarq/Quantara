@@ -33,7 +33,7 @@ export function getSorobanServer() {
  * @param {number} maxAttempts - Maximum polling attempts (default 30 = ~30 seconds)
  * @returns {Promise<object>} The transaction result
  */
-async function pollForTransaction(server, hash, maxAttempts = 30) {
+export async function pollForTransaction(server, hash, maxAttempts = 30) {
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const result = await server.getTransaction(hash);
     if (result.status === 'SUCCESS') {

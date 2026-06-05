@@ -183,3 +183,4 @@ node_modules/
 .vscode 
 .cursor*
 .DS_Store
+package-lock.json

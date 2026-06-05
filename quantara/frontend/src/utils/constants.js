@@ -47,10 +47,28 @@ export const TELEGRAM_BOT_LINK = 'https://t.me/quantara_bot';
  * @param {string} walletId - The Stellar public key
  * @returns {object} Contract deployment parameters
  */
+/**
+ * Generate a cryptographically random 32-byte hex string for use as a Soroban salt.
+ * This ensures each user gets a unique contract instance.
+ */
+export function generateSalt() {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+/**
+ * Get contract deployment data for a Soroban contract.
+ *
+ * @param {string} walletId - The Stellar public key
+ * @returns {object} Contract deployment parameters
+ */
 export function getDeployContractData(walletId) {
   return {
     wasmHash: SOROBAN_WASM_HASH,
-    salt: `0x${Math.floor(Math.random() * 1e16).toString(16)}`, // Generate random salt
+    salt: generateSalt(), // 32-byte random hex salt for deterministic address
     constructorCalldata: [walletId],
   };
 }
