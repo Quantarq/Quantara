@@ -61,13 +61,16 @@ class DBConnector:
     ) -> ModelType | None:
         """
         Retrieves an object by its ID from the database.
-        :param: model: type[Base] = None
-        :param: obj_id: uuid = None
+        :param model: type[Base] = None
+        :param obj_id: uuid = None
         :return: Base | None
         """
         db = self.Session()
         try:
             return db.query(model).filter(model.id == obj_id).first()
+        except SQLAlchemyError as e:
+            logger.error("Failed to get object by id: %s", e)
+            return None
         finally:
             db.close()
 
@@ -104,13 +107,9 @@ class DBConnector:
             if obj:
                 db.delete(obj)
                 db.commit()
-
-            db.rollback()
-
         except SQLAlchemyError as e:
             db.rollback()
             raise e
-
         finally:
             db.close()
 
