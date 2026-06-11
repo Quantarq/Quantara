@@ -11,9 +11,9 @@ from typing import Dict
 
 import aiohttp
 
-from web_app.contract_tools.constants import TokenParams, MULTIPLIER_POWER
 from web_app.contract_tools.api_request import APIRequest
 from web_app.contract_tools.blockchain_call import CLIENT
+from web_app.contract_tools.constants import MULTIPLIER_POWER, TokenParams
 from web_app.db.crud.position import PositionDBConnector
 
 logger = logging.getLogger(__name__)
