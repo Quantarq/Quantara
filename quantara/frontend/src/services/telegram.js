@@ -24,6 +24,13 @@ export const saveTelegramUser = async (telegramUser, walletId) => {
   }
 };
 
+
+/**
+ * Get the wallet ID associated with a Telegram user.
+ *
+ * @param {string} telegram_id - The Telegram user ID
+ * @returns {Promise<string|null>} The linked wallet ID or null
+ */
 export const getTelegramUserWalletId = async (telegram_id) => {
   try {
     const response = await axiosInstance.post(`/api/telegram/get-wallet-id/${telegram_id}`, {
@@ -37,6 +44,14 @@ export const getTelegramUserWalletId = async (telegram_id) => {
   }
 };
 
+
+/**
+ * Subscribe a Telegram user to health ratio notifications.
+ *
+ * @param {string} telegram_id - The Telegram user ID
+ * @param {string} wallet_id - The user's Stellar wallet public key
+ * @returns {Promise<object>} API response data
+ */
 export const subscribeToNotification = async (telegram_id, wallet_id) => {
   try {
     const response = await axiosInstance.post('/api/subscribe-to-notification', {
@@ -51,6 +66,13 @@ export const subscribeToNotification = async (telegram_id, wallet_id) => {
   }
 };
 
+
+/**
+ * Generate a deep-link for connecting a Telegram account to a wallet.
+ *
+ * @param {string} wallet_id - The user's Stellar wallet public key
+ * @returns {Promise<object>} API response containing the subscription link
+ */
 export const generateTelegramLink = async (wallet_id) => {
   try {
     const response = await axiosInstance.get(`/api/generate-telegram-link`, {
