@@ -6,8 +6,10 @@ and position value calculations for the dashboard view.
 """
 
 import logging
-from typing import Dict
 from decimal import Decimal
+from typing import Dict
+
+import aiohttp
 
 from web_app.contract_tools.constants import TokenParams, MULTIPLIER_POWER
 from web_app.contract_tools.api_request import APIRequest
