@@ -2,6 +2,14 @@ import { useMutation } from '@tanstack/react-query';
 import { axiosInstance } from '@/utils/axios';
 import { notify } from '@/components/layout/notifier/Notifier';
 
+/**
+ * Hook for submitting bug reports to the backend.
+ *
+ * @param {string} walletId - The user's Stellar wallet public key
+ * @param {string} bugDescription - The bug description text
+ * @param {Function} onClose - Callback to close the bug report modal
+ * @returns {{ mutation: object, handleSubmit: Function }}
+ */
 export const useBugReport = (walletId, bugDescription, onClose) => {
   const mutation = useMutation({
     mutationFn: async () => {
