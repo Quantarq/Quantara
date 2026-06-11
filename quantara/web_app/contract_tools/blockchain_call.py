@@ -66,6 +66,8 @@ class StellarClient:
         :param asset_issuer: Issuer address for non-native assets.
         :return: Balance as a string, or "0" if not found.
         """
+        if not holder_address or not asset_code:
+            return "0"
         url = f"{self.horizon_url.rstrip('/')}/accounts/{holder_address}"
         try:
             async with aiohttp.ClientSession() as session:
@@ -82,6 +84,9 @@ class StellarClient:
                         )
                         return "0"
                     account = await response.json()
+        except aiohttp.ClientError as exc:
+            logger.error("Network error fetching account %s: %s", holder_address, exc)
+            return "0"
         except Exception as exc:
             logger.error("Failed to fetch account %s: %s", holder_address, exc)
             return "0"
@@ -188,6 +193,8 @@ class StellarClient:
         :param contract_id: The Soroban contract ID (C… string).
         :return: True if the contract is deployed.
         """
+        if not contract_id:
+            return False
         try:
             rpc_url = f"{self.rpc_url.rstrip('/')}/transactions"
             payload = {
@@ -203,9 +210,25 @@ class StellarClient:
                 async with session.post(rpc_url, json=payload) as response:
                     if response.status == 200:
                         data = await response.json()
+                        if "error" in data:
+                            logger.warning(
+                                "RPC error checking contract %s: %s",
+                                contract_id,
+                                data["error"],
+                            )
+                            return False
                         return "result" in data
+                    logger.warning(
+                        "RPC returned %d checking contract %s",
+                        response.status,
+                        contract_id,
+                    )
                     return False
-        except Exception:
+        except aiohttp.ClientError as e:
+            logger.error("Network error checking contract %s: %s", contract_id, e)
+            return False
+        except Exception as e:
+            logger.error("Unexpected error checking contract %s: %s", contract_id, e)
             return False
 
     async def fetch_portfolio(self, contract_address: str) -> dict:
