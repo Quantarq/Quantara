@@ -37,7 +37,7 @@ export const useHealthFactor = (selectedToken, tokenAmount, selectedMultiplier) 
     queryFn: () => fetchTokenPrice(tokenId),
     enabled: !!tokenId,
     staleTime: 30000,
-    cacheTime: 60000,
+    gcTime: 60000,
   });
 
   const calculateHealthFactor = () => {
