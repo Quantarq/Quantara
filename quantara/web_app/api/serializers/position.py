@@ -83,7 +83,7 @@ class UserPositionsListResponse(BaseModel):
     Response model for list of user positions.
     """
 
-    positions: List[UserPositionResponse] = []
+    positions: list[UserPositionResponse] = []
 
 
 class AddPositionDepositData(BaseModel):
@@ -125,5 +125,5 @@ class UserPositionHistoryResponse(BaseModel):
     - **total_count**: Total number of positions for pagination
     """
 
-    positions: List[UserPositionResponse] = []
+    positions: list[UserPositionResponse] = []
     total_count: int = 0
