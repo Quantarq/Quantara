@@ -40,7 +40,11 @@ class AirdropFetcher:
             raise ValueError("Contract ID cannot be None")
 
         underlying_contract_id = contract_id
-        response = await self.api.fetch(underlying_contract_id)
+        try:
+            response = await self.api.fetch(underlying_contract_id)
+        except Exception as e:
+            logger.error("Failed to fetch airdrop data for %s: %s", contract_id, e)
+            return AirdropResponseModel(airdrops=[])
         return self._validate_response(response)
 
     @staticmethod

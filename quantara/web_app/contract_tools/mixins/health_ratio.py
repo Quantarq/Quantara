@@ -85,7 +85,7 @@ class HealthRatioMixin:
         debt_usdc = debt_raw * borrowed_price / Decimal(10 ** int(TokenParams.get_token_decimals(borrowed_token)))
 
         if debt_usdc == 0:
-            return "inf", "0"
+            return "-1", "0"
 
         if deposit_usdc == 0:
             return "0", "0"
