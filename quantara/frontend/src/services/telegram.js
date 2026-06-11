@@ -1,5 +1,12 @@
 import { axiosInstance } from '../utils/axios';
 
+/**
+ * Save or update a Telegram user's information in the backend.
+ *
+ * @param {object} telegramUser - Telegram user object from WebApp
+ * @param {string} walletId - The user's Stellar wallet public key
+ * @returns {Promise<object>} API response data
+ */
 export const saveTelegramUser = async (telegramUser, walletId) => {
   try {
     const response = await axiosInstance.post(`/api/telegram/save-user`, {
