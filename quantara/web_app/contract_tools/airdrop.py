@@ -49,7 +49,7 @@ class AirdropFetcher:
         return self._validate_response(response)
 
     @staticmethod
-    def _validate_response(data: List[dict]) -> AirdropResponseModel:
+    def _validate_response(data: list[dict]) -> AirdropResponseModel:
         """
         Validates and formats the response data.
 
