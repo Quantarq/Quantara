@@ -229,8 +229,8 @@ class StellarClient:
         except aiohttp.ClientError as e:
             logger.error("Network error checking contract %s: %s", contract_id, e)
             return False
-        except Exception as e:
-            logger.error("Unexpected error checking contract %s: %s", contract_id, e)
+        except (ValueError, KeyError, TypeError) as e:
+            logger.error("Data error checking contract %s: %s", contract_id, e)
             return False
 
     async def fetch_portfolio(self, contract_address: str) -> dict:
@@ -251,7 +251,7 @@ class StellarClient:
                     "balance": balance,
                     "decimals": token.decimals,
                 }
-            except Exception as exc:
+            except (aiohttp.ClientError, ValueError, KeyError) as exc:
                 logger.info(
                     "Failed to get portfolio balance for %s: %s",
                     token.name,
