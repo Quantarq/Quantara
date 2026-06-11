@@ -5,6 +5,8 @@
  * and the Stellar SDK for account operations.
  *
  * Replaces the former Starknet/starknetkit wallet integration.
+ *
+ * @module wallet
  */
 
 import {
@@ -19,6 +21,8 @@ import { XLM_ASSET, USDC_ASSET } from '../utils/constants';
 
 /**
  * Check if Freighter is installed in the browser.
+ *
+ * @returns {boolean} True if Freighter wallet extension is available
  */
 export const isFreighterInstalled = () => {
   try {
@@ -93,6 +97,14 @@ export function logout() {
  * @param {string} [options.network='TESTNET'] - Network to use ('PUBLIC' | 'TESTNET')
  * @returns {Promise<string>} The signed transaction XDR
  */
+/**
+ * Sign a Stellar transaction XDR using Freighter.
+ *
+ * @param {string} xdr - The base64-encoded transaction XDR string
+ * @param {object} options - Signing options
+ * @param {string} [options.network='TESTNET'] - Network to use ('PUBLIC' | 'TESTNET')
+ * @returns {Promise<string>} The signed transaction XDR
+ */
 export const signStellarTransaction = async (xdr, options = { network: 'TESTNET' }) => {
   try {
     const signedXDR = await signTransaction(xdr, options);
@@ -106,7 +118,7 @@ export const signStellarTransaction = async (xdr, options = { network: 'TESTNET'
 /**
  * Get the network passphrase for the configured Stellar network.
  *
- * @param {string} network - 'TESTNET' or 'PUBLIC'
+ * @param {string} [network] - 'TESTNET' or 'PUBLIC' (defaults to env var or TESTNET)
  * @returns {string} The Stellar network passphrase
  */
 export const getNetworkPassphrase = (network = process.env.VITE_STELLAR_NETWORK || 'TESTNET') => {
@@ -118,6 +130,13 @@ export const getNetworkPassphrase = (network = process.env.VITE_STELLAR_NETWORK 
   return networks[network] || networks.TESTNET;
 };
 
+/**
+ * Get Stellar token balances for the connected wallet.
+ * Uses the Stellar Horizon API to load account and extract balances.
+ *
+ * @param {string} publicKey - The Stellar public key
+ * @returns {Promise<Object>} Token balances keyed by symbol
+ */
 /**
  * Get Stellar token balances for the connected wallet.
  * Uses the Stellar Horizon API to load account and extract balances.
@@ -158,10 +177,11 @@ export async function getTokenBalances(publicKey) {
 }
 
 /**
- * Format balances into the display format used by the UI.
+ * Fetch and format token balances for display in the UI.
  *
  * @param {string} walletId - The Stellar public key
- * @param {function} setBalances - State setter for balances
+ * @param {Function} setBalances - React state setter for the balances array
+ * @returns {Promise<void>}
  */
 export const getBalances = async (walletId, setBalances) => {
   if (!walletId) return;
