@@ -1,5 +1,6 @@
 """Test cases for DBConnector"""
 
+import os
 import uuid
 
 import pytest
@@ -104,9 +105,8 @@ def test_delete_object_invalid_id(mock_db_connector):
 def db_connector():
     """
     Fixture to initialize and provide a DBConnector instance with a test
-    user for the tests. Uses localhost:5432 for CI/postgres service.
+    user for the tests. Reads DB connection params from environment variables.
     """
-    import os
     db_url = (
         f"postgresql://{os.environ.get('DB_USER', 'postgres')}"
         f":{os.environ.get('DB_PASSWORD', 'password')}"
