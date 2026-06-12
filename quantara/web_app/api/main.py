@@ -6,9 +6,11 @@ dashboard, position, user, vault, leaderboard, referal, and telegram
 endpoints, and exposes a /health endpoint for CI orchestration.
 """
 
+import logging
 import os
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -19,6 +21,8 @@ from web_app.api.user import router as user_router
 from web_app.api.vault import router as vault_router
 from web_app.api.leaderboard import router as leaderboard_router
 from web_app.api.referal import router as referal_router
+
+logger = logging.getLogger(__name__)
 
 # Initialize Sentry SDK if in production
 if os.getenv("ENV_VERSION") == "PROD":
@@ -45,6 +49,29 @@ app = FastAPI(
         "url": "https://opensource.org/licenses/MIT",
     },
 )
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """
+    Global exception handler that masks internal exception details.
+
+    Catches any uncaught exception and returns a sanitized 500 response
+    without leaking internal details (stack traces, database errors,
+    file paths, etc.) to the API consumer. The full exception is
+    logged server-side for operators to investigate.
+
+    :param request: The incoming HTTP request that raised the exception.
+    :param exc: The unhandled exception instance.
+    :return: JSON response with a generic error message and 500 status.
+    """
+    logger.exception(
+        "Unhandled exception on %s %s", request.method, request.url.path
+    )
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"},
+    )
 
 _SESSION_SECRET_MIN_LENGTH = 32
 _is_production = os.getenv("ENV_VERSION") == "PROD"
