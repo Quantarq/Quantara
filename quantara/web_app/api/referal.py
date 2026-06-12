@@ -16,7 +16,7 @@ Errors:
 import random
 import string
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from web_app.db.database import get_database
@@ -82,3 +82,11 @@ async def create_referal_link(
 
     referral_code = generate_random_string()
     return ReferralResponse(wallet_id=wallet_id, referral_code=referral_code)
+
+
+# Standalone FastAPI app exposing the referral endpoints. This allows
+# the test suite to mount the router in isolation (see
+# tests/test_create_referal_link.py) without depending on the full
+# application defined in web_app.api.main.
+app = FastAPI()
+app.include_router(router)
