@@ -15,16 +15,27 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from web_app.db.models import Base, ExtraDeposit, Position, Status, Transaction, User
 
+from .base import DBConnector
 from .user import UserDBConnector
 
 logger = logging.getLogger(__name__)
 ModelType = TypeVar("ModelType", bound=Base)
 
 
-class PositionDBConnector(UserDBConnector):
+class PositionDBConnector:
     """
     Provides database connection and operations management for the Position model.
     """
+
+    def __init__(
+        self,
+        db_connector: DBConnector = None,
+        user_db_connector: UserDBConnector = None,
+    ):
+        from web_app.db.database import db_connector as default_db_connector
+
+        self.db_connector = db_connector or default_db_connector
+        self.user_db_connector = user_db_connector or UserDBConnector(self.db_connector)
 
     START_PRICE = 0.0
 
@@ -63,7 +74,7 @@ class PositionDBConnector(UserDBConnector):
         :param wallet_id: str
         :return: User | None
         """
-        return self.get_user_by_wallet_id(wallet_id)
+        return self.user_db_connector.get_user_by_wallet_id(wallet_id)
 
     def get_positions_by_wallet_id(
         self, wallet_id: str, start: int = 0, limit: int = 10
@@ -76,7 +87,7 @@ class PositionDBConnector(UserDBConnector):
         :param limit: number of records to return
         :return: list of dict
         """
-        with self.Session() as db:
+        with self.db_connector.Session() as db:
             user = self._get_user_by_wallet_id(wallet_id)
             if not user:
                 return []
@@ -115,7 +126,7 @@ class PositionDBConnector(UserDBConnector):
         :param limit: number of records to return
         :return: list of dict
         """
-        with self.Session() as db:
+        with self.db_connector.Session() as db:
             user = self._get_user_by_wallet_id(wallet_id)
             if not user:
                 return []
@@ -146,7 +157,7 @@ class PositionDBConnector(UserDBConnector):
         :param wallet_id: Wallet ID of the user
         :return: Total number of positions
         """
-        with self.Session() as db:
+        with self.db_connector.Session() as db:
             user = self._get_user_by_wallet_id(wallet_id)
             if not user:
                 return 0
@@ -169,7 +180,7 @@ class PositionDBConnector(UserDBConnector):
         :param wallet_id: str
         :return: bool
         """
-        with self.Session() as db:
+        with self.db_connector.Session() as db:
             user = self._get_user_by_wallet_id(wallet_id)
             if not user:
                 return False
@@ -207,7 +218,7 @@ class PositionDBConnector(UserDBConnector):
             return None
 
         # Check if a position with status 'pending' already exists for this user
-        with self.Session() as session:
+        with self.db_connector.Session() as session:
             existing_position = (
                 session.query(Position)
                 .filter(
@@ -235,7 +246,7 @@ class PositionDBConnector(UserDBConnector):
                 start_price=PositionDBConnector.START_PRICE,
             )
 
-            position = self.write_to_db(position)
+            position = self.db_connector.write_to_db(position)
             return position
 
     def get_position_id_by_wallet_id(self, wallet_id: str) -> str | None:
@@ -259,7 +270,7 @@ class PositionDBConnector(UserDBConnector):
         """
         position.amount = amount
         position.multiplier = multiplier
-        self.write_to_db(position)
+        self.db_connector.write_to_db(position)
 
     def delete_position(self, position: Position) -> None:
         """
@@ -267,7 +278,7 @@ class PositionDBConnector(UserDBConnector):
         :param position: Position
         :return: None
         """
-        self.delete_object_by_id(Position, position.id)
+        self.db_connector.delete_object_by_id(Position, position.id)
 
     def close_position(self, position_id: uuid) -> Position | None:
         """
@@ -275,11 +286,11 @@ class PositionDBConnector(UserDBConnector):
         :param position_id: str
         :return: Position | None
         """
-        position = self.get_object(Position, position_id)
+        position = self.db_connector.get_object(Position, position_id)
         if position:
             position.status = Status.CLOSED.value
             position.closed_at = datetime.now()
-            self.write_to_db(position)
+            self.db_connector.write_to_db(position)
         return position.status
 
     def open_position(self, position_id: uuid.UUID, current_prices: dict) -> str | None:
@@ -289,11 +300,11 @@ class PositionDBConnector(UserDBConnector):
         :param current_prices: dict
         :return: str | None
         """
-        position = self.get_object(Position, position_id)
+        position = self.db_connector.get_object(Position, position_id)
         if position:
             position.status = Status.OPENED.value
-            self.write_to_db(position)
-            self.create_empty_claim(position.user_id)
+            self.db_connector.write_to_db(position)
+            self.db_connector.create_empty_claim(position.user_id)
             self.save_current_price(position, current_prices)
             return position.status
         else:
@@ -306,7 +317,7 @@ class PositionDBConnector(UserDBConnector):
         :param wallet_id:
         :return: contract_address, position_id, token_symbol
         """
-        with self.Session() as db:
+        with self.db_connector.Session() as db:
             result = (
                 db.query(User.contract_address, Position.id, Position.token_symbol)
                 .join(Position, Position.user_id == User.id)
@@ -329,7 +340,7 @@ class PositionDBConnector(UserDBConnector):
 
         :return: Dictionary of total amounts for each token in opened positions
         """
-        with self.Session() as db:
+        with self.db_connector.Session() as db:
             try:
                 token_amounts = (
                     db.query(
@@ -355,7 +366,7 @@ class PositionDBConnector(UserDBConnector):
         start_price = price_dict.get(position.token_symbol)
         try:
             position.start_price = start_price
-            self.write_to_db(position)
+            self.db_connector.write_to_db(position)
         except SQLAlchemyError as e:
             logger.error(f"Error while saving current_price for position: {e}")
 
@@ -379,7 +390,7 @@ class PositionDBConnector(UserDBConnector):
                 status=status,
                 transaction_hash=transaction_hash,
             )
-            return self.write_to_db(transaction)
+            return self.db_connector.write_to_db(transaction)
         except SQLAlchemyError as e:
             logger.error(f"Failed to save transaction: {str(e)}")
             return None
@@ -392,7 +403,7 @@ class PositionDBConnector(UserDBConnector):
         :param position_id: UUID of the position to be liquidated.
         :return: True if the update was successful, False otherwise.
         """
-        with self.Session() as db:
+        with self.db_connector.Session() as db:
             try:
 
                 position = db.query(Position).filter(Position.id == position_id).first()
@@ -404,7 +415,7 @@ class PositionDBConnector(UserDBConnector):
                 position.is_liquidated = True
                 position.datetime_liquidation = datetime.now()
 
-                self.write_to_db(position)
+                self.db_connector.write_to_db(position)
                 logger.info(f"Position {position_id} successfully liquidated.")
                 return True
 
@@ -419,7 +430,7 @@ class PositionDBConnector(UserDBConnector):
 
         :return: A list of dictionaries containing the liquidated positions.
         """
-        with self.Session() as db:
+        with self.db_connector.Session() as db:
             try:
                 liquidated_positions = (
                     db.query(Position)
@@ -454,14 +465,14 @@ class PositionDBConnector(UserDBConnector):
         :param position_id: Position UUID
         :return: Position | None
         """
-        return self.get_object(Position, position_id)
+        return self.db_connector.get_object(Position, position_id)
 
     def delete_all_user_positions(self, user_id: uuid.UUID) -> None:
         """
         Deletes all positions for a user.
         :param user_id: User ID
         """
-        with self.Session() as db:
+        with self.db_connector.Session() as db:
             try:
                 positions = db.query(Position).filter_by(user_id=user_id).all()
                 for position in positions:
@@ -478,7 +489,7 @@ class PositionDBConnector(UserDBConnector):
         If the token already exists for this position, update its amount.
         Otherwise, create a new extra deposit entry.
         """
-        with self.Session() as session:
+        with self.db_connector.Session() as session:
             session.execute(
                 insert(ExtraDeposit)
                 .values(
@@ -501,7 +512,7 @@ class PositionDBConnector(UserDBConnector):
         :param position_id: UUID of the position
         :return: a dictionary of token_symbol: amount pairs.
         """
-        with self.Session() as db:
+        with self.db_connector.Session() as db:
             deposits = (
                 db.query(ExtraDeposit)
                 .filter(ExtraDeposit.position_id == position_id)
@@ -516,7 +527,7 @@ class PositionDBConnector(UserDBConnector):
         :param position_id: UUID of the position
         :return: list of extra deposits
         """
-        with self.Session() as db:
+        with self.db_connector.Session() as db:
             extra_deposits = (
                 db.query(ExtraDeposit)
                 .filter(ExtraDeposit.position_id == position_id)
@@ -529,6 +540,6 @@ class PositionDBConnector(UserDBConnector):
         """
         Delete all extra deposits for a position.
         """
-        with self.Session() as db:
+        with self.db_connector.Session() as db:
             db.query(ExtraDeposit).filter(ExtraDeposit.position_id == position_id).delete()
             db.commit()
