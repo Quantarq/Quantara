@@ -15,10 +15,15 @@ logger = logging.getLogger(__name__)
 ModelType = TypeVar("ModelType", bound=Base)
 
 
-class TelegramUserDBConnector(DBConnector):
+class TelegramUserDBConnector:
     """
     Provides database connection and operations management for the TelegramUser model.
     """
+
+    def __init__(self, db_connector: DBConnector = None):
+        from web_app.db.database import db_connector as default_db_connector
+
+        self.db_connector = db_connector or default_db_connector
 
     def get_telegram_user_by_wallet_id(self, wallet_id: str) -> TelegramUser | None:
         """
@@ -26,7 +31,7 @@ class TelegramUserDBConnector(DBConnector):
         :param wallet_id: str
         :return: TelegramUser | None
         """
-        return self.get_object_by_field(TelegramUser, "wallet_id", wallet_id)
+        return self.db_connector.get_object_by_field(TelegramUser, "wallet_id", wallet_id)
 
     def get_user_by_telegram_id(self, telegram_id: str) -> TelegramUser | None:
         """
@@ -34,7 +39,7 @@ class TelegramUserDBConnector(DBConnector):
         :param telegram_id: str
         :return: TelegramUser | None
         """
-        return self.get_object_by_field(TelegramUser, "telegram_id", telegram_id)
+        return self.db_connector.get_object_by_field(TelegramUser, "telegram_id", telegram_id)
 
     def get_wallet_id_by_telegram_id(self, telegram_id: str) -> str | None:
         """
@@ -52,7 +57,7 @@ class TelegramUserDBConnector(DBConnector):
         :return: TelegramUser
         """
         telegram_user = TelegramUser(**user_data)
-        return self.write_to_db(telegram_user)
+        return self.db_connector.write_to_db(telegram_user)
 
     def update_telegram_user(self, telegram_id: str, user_data: dict) -> None:
         """
@@ -61,7 +66,7 @@ class TelegramUserDBConnector(DBConnector):
         :param user_data: dict
         :return: None
         """
-        with self.Session() as session:
+        with self.db_connector.Session() as session:
             stmt = (
                 update(TelegramUser)
                 .where(TelegramUser.telegram_id == telegram_id)
@@ -93,7 +98,7 @@ class TelegramUserDBConnector(DBConnector):
         """
         user = self.get_user_by_telegram_id(telegram_id)
         if user:
-            self.delete_object_by_id(user, user.id)
+            self.db_connector.delete_object_by_id(TelegramUser, user.id)
 
     def set_allow_notification(self, telegram_id: str, wallet_id: str) -> bool:
         """
