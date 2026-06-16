@@ -13,18 +13,23 @@ from .base import DBConnector
 
 logger = logging.getLogger(__name__)
 
-class LeaderboardDBConnector(DBConnector):
+class LeaderboardDBConnector:
     """
     Provides database connection and operations management using SQLAlchemy
     in a FastAPI application context.
     """
+
+    def __init__(self, db_connector: DBConnector = None):
+        from web_app.db.database import db_connector as default_db_connector
+
+        self.db_connector = db_connector or default_db_connector
 
     def get_top_users_by_positions(self) -> list[dict]:
         """
         Retrieves the top 10 users ordered by closed/opened positions.
         :return: List of dictionaries containing wallet_id and positions_number.
         """
-        with self.Session() as db:
+        with self.db_connector.Session() as db:
             try:
                 results = (
                     db.query(
@@ -53,7 +58,7 @@ class LeaderboardDBConnector(DBConnector):
         Retrieves closed/opened positions groupped by token_symbol.
         :return: List of dictionaries containing token_symbol and total_positions.
         """
-        with self.Session() as db:
+        with self.db_connector.Session() as db:
             try:
                 results = (
                     db.query(
