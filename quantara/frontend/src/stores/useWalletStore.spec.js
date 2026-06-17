@@ -1,4 +1,4 @@
-import { useWalletStore } from '../useWalletStore';
+import { useWalletStore } from '../src/stores/useWalletStore';
 import axios from 'axios';
 
 jest.mock('axios');
