@@ -1,18 +1,20 @@
 import { useWalletStore } from './useWalletStore';
 import axios from 'axios';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-jest.mock('axios');
+// Use Vitest's structural mocking utility
+vi.mock('axios');
 
 describe('useWalletStore - Cookie Session Migration', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     // Reset the Zustand store state before each test run
     useWalletStore.setState({ walletId: null, isInitializing: true });
   });
 
   it('should successfully resolve walletId when a secure httpOnly session cookie exists', async () => {
     const mockWalletId = 'G...STARK';
-    axios.get.mockResolvedValueOnce({ data: { walletId: mockWalletId } });
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: { walletId: mockWalletId } });
 
     await useWalletStore.getState().initializeSession();
 
@@ -22,7 +24,7 @@ describe('useWalletStore - Cookie Session Migration', () => {
   });
 
   it('should set walletId to null if the session check returns a 401 unauthorized or fails', async () => {
-    axios.get.mockRejectedValueOnce(new Error('Unauthorized'));
+    vi.mocked(axios.get).mockRejectedValueOnce(new Error('Unauthorized'));
 
     await useWalletStore.getState().initializeSession();
 
