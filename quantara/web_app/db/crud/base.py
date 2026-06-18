@@ -28,12 +28,13 @@ class DBConnector:
     - remove_object: Removes an object by its ID from the database.
     """
 
-    def __init__(self, db_url: str = SQLALCHEMY_DATABASE_URL):
+    def __init__(self, db_url: str = SQLALCHEMY_DATABASE_URL, engine=None):
         """
         Initialize the database connection and session factory.
         :param db_url: str = None
+        :param engine: sqlalchemy.engine.Engine = None
         """
-        self.engine = create_engine(db_url)
+        self.engine = engine or create_engine(db_url)
         self.session_factory = sessionmaker(bind=self.engine)
         self.Session = scoped_session(self.session_factory)
 

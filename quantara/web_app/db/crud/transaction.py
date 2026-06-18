@@ -12,10 +12,15 @@ from .base import DBConnector
 ModelType = TypeVar("ModelType", bound=Base)
 
 
-class TransactionDBConnector(DBConnector):
+class TransactionDBConnector:
     """
     Provides database connection and operations management for the Transaction model.
     """
+
+    def __init__(self, db_connector: DBConnector = None):
+        from web_app.db.database import db_connector as default_db_connector
+
+        self.db_connector = db_connector or default_db_connector
 
     def create_transaction(
         self, position_id: uuid.UUID, transaction_hash: str, status: TransactionStatus
@@ -28,5 +33,5 @@ class TransactionDBConnector(DBConnector):
             transaction_hash=transaction_hash,
             status=status,
         )
-        transaction = self.write_to_db(transaction)
+        transaction = self.db_connector.write_to_db(transaction)
         return transaction

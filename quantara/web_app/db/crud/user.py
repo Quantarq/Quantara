@@ -15,10 +15,15 @@ logger = logging.getLogger(__name__)
 ModelType = TypeVar("ModelType", bound=Base)
 
 
-class UserDBConnector(DBConnector):
+class UserDBConnector:
     """
     Provides database connection and operations management for the User model.
     """
+
+    def __init__(self, db_connector: DBConnector = None):
+        from web_app.db.database import db_connector as default_db_connector
+
+        self.db_connector = db_connector or default_db_connector
 
     def get_users_for_notifications(self) -> list[tuple[str, str]]:
         """
@@ -27,7 +32,7 @@ class UserDBConnector(DBConnector):
 
         :return: List of tuples (contract_address, telegram_id)
         """
-        with self.Session() as db:
+        with self.db_connector.Session() as db:
             try:
                 results = (
                     db.query(User.contract_address, TelegramUser.telegram_id)
@@ -51,7 +56,7 @@ class UserDBConnector(DBConnector):
         :param wallet_id: str
         :return: User | None
         """
-        return self.get_object_by_field(User, "wallet_id", wallet_id)
+        return self.db_connector.get_object_by_field(User, "wallet_id", wallet_id)
 
     def get_contract_address_by_wallet_id(self, wallet_id: str) -> str:
         """
@@ -69,7 +74,7 @@ class UserDBConnector(DBConnector):
         :return: User
         """
         user = User(wallet_id=wallet_id)
-        self.write_to_db(user)
+        self.db_connector.write_to_db(user)
         return user
 
     def update_user_contract(self, user: User, contract_address: str) -> None:
@@ -81,14 +86,14 @@ class UserDBConnector(DBConnector):
         """
         user.is_contract_deployed = not user.is_contract_deployed
         user.contract_address = contract_address
-        self.write_to_db(user)
+        self.db_connector.write_to_db(user)
 
     def get_unique_users_count(self) -> int:
         """
         Retrieves the number of unique users in the database.
         :return: The count of unique users.
         """
-        with self.Session() as db:
+        with self.db_connector.Session() as db:
             try:
                 # Query to count distinct users based on wallet ID
                 unique_users_count = db.query(User.wallet_id).distinct().count()
@@ -113,7 +118,7 @@ class UserDBConnector(DBConnector):
         ### Returns:
         - A list of dictionaries containing position details.
         """
-        with self.Session() as db:
+        with self.db_connector.Session() as db:
             try:
                 # Query positions matching the user_id
                 positions = (
@@ -155,7 +160,7 @@ class UserDBConnector(DBConnector):
         :return: None
         :raises SQLAlchemyError: If the operation fails
         """
-        with self.Session() as session:
+        with self.db_connector.Session() as session:
             try:
                 user = session.query(User).filter(User.wallet_id == wallet_id).first()
                 if user:

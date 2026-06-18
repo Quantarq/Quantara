@@ -32,6 +32,12 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
+
+# Create a shared DBConnector instance
+from web_app.db.crud.base import DBConnector
+db_connector = DBConnector(engine=engine)
+
+
 def get_database() -> Generator[Session, None, None]:
     """
     FastAPI dependency that yields a database session and ensures cleanup.

@@ -14,10 +14,15 @@ logger = logging.getLogger(__name__)
 ModelType = TypeVar("ModelType", bound=Base)
 
 
-class DepositDBConnector(DBConnector):
+class DepositDBConnector:
     """
     Provides database connection and operations management for the Vault model.
     """
+
+    def __init__(self, db_connector: DBConnector = None):
+        from web_app.db.database import db_connector as default_db_connector
+
+        self.db_connector = db_connector or default_db_connector
 
     def create_vault(self, user: User, symbol: str, amount: str) -> Vault:
         """
@@ -30,7 +35,7 @@ class DepositDBConnector(DBConnector):
         :return: Vault
         """
         vault = Vault(user_id=user.id, symbol=symbol, amount=amount)
-        self.write_to_db(vault)
+        self.db_connector.write_to_db(vault)
         return vault
 
     def get_vault(self, wallet_id: str, symbol: str) -> Vault | None:
@@ -42,8 +47,8 @@ class DepositDBConnector(DBConnector):
 
         :return: Vault or None
         """
-        with self.Session() as db:
-            user = self.get_object_by_field(User, "wallet_id", wallet_id)
+        with self.db_connector.Session() as db:
+            user = self.db_connector.get_object_by_field(User, "wallet_id", wallet_id)
             if not user:
                 logger.error(f"User with wallet id {wallet_id} not found")
                 return None
@@ -63,7 +68,7 @@ class DepositDBConnector(DBConnector):
         vault = self.get_vault(wallet_id, symbol)
         if not vault:
             raise ValueError("Vault not found")
-        with self.Session() as db:
+        with self.db_connector.Session() as db:
             new_amount = Decimal(vault.amount) + Decimal(amount)
             db.query(Vault).filter_by(id=vault.id).update(amount=str(new_amount))
             db.commit()

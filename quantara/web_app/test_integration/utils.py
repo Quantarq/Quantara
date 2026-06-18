@@ -27,4 +27,4 @@ def with_temp_user(wallet_id: str) -> User:
     for position in position_db.get_all_positions_by_wallet_id(wallet_id, 0, 1000):
         position_db.delete_all_extra_deposits(position["id"])
     position_db.delete_all_user_positions(user.id)
-    position_db.delete_user_by_wallet_id(wallet_id)                         
+    user_db.delete_user_by_wallet_id(wallet_id)
