@@ -2,20 +2,14 @@
 Test suite for the DashboardMixin class (Stellar-based).
 """
 
+from decimal import Decimal
 from unittest.mock import AsyncMock, patch
+from types import SimpleNamespace
 
 import pytest
 
-from web_app.contract_tools.constants import TokenParams
 from web_app.contract_tools.mixins.dashboard import DashboardMixin
-from web_app.contract_tools.blockchain_call import StellarClient
-
-
-@pytest.fixture
-def mock_stellar_client():
-    """Mock the Stellar client."""
-    with patch("web_app.contract_tools.blockchain_call.StellarClient") as mock:
-        yield mock.return_value
+from web_app.db.models import ExtraDeposit
 
 
 @pytest.fixture
@@ -30,32 +24,81 @@ class TestDashboardMixin:
     Test cases for the DashboardMixin class.
     """
 
-    @pytest.mark.skip(reason="CLIENT mock needs updating for Stellar client compatibility")
     @pytest.mark.asyncio
-    async def test_get_wallet_balances_success(self, mock_stellar_client):
+    async def test_get_current_prices_returns_coingecko_prices(self, mock_api_request):
         """
-        Test successful retrieval of wallet balances.
+        Test that CoinGecko responses are mapped to Quantara token symbols.
         """
-        mock_stellar_client.get_token_balances = AsyncMock(
-            return_value={"XLM": "100.5", "USDC": "1000.0"}
+        mock_api_request.return_value.fetch = AsyncMock(
+            return_value={
+                "stellar": {"usd": 0.123},
+                "usd-coin": {"usd": 1},
+                "ethereum": {"usd": 2500.45},
+            }
         )
 
-        client = StellarClient()
-        result = await DashboardMixin.get_wallet_balances("GABCD...", client)
+        result = await DashboardMixin.get_current_prices()
 
-        assert result == {"XLM": "100.5", "USDC": "1000.0"}
-
-    @pytest.mark.skip(reason="CLIENT mock needs updating for Stellar client compatibility")
-    @pytest.mark.asyncio
-    async def test_get_wallet_balances_error_handling(self, mock_stellar_client):
-        """
-        Test wallet balances retrieval with error handling.
-        """
-        mock_stellar_client.get_token_balances = AsyncMock(
-            side_effect=[Exception("Network error")]
+        assert result == {
+            "XLM": Decimal("0.123"),
+            "USDC": Decimal("1"),
+            "ETH": Decimal("2500.45"),
+        }
+        mock_api_request.assert_called_once()
+        mock_api_request.return_value.fetch.assert_awaited_once_with(
+            "",
+            params={
+                "ids": "stellar,usd-coin,ethereum",
+                "vs_currencies": "usd",
+            },
         )
 
-        client = StellarClient()
-        result = await DashboardMixin.get_wallet_balances("GABCD...", client)
+    @pytest.mark.asyncio
+    async def test_get_current_prices_returns_empty_dict_for_invalid_payload(
+        self, mock_api_request
+    ):
+        """
+        Test that malformed API responses fail closed.
+        """
+        mock_api_request.return_value.fetch = AsyncMock(return_value=["invalid"])
+
+        result = await DashboardMixin.get_current_prices()
 
         assert result == {}
+
+    @pytest.mark.asyncio
+    async def test_get_current_position_sum_converts_extra_deposits(
+        self, mock_api_request
+    ):
+        """
+        Test that current position values are derived from the configured prices.
+        """
+        mock_position = SimpleNamespace(
+            token_symbol="XLM",
+            amount="1",
+            multiplier="1",
+        )
+        mock_prices = {
+            "XLM": Decimal("99"),
+            "ETH": Decimal("198"),
+            "USDC": Decimal("1"),
+        }
+        with (
+            patch(
+                "web_app.contract_tools.mixins.dashboard.position_db_connector.get_position_by_id",
+                return_value=mock_position,
+            ),
+            patch(
+                "web_app.contract_tools.mixins.dashboard.position_db_connector.get_extra_deposits_by_position_id",
+                return_value=[ExtraDeposit(token_symbol="ETH", amount="1")],
+            ),
+            patch.object(
+                DashboardMixin,
+                "get_current_prices",
+                new_callable=AsyncMock,
+                return_value=mock_prices,
+            ),
+        ):
+            result = await DashboardMixin.get_current_position_sum({"id": "pos-1"})
+
+        assert result == Decimal("102")

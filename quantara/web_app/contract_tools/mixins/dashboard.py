@@ -20,8 +20,13 @@ from web_app.db.crud.position import PositionDBConnector
 logger = logging.getLogger(__name__)
 position_db_connector = PositionDBConnector()
 
-# AVNU price endpoint (Stellar-compatible market data API)
-AVNU_PRICE_URL = "https://starknet.impulse.avnu.fi/v1/tokens/short"
+# CoinGecko price endpoint for Stellar-compatible market data.
+COINGECKO_PRICE_URL = "https://api.coingecko.com/api/v3/simple/price"
+TOKEN_PRICE_IDS = {
+    "XLM": "stellar",
+    "USDC": "usd-coin",
+    "ETH": "ethereum",
+}
 
 
 class DashboardMixin:
@@ -32,36 +37,36 @@ class DashboardMixin:
     @classmethod
     async def get_current_prices(cls) -> Dict[str, Decimal]:
         """
-        Fetch current token prices from AVNU API.
+        Fetch current token prices from CoinGecko.
 
-        Queries the AVNU token-short endpoint to retrieve latest market
-        prices for all supported tokens. Maps addresses to token symbols
-        for Quantara's internal representation.
+        Queries CoinGecko's simple price endpoint for the supported
+        Stellar-compatible tokens and maps the response back to the
+        internal token symbols used throughout Quantara.
 
         :return: Dictionary mapping token symbols to their current prices as Decimal.
         :raises: None (returns empty dict on any failure)
         """
         prices = {}
         try:
-            response = await APIRequest(base_url=AVNU_PRICE_URL).fetch("")
-            if not response:
+            response = await APIRequest(base_url=COINGECKO_PRICE_URL).fetch(
+                "",
+                params={
+                    "ids": ",".join(TOKEN_PRICE_IDS.values()),
+                    "vs_currencies": "usd",
+                },
+            )
+            if not isinstance(response, dict):
                 return prices
 
-            for token_data in response:
-                address = token_data.get("address")
-                current_price = token_data.get("currentPrice")
-                try:
-                    if address and current_price is not None:
-                        # Map token addresses to symbols
-                        symbol = token_data.get("symbol", "")
-                        if symbol.upper() in ("ETH", "USDC", "XLM", "STRK"):
-                            prices[symbol.upper()] = Decimal(str(current_price))
-                        elif "eth" in symbol.lower():
-                            prices["ETH"] = Decimal(str(current_price))
-                        elif "usdc" in symbol.lower():
-                            prices["USDC"] = Decimal(str(current_price))
-                except (AttributeError, TypeError, ValueError) as e:
-                    logger.debug(f"Error parsing price for {address}: {str(e)}")
+            for symbol, token_id in TOKEN_PRICE_IDS.items():
+                token_data = response.get(token_id)
+                current_price = (
+                    token_data.get("usd")
+                    if isinstance(token_data, dict)
+                    else None
+                )
+                if current_price is not None:
+                    prices[symbol] = Decimal(str(current_price))
 
             return prices
         except (aiohttp.ClientError, ValueError, KeyError, TypeError) as e:
@@ -131,15 +136,15 @@ class DashboardMixin:
         )
 
         for extra_deposit in extra_deposits:
-            if extra_deposit.token_symbol in current_prices:
+            extra_price = current_prices.get(extra_deposit.token_symbol)
+            if extra_price is not None:
                 deposit_amount = Decimal(extra_deposit.amount)
-                if extra_deposit.token_symbol != main_position.token_symbol:
-                    deposit_amount *= Decimal(
-                        current_prices[extra_deposit.token_symbol]
-                    )
-                    deposit_amount /= Decimal(
-                        current_prices[main_position.token_symbol]
-                    )
+                if (
+                    extra_deposit.token_symbol != main_position.token_symbol
+                    and base_price is not None
+                ):
+                    deposit_amount *= Decimal(extra_price)
+                    deposit_amount /= Decimal(base_price)
                 total_sum += deposit_amount
 
         return total_sum
