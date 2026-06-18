@@ -74,6 +74,11 @@ jobs:
           poetry config virtualenvs.create false
           poetry install --no-interaction --no-root
 
+      - name: Run migration round-trip tests
+        working-directory: ./quantara
+        run: |
+          poetry run pytest web_app/tests/test_migrations.py -q
+
       - name: Run migrations
         working-directory: ./quantara
         run: |
