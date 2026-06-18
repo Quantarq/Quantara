@@ -1,4 +1,8 @@
 version: 2
+# Dependabot disabled per team decision: weekly Dependabot PRs were noisy
+# and we'd rather update dependencies deliberately. To re-enable, remove
+# the next line (or set it to `true`).
+enabled: false
 updates:
   # Python / Poetry Dependencies
   - package-ecosystem: "pip"
