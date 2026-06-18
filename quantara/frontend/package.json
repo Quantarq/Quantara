@@ -12,7 +12,7 @@
     "@tanstack/react-query-devtools": "^5.64.2",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
-    "@vitejs/plugin-react": "^4.3.4",
+    "@vitejs/plugin-react": "^5.2.0",
     "axios": "^1.7.7",
     "dotenv": "^16.4.5",
     "lucide-react": "^0.454.0",
