@@ -6,7 +6,7 @@ import logging
 from decimal import Decimal
 
 import sentry_sdk
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 
 from web_app.api.serializers.transaction import UpdateUserContractRequest
 from web_app.api.serializers.user import (
@@ -18,7 +18,8 @@ from web_app.api.serializers.user import (
     SubscribeToNotificationRequest,
     UpdateUserContractResponse,
 )
-from web_app.contract_tools.blockchain_call import CLIENT
+from web_app.api.dependencies import get_stellar_client
+from web_app.contract_tools.blockchain_call import StellarClient
 from web_app.contract_tools.mixins import DashboardMixin, PositionMixin
 from web_app.db.crud import (
     PositionDBConnector,
@@ -40,7 +41,10 @@ position_db = PositionDBConnector()
     summary="Check if user has opened position",
     response_description="Returns true if the user has an opened position, false otherwise",
 )
-async def has_user_opened_position(wallet_id: str) -> dict:
+async def has_user_opened_position(
+    wallet_id: str,
+    client: StellarClient = Depends(get_stellar_client),
+) -> dict:
     """
     Check if a user has any opened positions.
     :param wallet_id: wallet id
@@ -52,7 +56,7 @@ async def has_user_opened_position(wallet_id: str) -> dict:
         contract_address = user_db.get_contract_address_by_wallet_id(wallet_id)
         if contract_address is None:
             return {"has_opened_position": False}
-        is_position_opened = await PositionMixin.is_opened_position(contract_address)
+        is_position_opened = await PositionMixin.is_opened_position(contract_address, client)
         return {"has_opened_position": has_position or is_position_opened}
     except ValueError as e:
         raise HTTPException(

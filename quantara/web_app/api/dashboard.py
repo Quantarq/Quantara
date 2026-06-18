@@ -6,10 +6,12 @@ for the Stellar-based Quantara protocol.
 import collections
 from decimal import Decimal, DivisionByZero
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from web_app.api.serializers.dashboard import DashboardResponse
 from web_app.contract_tools.mixins import DashboardMixin, HealthRatioMixin
+from web_app.api.dependencies import get_stellar_client
+from web_app.contract_tools.blockchain_call import StellarClient
 from web_app.db.crud import PositionDBConnector
 
 router = APIRouter()
@@ -23,7 +25,10 @@ position_db_connector = PositionDBConnector()
     response_model=DashboardResponse,
     response_description="Returns user's balances, multipliers, start dates, and position data.",
 )
-async def get_dashboard(wallet_id: str) -> DashboardResponse:
+async def get_dashboard(
+    wallet_id: str,
+    client: StellarClient = Depends(get_stellar_client)
+) -> DashboardResponse:
     """
     Fetch the user's dashboard data, including balances, multipliers,
     start dates, deposit_data, and health ratio.
@@ -67,7 +72,7 @@ async def get_dashboard(wallet_id: str) -> DashboardResponse:
 
     try:
         health_ratio, tvl = await HealthRatioMixin.get_health_ratio_and_tvl(
-            contract_address
+            contract_address, client
         )
     except (IndexError, DivisionByZero, ZeroDivisionError):
         return default_dashboard_response

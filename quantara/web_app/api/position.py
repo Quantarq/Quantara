@@ -5,7 +5,7 @@ This module handles position-related API endpoints for the Stellar-based Quantar
 from decimal import Decimal, InvalidOperation
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 
 from web_app.api.serializers.position import (
     AddPositionDepositData,
@@ -22,6 +22,8 @@ from web_app.api.serializers.transaction import (
 from web_app.contract_tools.constants import TokenMultipliers, TokenParams
 from web_app.contract_tools.mixins import DashboardMixin, DepositMixin, PositionMixin
 from web_app.db.crud import PositionDBConnector, TransactionDBConnector
+from web_app.api.dependencies import get_stellar_client
+from web_app.contract_tools.blockchain_call import StellarClient
 from web_app.db.models import Status, TransactionStatus
 
 router = APIRouter()
@@ -59,6 +61,7 @@ async def get_multipliers() -> TokenMultiplierResponse:
 )
 async def create_position_with_transaction_data(
     form_data: PositionFormData,
+    client: StellarClient = Depends(get_stellar_client),
 ) -> LoopLiquidityData:
     """
     Create a new user position and return the data needed by the frontend
@@ -90,6 +93,7 @@ async def create_position_with_transaction_data(
         form_data.multiplier,
         form_data.wallet_id,
         borrowing_token,
+        client,
     )
     deposit_data["contract_address"] = (
         position_db_connector.get_contract_address_by_wallet_id(form_data.wallet_id)
@@ -107,6 +111,7 @@ async def create_position_with_transaction_data(
 )
 async def get_repay_data(
     wallet_id: str,
+    client: StellarClient = Depends(get_stellar_client),
 ) -> RepayTransactionDataResponse:
     """
     Obtain data for position closing.
@@ -120,13 +125,13 @@ async def get_repay_data(
     contract_address, position_id, token_symbol = position_db_connector.get_repay_data(
         wallet_id
     )
-    is_opened_position = await PositionMixin.is_opened_position(contract_address)
+    is_opened_position = await PositionMixin.is_opened_position(contract_address, client)
     if not is_opened_position:
         raise HTTPException(status_code=400, detail="Position was closed")
     if not position_id:
         raise HTTPException(status_code=404, detail="Position not found or closed")
 
-    repay_data = await DepositMixin.get_repay_data(token_symbol)
+    repay_data = await DepositMixin.get_repay_data(token_symbol, client)
     repay_data["contract_address"] = contract_address
     repay_data["position_id"] = str(position_id)
     return repay_data
@@ -197,7 +202,10 @@ async def open_position(position_id: str, transaction_hash: str) -> str:
     response_model=WithdrawAllData,
     response_description="Object containing data to withdraw all from the position",
 )
-async def get_withdraw_data(wallet_id: str) -> WithdrawAllData:
+async def get_withdraw_data(
+    wallet_id: str,
+    client: StellarClient = Depends(get_stellar_client)
+) -> WithdrawAllData:
     """
     Prepare data to withdraw all tokens and close a position.
 
@@ -207,12 +215,12 @@ async def get_withdraw_data(wallet_id: str) -> WithdrawAllData:
     contract_address, position_id, token_symbol = position_db_connector.get_repay_data(
         wallet_id
     )
-    if not await PositionMixin.is_opened_position(contract_address):
+    if not await PositionMixin.is_opened_position(contract_address, client):
         raise HTTPException(status_code=400, detail="Position was closed")
     if not position_id:
         raise HTTPException(status_code=404, detail="Position not found or closed")
 
-    repay_data = await DepositMixin.get_repay_data(token_symbol)
+    repay_data = await DepositMixin.get_repay_data(token_symbol, client)
     extra_tokens = position_db_connector.get_extra_deposits_data(position_id).keys()
     repay_data["position_id"] = str(position_id)
     repay_data["contract_address"] = contract_address

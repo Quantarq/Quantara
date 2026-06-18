@@ -8,6 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from web_app.contract_tools.mixins.deposit import DepositMixin
+from web_app.contract_tools.blockchain_call import StellarClient
 
 
 class TestDepositMixin:
@@ -36,7 +37,7 @@ class TestDepositMixin:
         ],
     )
     @patch(
-        "web_app.contract_tools.mixins.deposit.CLIENT.get_loop_liquidity_data",
+        "web_app.contract_tools.blockchain_call.StellarClient.get_loop_liquidity_data",
         new_callable=AsyncMock,
     )
     async def test_get_transaction_data(
@@ -63,12 +64,14 @@ class TestDepositMixin:
 
         mock_get_loop_liquidity_data.return_value = expected_transaction_data
 
+        client = StellarClient()
         transaction_data = await DepositMixin.get_transaction_data(
             deposit_token_name,
             amount,
             multiplier,
             wallet_id,
             borrowing_token,
+            client,
         )
 
         assert transaction_data == expected_transaction_data
@@ -76,7 +79,7 @@ class TestDepositMixin:
     @pytest.mark.asyncio
     @pytest.mark.parametrize("supply_token", ["XLM", "USDC"])
     @patch(
-        "web_app.contract_tools.mixins.deposit.CLIENT.get_repay_data",
+        "web_app.contract_tools.blockchain_call.StellarClient.get_repay_data",
         new_callable=AsyncMock,
     )
     async def test_get_repay_data(
@@ -95,6 +98,7 @@ class TestDepositMixin:
 
         mock_get_repay_data.return_value = expected_repay_data
 
-        repay_data = await DepositMixin.get_repay_data(supply_token)
+        client = StellarClient()
+        repay_data = await DepositMixin.get_repay_data(supply_token, client)
 
         assert repay_data == expected_repay_data

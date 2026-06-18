@@ -13,7 +13,7 @@ from uuid import UUID
 import aiohttp
 
 from web_app.contract_tools.api_request import APIRequest
-from web_app.contract_tools.blockchain_call import CLIENT
+from web_app.contract_tools.blockchain_call import StellarClient
 from web_app.contract_tools.constants import MULTIPLIER_POWER, TokenParams
 from web_app.db.crud.position import PositionDBConnector
 
@@ -69,15 +69,16 @@ class DashboardMixin:
             return prices
 
     @classmethod
-    async def get_wallet_balances(cls, holder_address: str) -> Dict[str, str]:
+    async def get_wallet_balances(cls, holder_address: str, client: StellarClient) -> Dict[str, str]:
         """
         Get the wallet balances for the given Stellar account.
 
         :param holder_address: Stellar account public key (G…)
+        :param client: StellarClient instance
         :return: Dictionary mapping token symbols to balance strings.
         """
         try:
-            return await CLIENT.get_token_balances(holder_address)
+            return await client.get_token_balances(holder_address)
         except (ValueError, KeyError, TypeError) as e:
             logger.error(
                 "Failed to get wallet balances for %s: %s", holder_address, e

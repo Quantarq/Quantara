@@ -8,13 +8,14 @@ import pytest
 
 from web_app.contract_tools.constants import TokenParams
 from web_app.contract_tools.mixins.dashboard import DashboardMixin
+from web_app.contract_tools.blockchain_call import StellarClient
 
 
 @pytest.fixture
 def mock_stellar_client():
     """Mock the Stellar client."""
-    with patch("web_app.contract_tools.mixins.dashboard.CLIENT") as mock:
-        yield mock
+    with patch("web_app.contract_tools.blockchain_call.StellarClient") as mock:
+        yield mock.return_value
 
 
 @pytest.fixture
@@ -39,7 +40,8 @@ class TestDashboardMixin:
             return_value={"XLM": "100.5", "USDC": "1000.0"}
         )
 
-        result = await DashboardMixin.get_wallet_balances("GABCD...")
+        client = StellarClient()
+        result = await DashboardMixin.get_wallet_balances("GABCD...", client)
 
         assert result == {"XLM": "100.5", "USDC": "1000.0"}
 
@@ -53,6 +55,7 @@ class TestDashboardMixin:
             side_effect=[Exception("Network error")]
         )
 
-        result = await DashboardMixin.get_wallet_balances("GABCD...")
+        client = StellarClient()
+        result = await DashboardMixin.get_wallet_balances("GABCD...", client)
 
         assert result == {}
