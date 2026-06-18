@@ -31,6 +31,7 @@
     "start": "vite",
     "dev": "vite",
     "build": "vite build",
+    "bundle:size": "node scripts/bundle-size-report.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
