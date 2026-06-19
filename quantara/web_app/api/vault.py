@@ -4,7 +4,7 @@ Module for handling vault deposit operations in the QUANTARA API.
 
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from web_app.db.crud import DepositDBConnector, UserDBConnector
 from web_app.api.serializers.vault import (
@@ -14,36 +14,39 @@ from web_app.api.serializers.vault import (
     VaultDepositRequest,
     VaultDepositResponse,
 )
+from web_app.api.rate_limiter import limiter, WRITE_LIMIT, USER_DATA_LIMIT
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/vault", tags=["vault"])
 
 
 @router.post("/deposit", response_model=VaultDepositResponse)
+@limiter.limit(WRITE_LIMIT)
 async def deposit_to_vault(
-    request: VaultDepositRequest,
+    request: Request,
+    body: VaultDepositRequest,
     deposit_connector: DepositDBConnector = Depends(DepositDBConnector),
 ) -> VaultDepositResponse:
     """
     Process a vault deposit request.
     """
-    logger.info(f"Processing deposit request for wallet {request.wallet_id}")
+    logger.info(f"Processing deposit request for wallet {body.wallet_id}")
 
     try:
         user_db = UserDBConnector()
-        user = user_db.get_user_by_wallet_id(request.wallet_id)
+        user = user_db.get_user_by_wallet_id(body.wallet_id)
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         vault = deposit_connector.create_vault(
-            user=user, symbol=request.symbol, amount=request.amount
+            user=user, symbol=body.symbol, amount=body.amount
         )
 
         return VaultDepositResponse(
             deposit_id=vault.id,
-            wallet_id=request.wallet_id,
-            amount=request.amount,
-            symbol=request.symbol,
+            wallet_id=body.wallet_id,
+            amount=body.amount,
+            symbol=body.symbol,
         )
     except (ValueError, TypeError) as e:
         logger.error(f"Invalid input data: {str(e)}")
@@ -51,7 +54,9 @@ async def deposit_to_vault(
 
 
 @router.get("/balance", response_model=VaultBalanceResponse)
+@limiter.limit(USER_DATA_LIMIT, key_func=lambda request: f"wallet:{request.query_params.get('wallet_id', request.client.host)}")
 async def get_user_vault_balance(
+    request: Request,
     wallet_id: str,
     symbol: str,
     deposit_connector: DepositDBConnector = Depends(DepositDBConnector),
@@ -68,8 +73,10 @@ async def get_user_vault_balance(
 
 
 @router.post("/add_balance", response_model=UpdateVaultBalanceResponse)
+@limiter.limit(WRITE_LIMIT)
 async def add_vault_balance(
-    request: UpdateVaultBalanceRequest,
+    request: Request,
+    body: UpdateVaultBalanceRequest,
     deposit_connector: DepositDBConnector = Depends(DepositDBConnector),
 ) -> UpdateVaultBalanceResponse:
     """
@@ -77,11 +84,11 @@ async def add_vault_balance(
     """
     try:
         updated_vault = deposit_connector.add_vault_balance(
-            wallet_id=request.wallet_id, symbol=request.symbol, amount=request.amount
+            wallet_id=body.wallet_id, symbol=body.symbol, amount=body.amount
         )
         return UpdateVaultBalanceResponse(
-            wallet_id=request.wallet_id,
-            symbol=request.symbol,
+            wallet_id=body.wallet_id,
+            symbol=body.symbol,
             amount=updated_vault.amount,
         )
     except (ValueError, TypeError) as e:

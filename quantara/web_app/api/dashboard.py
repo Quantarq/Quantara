@@ -6,13 +6,14 @@ for the Stellar-based Quantara protocol.
 import collections
 from decimal import Decimal, DivisionByZero
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 
 from web_app.api.serializers.dashboard import DashboardResponse
 from web_app.contract_tools.mixins import DashboardMixin, HealthRatioMixin
 from web_app.api.dependencies import get_stellar_client
 from web_app.contract_tools.blockchain_call import StellarClient
 from web_app.db.crud import PositionDBConnector
+from web_app.api.rate_limiter import limiter, USER_DATA_LIMIT
 
 router = APIRouter()
 position_db_connector = PositionDBConnector()
@@ -25,7 +26,9 @@ position_db_connector = PositionDBConnector()
     response_model=DashboardResponse,
     response_description="Returns user's balances, multipliers, start dates, and position data.",
 )
+@limiter.limit(USER_DATA_LIMIT, key_func=lambda request: f"wallet:{request.query_params.get('wallet_id', request.client.host)}")
 async def get_dashboard(
+    request: Request,
     wallet_id: str,
     client: StellarClient = Depends(get_stellar_client)
 ) -> DashboardResponse:

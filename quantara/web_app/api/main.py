@@ -15,10 +15,14 @@ from fastapi import FastAPI, Request, Response, Depends
 from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 import redis.asyncio as redis
 
+from web_app.api.rate_limiter import limiter
 from web_app.api.dashboard import router as dashboard_router
 from web_app.api.position import router as position_router
 from web_app.api.telegram import router as telegram_router
@@ -91,6 +95,9 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
@@ -127,6 +134,9 @@ app.add_middleware(
     allow_headers=CORS_ALLOW_HEADERS,
     allow_methods=CORS_ALLOW_METHODS,
 )
+# Rate limiting middleware — must be added after CORS/session so it wraps the
+# full middleware stack and can reject requests before they reach routers.
+app.add_middleware(SlowAPIMiddleware)
 
 
 @app.get("/health", tags=["Health"], summary="Health check endpoint")

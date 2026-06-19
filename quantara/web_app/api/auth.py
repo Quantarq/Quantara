@@ -1,5 +1,7 @@
-from fastapi import APIRouter, Response, HTTPException, status
+from fastapi import APIRouter, Response, HTTPException, Request, status
 from pydantic import BaseModel
+
+from web_app.api.rate_limiter import limiter, WRITE_LIMIT, USER_DATA_LIMIT
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -8,7 +10,8 @@ class WalletAuthRequest(BaseModel):
     signature: str  # Assuming signature validation happens here
 
 @router.post("/connect")
-async def connect_wallet(payload: WalletAuthRequest, response: Response):
+@limiter.limit(WRITE_LIMIT)
+async def connect_wallet(request: Request, payload: WalletAuthRequest, response: Response):
     # 1. Perform signature verification checks here...
     # (Validated via your REPO-002 auth middleware)
     
@@ -28,7 +31,8 @@ async def connect_wallet(payload: WalletAuthRequest, response: Response):
     return {"success": True, "walletId": wallet_id}
 
 @router.get("/session")
-async def get_session(wallet_id: str | None = None):
+@limiter.limit(USER_DATA_LIMIT)
+async def get_session(request: Request, wallet_id: str | None = None):
     """
     Endpoint for frontend initialization to verify if a valid httpOnly 
     cookie session exists without exposing the raw cookie to client JS.
@@ -42,7 +46,8 @@ async def get_session(wallet_id: str | None = None):
     return {"authenticated": True, "walletId": wallet_id}
 
 @router.post("/logout")
-async def logout_wallet(response: Response):
+@limiter.limit(USER_DATA_LIMIT)
+async def logout_wallet(request: Request, response: Response):
     # Explicitly flush the cookie out of the client browser
     response.delete_cookie(
         key="wallet_id",
