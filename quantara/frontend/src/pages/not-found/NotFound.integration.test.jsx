@@ -18,10 +18,10 @@ describe('App 404 catch-all route', () => {
         </Routes>
       </MemoryRouter>
     );
-    expect(screen.getByText('404')).toBeInTheDocument();
+    expect(screen.getByText('404')).toBeTruthy();
     expect(
       screen.getByRole('heading', { name: /page not found/i })
-    ).toBeInTheDocument();
+    ).toBeTruthy();
   });
 
   it('does not render NotFound for the home route', () => {
@@ -33,7 +33,7 @@ describe('App 404 catch-all route', () => {
         </Routes>
       </MemoryRouter>
     );
-    expect(screen.getByText('Home')).toBeInTheDocument();
-    expect(screen.queryByText('404')).not.toBeInTheDocument();
+    expect(screen.getByText('Home')).toBeTruthy();
+    expect(screen.queryByText('404')).toBeNull();
   });
 });

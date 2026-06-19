@@ -1,0 +1,33 @@
+version: 2
+# Dependabot disabled per team decision: weekly Dependabot PRs were noisy
+# and we'd rather update dependencies deliberately. To re-enable, remove
+# the next line (or set it to `true`).
+enabled: false
+updates:
+  # Python / Poetry Dependencies
+  - package-ecosystem: "pip"
+    directory: "/quantara"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # React / Yarn Dependencies
+  - package-ecosystem: "npm"
+    directory: "/quantara/frontend" # Updated to reflect nested structure
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Docker Dependencies
+  - package-ecosystem: "docker"
+    directory: "/quantara"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
+
+  # GitHub Actions Dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/" # GitHub Actions must remain at the absolute root
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5

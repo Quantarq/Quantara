@@ -9,7 +9,7 @@ A value below 1.0 signals the position is at risk of liquidation.
 import asyncio
 from decimal import Decimal
 
-from web_app.contract_tools.blockchain_call import CLIENT
+from web_app.contract_tools.blockchain_call import StellarClient
 from web_app.contract_tools.constants import TokenParams
 
 
@@ -34,15 +34,16 @@ class HealthRatioMixin:
 
     @classmethod
     async def _get_deposited_tokens(
-        cls, account_address: str
+        cls, account_address: str, client: StellarClient
     ) -> dict[str, Decimal]:
         """
         Get the deposited token balances for an account.
 
         :param account_address: The Stellar account public key.
+        :param client: StellarClient instance.
         :return: A dictionary of token symbols to amounts.
         """
-        balances = await CLIENT.get_token_balances(account_address)
+        balances = await client.get_token_balances(account_address)
         return {
             token: Decimal(balance)
             for token, balance in balances.items()
@@ -66,15 +67,16 @@ class HealthRatioMixin:
         return "USDC", 0
 
     @classmethod
-    async def get_health_ratio_and_tvl(cls, account_address: str) -> tuple:
+    async def get_health_ratio_and_tvl(cls, account_address: str, client: StellarClient) -> tuple:
         """
         Calculate the health ratio of a position.
 
         :param account_address: The address of the account/contract.
+        :param client: StellarClient instance.
         :return: Tuple of (health_factor, ltv) as strings.
         """
         borrowed_token, debt_raw = await cls._get_borrowed_token(account_address)
-        deposits = await cls._get_deposited_tokens(account_address)
+        deposits = await cls._get_deposited_tokens(account_address, client)
         prices = await cls._get_token_prices(set(deposits.keys()) | {borrowed_token})
 
         deposit_usdc = sum(
@@ -105,7 +107,8 @@ if __name__ == "__main__":
     print(
         asyncio.run(
             HealthRatioMixin.get_health_ratio_and_tvl(
-                "GA7QYNF7SOWQ3GLR2ZGMH2Z5Y2X2H5Y2X2H5Y2X2H5Y2X2H5Y2X2H5Y2"
+                "GA7QYNF7SOWQ3GLR2ZGMH2Z5Y2X2H5Y2X2H5Y2X2H5Y2X2H5Y2X2H5Y2",
+                StellarClient()
             )
         )
     )

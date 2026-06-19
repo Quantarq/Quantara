@@ -8,7 +8,7 @@
  *
  * @module wallet
  */
-
+import { useWalletStore } from '../stores/useWalletStore';
 import {
   requestAccess,
   isConnected,
@@ -204,5 +204,17 @@ export const getBalances = async (walletId, setBalances) => {
     setBalances(updatedBalances);
   } catch (error) {
     console.error('Error fetching user balances:', error);
+  }
+};
+
+export const disconnectWallet = async () => {
+  try {
+    // 1. Alert the backend to delete the secure httpOnly cookie
+    await axios.post('/api/auth/logout');
+  } catch (error) {
+    console.error('Failed to cleanly terminate wallet session on backend:', error);
+  } finally {
+    // 2. Clear state elements out of application memory regardless of network success
+    useWalletStore.getState().clearWallet();
   }
 };

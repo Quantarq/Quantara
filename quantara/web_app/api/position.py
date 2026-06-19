@@ -5,7 +5,7 @@ This module handles position-related API endpoints for the Stellar-based Quantar
 from decimal import Decimal, InvalidOperation
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends, Request
 
 from web_app.api.serializers.position import (
     AddPositionDepositData,
@@ -19,10 +19,14 @@ from web_app.api.serializers.transaction import (
     RepayTransactionDataResponse,
     WithdrawAllData,
 )
+from web_app.api.wallet_auth import verify_wallet_signature
 from web_app.contract_tools.constants import TokenMultipliers, TokenParams
 from web_app.contract_tools.mixins import DashboardMixin, DepositMixin, PositionMixin
 from web_app.db.crud import PositionDBConnector, TransactionDBConnector
+from web_app.api.dependencies import get_stellar_client
+from web_app.contract_tools.blockchain_call import StellarClient
 from web_app.db.models import Status, TransactionStatus
+from web_app.api.rate_limiter import limiter, WRITE_LIMIT, USER_DATA_LIMIT, READ_LIMIT
 
 router = APIRouter()
 position_db_connector = PositionDBConnector()
@@ -38,7 +42,8 @@ PAGINATION_STEP = 10
     summary="Get token multipliers",
     response_description="Returns token multipliers for Stellar assets.",
 )
-async def get_multipliers() -> TokenMultiplierResponse:
+@limiter.limit(READ_LIMIT)
+async def get_multipliers(request: Request) -> TokenMultiplierResponse:
     """
     Retrieve the multipliers for tokens like XLM, USDC, and ETH.
     """
@@ -57,15 +62,21 @@ async def get_multipliers() -> TokenMultiplierResponse:
     summary="Create a new position",
     response_description="Returns the new position and transaction data.",
 )
+@limiter.limit(WRITE_LIMIT)
 async def create_position_with_transaction_data(
+    request: Request,
     form_data: PositionFormData,
+    client: StellarClient = Depends(get_stellar_client),
+    wallet: str = Depends(verify_wallet_signature),
 ) -> LoopLiquidityData:
     """
     Create a new user position and return the data needed by the frontend
     to call the Soroban loop_liquidity contract.
 
+    Requires wallet signature authentication via X-Wallet-Id, X-Nonce, and X-Signature headers.
+
     Parameters:
-    - **wallet_id**: The wallet ID of the user (Stellar public key G…).
+    - **wallet_id**: The wallet ID of the user (Stellar public key G...).
     - **token_symbol**: The symbol of the token used for the position.
     - **amount**: The amount of the token being deposited.
     - **multiplier**: The multiplier applied to the user's position.
@@ -90,6 +101,7 @@ async def create_position_with_transaction_data(
         form_data.multiplier,
         form_data.wallet_id,
         borrowing_token,
+        client,
     )
     deposit_data["contract_address"] = (
         position_db_connector.get_contract_address_by_wallet_id(form_data.wallet_id)
@@ -105,13 +117,16 @@ async def create_position_with_transaction_data(
     summary="Get repay data",
     response_description="Returns the repay transaction data.",
 )
+@limiter.limit(WRITE_LIMIT, key_func=lambda request: f"wallet:{request.query_params.get('wallet_id', request.client.host)}")
 async def get_repay_data(
+    request: Request,
     wallet_id: str,
+    client: StellarClient = Depends(get_stellar_client),
 ) -> RepayTransactionDataResponse:
     """
     Obtain data for position closing.
 
-    :param wallet_id: Wallet ID (Stellar public key G…)
+    :param wallet_id: Wallet ID (Stellar public key G...)
     :return: Dict containing the repay transaction data
     """
     if not wallet_id:
@@ -120,13 +135,13 @@ async def get_repay_data(
     contract_address, position_id, token_symbol = position_db_connector.get_repay_data(
         wallet_id
     )
-    is_opened_position = await PositionMixin.is_opened_position(contract_address)
+    is_opened_position = await PositionMixin.is_opened_position(contract_address, client)
     if not is_opened_position:
         raise HTTPException(status_code=400, detail="Position was closed")
     if not position_id:
         raise HTTPException(status_code=404, detail="Position not found or closed")
 
-    repay_data = await DepositMixin.get_repay_data(token_symbol)
+    repay_data = await DepositMixin.get_repay_data(token_symbol, client)
     repay_data["contract_address"] = contract_address
     repay_data["position_id"] = str(position_id)
     return repay_data
@@ -139,7 +154,8 @@ async def get_repay_data(
     summary="Close a position",
     response_description="Returns the position status",
 )
-async def close_position(position_id: UUID, transaction_hash: str) -> str:
+@limiter.limit(WRITE_LIMIT)
+async def close_position(request: Request, position_id: UUID, transaction_hash: str) -> str:
     """
     Close a position.
 
@@ -166,7 +182,8 @@ async def close_position(position_id: UUID, transaction_hash: str) -> str:
     summary="Open a position",
     response_description="Returns the positions status",
 )
-async def open_position(position_id: str, transaction_hash: str) -> str:
+@limiter.limit(WRITE_LIMIT)
+async def open_position(request: Request, position_id: str, transaction_hash: str) -> str:
     """
     Open a position after a successful Soroban loop_liquidity transaction.
 
@@ -197,7 +214,12 @@ async def open_position(position_id: str, transaction_hash: str) -> str:
     response_model=WithdrawAllData,
     response_description="Object containing data to withdraw all from the position",
 )
-async def get_withdraw_data(wallet_id: str) -> WithdrawAllData:
+@limiter.limit(WRITE_LIMIT, key_func=lambda request: f"wallet:{request.query_params.get('wallet_id', request.client.host)}")
+async def get_withdraw_data(
+    request: Request,
+    wallet_id: str,
+    client: StellarClient = Depends(get_stellar_client)
+) -> WithdrawAllData:
     """
     Prepare data to withdraw all tokens and close a position.
 
@@ -207,12 +229,12 @@ async def get_withdraw_data(wallet_id: str) -> WithdrawAllData:
     contract_address, position_id, token_symbol = position_db_connector.get_repay_data(
         wallet_id
     )
-    if not await PositionMixin.is_opened_position(contract_address):
+    if not await PositionMixin.is_opened_position(contract_address, client):
         raise HTTPException(status_code=400, detail="Position was closed")
     if not position_id:
         raise HTTPException(status_code=404, detail="Position not found or closed")
 
-    repay_data = await DepositMixin.get_repay_data(token_symbol)
+    repay_data = await DepositMixin.get_repay_data(token_symbol, client)
     extra_tokens = position_db_connector.get_extra_deposits_data(position_id).keys()
     repay_data["position_id"] = str(position_id)
     repay_data["contract_address"] = contract_address
@@ -234,7 +256,8 @@ async def get_withdraw_data(wallet_id: str) -> WithdrawAllData:
     summary="Add extra deposit to a user position",
     response_description="Returns the result of extra deposit",
 )
-async def get_add_deposit_data(position_id: UUID, amount: str, token_symbol: str):
+@limiter.limit(USER_DATA_LIMIT)
+async def get_add_deposit_data(request: Request, position_id: UUID, amount: str, token_symbol: str):
     """
     Prepare data for adding an extra deposit to a position.
 
@@ -266,9 +289,17 @@ async def get_add_deposit_data(position_id: UUID, amount: str, token_symbol: str
 
 
 @router.post("/api/add-extra-deposit/{position_id}")
-async def add_extra_deposit(position_id: UUID, data: AddPositionDepositData):
+@limiter.limit(WRITE_LIMIT)
+async def add_extra_deposit(
+    request: Request,
+    position_id: UUID,
+    data: AddPositionDepositData,
+    wallet: str = Depends(verify_wallet_signature),
+):
     """
     Add extra deposit to a user position.
+
+    Requires wallet signature authentication via X-Wallet-Id, X-Nonce, and X-Signature headers.
 
     :param position_id: UUID of the position
     :param data: Deposit data to create extra deposit
@@ -301,7 +332,9 @@ async def add_extra_deposit(position_id: UUID, data: AddPositionDepositData):
     summary="Get all positions for a user",
     response_description="Returns paginated positions for the given wallet ID",
 )
+@limiter.limit(USER_DATA_LIMIT, key_func=lambda request: f"wallet:{request.path_params.get('wallet_id', request.client.host)}")
 async def get_user_positions(
+    request: Request,
     wallet_id: str,
     start: int = Query(0, ge=0),
     limit: int = Query(PAGINATION_STEP, ge=1, le=100),
@@ -334,7 +367,8 @@ async def get_user_positions(
     response_model=UserPositionExtraDepositsResponse,
     summary="Get all extra positions for a user",
 )
-async def get_list_of_deposited_tokens(position_id: UUID):
+@limiter.limit(USER_DATA_LIMIT)
+async def get_list_of_deposited_tokens(request: Request, position_id: UUID):
     """
     Get position and extra positions by position id.
 

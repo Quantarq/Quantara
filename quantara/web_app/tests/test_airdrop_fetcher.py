@@ -1,6 +1,8 @@
-"""Test module for AirdropFetcher class."""
+"""
+Test module for AirdropFetcher class.
+"""
 
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
@@ -16,7 +18,7 @@ def mock_api_response() -> list:
             "amount": "1000000000000000000",
             "proof": ["0xabcd", "0x1234"],
             "is_claimed": False,
-            "recipient": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+            "recipient": "GABCD1234ABCDEFGH5678ABCDEFGH5678ABCDEFGH5678ABCDEFGH5678",
         }
     ]
 
@@ -33,17 +35,32 @@ def airdrop_fetcher():
 class TestAirdropFetcher:
     """Test suite for AirdropFetcher class."""
 
-    def test_init(self, airdrop_fetcher):
-        """Test AirdropFetcher initialization."""
-        assert isinstance(airdrop_fetcher, AirdropFetcher)
-        assert hasattr(airdrop_fetcher, "api")
+    def test_init_without_endpoint_defaults_to_noop(self, monkeypatch):
+        monkeypatch.setattr(AirdropFetcher, "REWARD_API_ENDPOINT", "")
+
+        fetcher = AirdropFetcher()
+
+        assert isinstance(fetcher, AirdropFetcher)
+        assert fetcher.api is None
+
+    @pytest.mark.asyncio
+    async def test_get_contract_airdrop_returns_empty_when_unconfigured(
+        self, monkeypatch
+    ):
+        monkeypatch.setattr(AirdropFetcher, "REWARD_API_ENDPOINT", "")
+
+        fetcher = AirdropFetcher()
+        result = await fetcher.get_contract_airdrop("GABCD1234ABCDEFGH5678ABCDEFGH5678ABCDEFGH5678ABCDEFGH5678")
+
+        assert isinstance(result, AirdropResponseModel)
+        assert len(result.airdrops) == 0
 
     @pytest.mark.asyncio
     async def test_get_contract_airdrop_success(
         self, airdrop_fetcher, mock_api_response
     ):
         """Test successful retrieval of airdrop data."""
-        contract_id = "0x123456"
+        contract_id = "GABCD1234ABCDEFGH5678ABCDEFGH5678ABCDEFGH5678ABCDEFGH5678"
         airdrop_fetcher.api.fetch.return_value = mock_api_response
 
         result = await airdrop_fetcher.get_contract_airdrop(contract_id)
@@ -54,12 +71,12 @@ class TestAirdropFetcher:
         assert airdrop.amount == "1000000000000000000"
         assert airdrop.proof == ["0xabcd", "0x1234"]
         assert airdrop.is_claimed is False
-        assert airdrop.recipient == "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+        assert airdrop.recipient == "GABCD1234ABCDEFGH5678ABCDEFGH5678ABCDEFGH5678ABCDEFGH5678"
 
     @pytest.mark.asyncio
     async def test_get_contract_airdrop_empty_response(self, airdrop_fetcher):
         """Test handling of empty API response."""
-        contract_id = "0x123456"
+        contract_id = "GABCD1234ABCDEFGH5678ABCDEFGH5678ABCDEFGH5678ABCDEFGH5678"
         airdrop_fetcher.api.fetch.return_value = []
 
         result = await airdrop_fetcher.get_contract_airdrop(contract_id)
@@ -68,7 +85,9 @@ class TestAirdropFetcher:
         assert len(result.airdrops) == 0
 
     @pytest.mark.asyncio
-    async def test_get_contract_airdrop_with_invalid_contract_id(self, airdrop_fetcher):
+    async def test_get_contract_airdrop_with_invalid_contract_id(
+        self, airdrop_fetcher
+    ):
         """Test handling of invalid contract IDs."""
         invalid_ids = ["", "0x"]
         airdrop_fetcher.api.fetch.return_value = []
@@ -115,10 +134,9 @@ class TestAirdropFetcher:
     @pytest.mark.asyncio
     async def test_get_contract_airdrop_contract_formatting(self, airdrop_fetcher):
         """Test that contract ID is passed directly (no transformation)."""
-        contract_id = "CCJZ5LW4CJ3J3Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5"
+        contract_id = "GABCD1234ABCDEFGH5678ABCDEFGH5678ABCDEFGH5678ABCDEFGH5678"
         airdrop_fetcher.api.fetch.return_value = []
 
         await airdrop_fetcher.get_contract_airdrop(contract_id)
 
-        # The contract_id should be passed directly (no address transformation)
         airdrop_fetcher.api.fetch.assert_called_once_with(contract_id)

@@ -2,6 +2,7 @@
 This module contains the fixtures for the tests.
 """
 
+import sys
 import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -10,9 +11,55 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import scoped_session
 
 from web_app.api.main import app
+from web_app.api.rate_limiter import limiter as _ORIGINAL_LIMITER
+from web_app.api.wallet_auth import verify_wallet_signature
 from web_app.db.crud import DBConnector, PositionDBConnector, UserDBConnector
 from web_app.db.database import get_database
 from web_app.db.models import ExtraDeposit
+
+
+@pytest.fixture(autouse=True)
+def disable_rate_limiting():
+    """Disable rate limiting in all tests to avoid Redis dependency.
+
+    Three separate Limiter instances can exist during a test run:
+      1. _ORIGINAL_LIMITER -- created when rate_limiter.py was first loaded;
+         all @limiter.limit() wrappers in user.py, vault.py, etc. close over it.
+      2. A reloaded limiter -- TestRateLimiterConfig calls importlib.reload(),
+         which creates a fresh instance and updates the module-level name.
+      3. A memory_limiter -- TestRateLimitEnforcement swaps app.state.limiter for
+         an in-memory instance so tests don't need Redis.
+    We collect every unique instance we can find and disable them all so that
+    the middleware, the decorator wrappers, and direct function calls all skip
+    rate limiting during tests.
+    """
+    limiters: set = set()
+    limiters.add(_ORIGINAL_LIMITER)
+    limiters.add(app.state.limiter)
+    rate_limiter_mod = sys.modules.get("web_app.api.rate_limiter")
+    if rate_limiter_mod is not None:
+        limiters.add(rate_limiter_mod.limiter)
+
+    for lim in limiters:
+        lim.enabled = False
+    yield
+    for lim in limiters:
+        lim.enabled = True
+
+
+@pytest.fixture(autouse=True)
+def bypass_wallet_auth():
+    """Bypass wallet signature verification for all tests.
+
+    Adds a dependency override so every endpoint that Depends(verify_wallet_signature)
+    receives a fixed wallet_id of "test_wallet" without any real signature exchange.
+    This keeps tests decoupled from the nonce store and stellar-sdk crypto.
+
+    The override is removed (not cleared, to preserve other overrides) after each test.
+    """
+    app.dependency_overrides[verify_wallet_signature] = lambda: "test_wallet"
+    yield
+    app.dependency_overrides.pop(verify_wallet_signature, None)
 
 
 def dict_to_object(data: dict, **kwargs) -> object:

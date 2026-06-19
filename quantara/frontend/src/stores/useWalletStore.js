@@ -1,19 +1,30 @@
 import { create } from 'zustand';
+import axios from 'axios';
 
-/**
- * Zustand store for wallet connection state.
- *
- * Manages the connected wallet ID with localStorage persistence.
- * Provides setWalletId and removeWalletId actions.
- */
+// Ensure axios sends cookies automatically with every request
+axios.defaults.withCredentials = true;
+
 export const useWalletStore = create((set) => ({
-  walletId: localStorage.getItem('wallet_id'),
-  setWalletId: (walletId) => {
-    localStorage.setItem('wallet_id', walletId);
-    set({ walletId });
+  walletId: null,
+  isInitializing: true,
+
+  setWalletId: (walletId) => set({ walletId }),
+
+  /**
+   * Initializes session status on application mount by checking cookie validity.
+   * Completely bypasses local storage queries.
+   */
+  initializeSession: async () => {
+    try {
+      const response = await axios.get('/api/auth/session');
+      if (response.data && response.data.walletId) {
+        set({ walletId: response.data.walletId, isInitializing: false });
+      }
+    } catch (error) {
+      // Session cookie is either missing, expired, or invalid
+      set({ walletId: null, isInitializing: false });
+    }
   },
-  removeWalletId: () => {
-    localStorage.removeItem('wallet_id');
-    set({ walletId: undefined });
-  },
+
+  clearWallet: () => set({ walletId: null }),
 }));

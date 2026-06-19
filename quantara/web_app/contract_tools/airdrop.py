@@ -2,6 +2,7 @@
 This module defines the contract tools for the airdrop data.
 """
 
+import os
 import logging
 
 import aiohttp
@@ -17,14 +18,19 @@ class AirdropFetcher:
     A class to fetch and validate airdrop data for a specified contract.
     """
 
-    # Default endpoint – replace with the actual protocol airdrop API
-    REWARD_API_ENDPOINT = "https://app.zklend.com/api/reward/all/"
+    # No Starknet-specific default. Configure a Stellar-compatible endpoint
+    # when the feature is available.
+    REWARD_API_ENDPOINT = os.getenv("AIRDROP_REWARD_API_ENDPOINT", "")
 
     def __init__(self):
         """
         Initializes the AirdropFetcher with an APIRequest instance.
         """
-        self.api = APIRequest(base_url=self.REWARD_API_ENDPOINT)
+        self.api = (
+            APIRequest(base_url=self.REWARD_API_ENDPOINT)
+            if self.REWARD_API_ENDPOINT
+            else None
+        )
 
     async def get_contract_airdrop(self, contract_id: str) -> AirdropResponseModel:
         """
@@ -41,6 +47,12 @@ class AirdropFetcher:
             raise ValueError("Contract ID cannot be None")
 
         underlying_contract_id = contract_id
+        if not self.api:
+            logger.info(
+                "Airdrop endpoint is not configured; returning no data for %s",
+                contract_id,
+            )
+            return AirdropResponseModel(airdrops=[])
         try:
             response = await self.api.fetch(underlying_contract_id)
         except (aiohttp.ClientError, ValueError, KeyError, TypeError) as e:

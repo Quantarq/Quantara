@@ -10,7 +10,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from web_app.db.database import SQLALCHEMY_DATABASE_URL
+from web_app.db.database import get_database_url
 from web_app.db.models import AirDrop, Base
 
 logger = logging.getLogger(__name__)
@@ -28,11 +28,13 @@ class DBConnector:
     - remove_object: Removes an object by its ID from the database.
     """
 
-    def __init__(self, db_url: str = SQLALCHEMY_DATABASE_URL):
+    def __init__(self, db_url: str = None):
         """
         Initialize the database connection and session factory.
-        :param db_url: str = None
+        :param db_url: Optional database URL. If not provided, fetches from environment.
         """
+        if db_url is None:
+            db_url = get_database_url()
         self.engine = create_engine(db_url)
         self.session_factory = sessionmaker(bind=self.engine)
         self.Session = scoped_session(self.session_factory)

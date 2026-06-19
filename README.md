@@ -87,6 +87,9 @@ Quantara provides an **automated leverage engine** that:
 git clone <repository-url>
 cd quantara
 
+# Configure environment variables
+cp .env.example .env
+
 # Start full development environment
 make dev
 

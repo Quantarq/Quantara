@@ -11,7 +11,7 @@ describe('NotFound page', () => {
         <NotFound />
       </MemoryRouter>
     );
-    expect(screen.getByText('404')).toBeInTheDocument();
+    expect(screen.getByText('404')).toBeTruthy();
   });
 
   it('renders a descriptive title', () => {
@@ -22,7 +22,7 @@ describe('NotFound page', () => {
     );
     expect(
       screen.getByRole('heading', { name: /page not found/i })
-    ).toBeInTheDocument();
+    ).toBeTruthy();
   });
 
   it('renders a helpful message', () => {
@@ -33,7 +33,7 @@ describe('NotFound page', () => {
     );
     expect(
       screen.getByText(/the page you are looking for does not exist/i)
-    ).toBeInTheDocument();
+    ).toBeTruthy();
   });
 
   it('provides a link back to the home page', () => {
@@ -43,7 +43,7 @@ describe('NotFound page', () => {
       </MemoryRouter>
     );
     const homeLink = screen.getByRole('link', { name: /return to home/i });
-    expect(homeLink).toBeInTheDocument();
+    expect(homeLink).toBeTruthy();
     expect(homeLink.getAttribute('href')).toBe('/');
   });
 });

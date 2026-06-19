@@ -279,7 +279,7 @@ async def test_invalid_wallet_id(mock_db_connector):
         "Invalid wallet ID"
     )
     with pytest.raises(ValueError) as exc_info:
-        await get_dashboard(INVALID_WALLET_ID)
+        await get_dashboard(None, INVALID_WALLET_ID)
     assert str(exc_info.value) == "Invalid wallet ID"
 
 
@@ -299,7 +299,7 @@ async def test_empty_positions(
         return_value=("1.2", "1000.0")
     )
 
-    response = await get_dashboard(VALID_WALLET_ID)
+    response = await get_dashboard(None, VALID_WALLET_ID)
     assert isinstance(response, DashboardResponse)
     assert response.dict() == {
         "multipliers": {},
@@ -327,7 +327,7 @@ async def test_external_service_errors(mock_db_connector):
         side_effect=Exception("External API error"),
     ) as mock_get_health_ratio_and_tvl:
         with pytest.raises(Exception) as exc_info:
-            await get_dashboard(VALID_WALLET_ID)
+            await get_dashboard(None, VALID_WALLET_ID)
         assert str(exc_info.value) == "External API error"
 
 

@@ -16,11 +16,12 @@ Errors:
 import random
 import string
 
-from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 
 from web_app.db.database import get_database
 from web_app.db.crud import UserDBConnector
+from web_app.api.rate_limiter import limiter, READ_LIMIT
 from pydantic import BaseModel
 
 router = APIRouter(
@@ -54,7 +55,9 @@ def generate_random_string(length=16):
 
 
 @router.get("/create_referal_link")
+@limiter.limit(READ_LIMIT)
 async def create_referal_link(
+    request: Request,
     wallet_id: str = Query(..., description="Wallet ID of the user"),
     db: Session = Depends(get_database),
 ):

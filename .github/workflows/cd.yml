@@ -21,7 +21,7 @@ jobs:
     environment: production
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install SSH key
         uses: shimataro/ssh-key-action@v3
@@ -39,6 +39,8 @@ jobs:
             git pull origin main
             echo "Rebuilding and restarting containers..."
             docker compose -f devops/docker-compose.quantara.yaml up -d --build --remove-orphans
+            echo "Applying database migrations..."
+            docker compose -f devops/docker-compose.quantara.yaml exec -T backend alembic -c web_app/alembic.ini upgrade head
             echo "Waiting for services to be healthy..."
             for i in $(seq 1 30); do
               if curl -sf http://localhost:8000/health > /dev/null 2>&1; then

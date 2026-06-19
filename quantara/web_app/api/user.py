@@ -6,7 +6,7 @@ import logging
 from decimal import Decimal
 
 import sentry_sdk
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Request
 
 from web_app.api.serializers.transaction import UpdateUserContractRequest
 from web_app.api.serializers.user import (
@@ -18,13 +18,16 @@ from web_app.api.serializers.user import (
     SubscribeToNotificationRequest,
     UpdateUserContractResponse,
 )
-from web_app.contract_tools.blockchain_call import CLIENT
+from web_app.api.dependencies import get_stellar_client
+from web_app.contract_tools.blockchain_call import StellarClient
 from web_app.contract_tools.mixins import DashboardMixin, PositionMixin
 from web_app.db.crud import (
     PositionDBConnector,
     TelegramUserDBConnector,
     UserDBConnector,
 )
+
+from web_app.api.rate_limiter import limiter, WRITE_LIMIT, USER_DATA_LIMIT, READ_LIMIT
 
 logger = logging.getLogger(__name__)
 router = APIRouter()  # Initialize the router
@@ -40,7 +43,12 @@ position_db = PositionDBConnector()
     summary="Check if user has opened position",
     response_description="Returns true if the user has an opened position, false otherwise",
 )
-async def has_user_opened_position(wallet_id: str) -> dict:
+@limiter.limit(USER_DATA_LIMIT, key_func=lambda request: f"wallet:{request.query_params.get('wallet_id', request.client.host)}")
+async def has_user_opened_position(
+    request: Request,
+    wallet_id: str,
+    client: StellarClient = Depends(get_stellar_client),
+) -> dict:
     """
     Check if a user has any opened positions.
     :param wallet_id: wallet id
@@ -52,7 +60,7 @@ async def has_user_opened_position(wallet_id: str) -> dict:
         contract_address = user_db.get_contract_address_by_wallet_id(wallet_id)
         if contract_address is None:
             return {"has_opened_position": False}
-        is_position_opened = await PositionMixin.is_opened_position(contract_address)
+        is_position_opened = await PositionMixin.is_opened_position(contract_address, client)
         return {"has_opened_position": has_position or is_position_opened}
     except ValueError as e:
         raise HTTPException(
@@ -69,7 +77,8 @@ async def has_user_opened_position(wallet_id: str) -> dict:
         "Returns the transaction hash if the contract is deployed."
     ),
 )
-async def get_user_contract(wallet_id: str) -> str:
+@limiter.limit(USER_DATA_LIMIT, key_func=lambda request: f"wallet:{request.query_params.get('wallet_id', request.client.host)}")
+async def get_user_contract(request: Request, wallet_id: str) -> str:
     """
     Get the contract status of a user.
     :param wallet_id: wallet id
@@ -92,7 +101,8 @@ async def get_user_contract(wallet_id: str) -> str:
     response_model=CheckUserResponse,
     response_description="Returns whether the user's contract is deployed.",
 )
-async def check_user(wallet_id: str) -> CheckUserResponse:
+@limiter.limit(USER_DATA_LIMIT, key_func=lambda request: f"wallet:{request.query_params.get('wallet_id', request.client.host)}")
+async def check_user(request: Request, wallet_id: str) -> CheckUserResponse:
     """
     This endpoint checks if the user exists, or adds the user to the database if they don't exist,
     and checks whether their contract is deployed.
@@ -121,7 +131,9 @@ async def check_user(wallet_id: str) -> CheckUserResponse:
     response_model=UpdateUserContractResponse,
     response_description="Returns if the contract is updated and deployed.",
 )
+@limiter.limit(WRITE_LIMIT)
 async def update_user_contract(
+    request: Request,
     data: UpdateUserContractRequest,
 ) -> UpdateUserContractResponse:
     """
@@ -149,7 +161,9 @@ async def update_user_contract(
     summary="Subscribe user to notifications",
     response_description="Returns success status of notification subscription",
 )
+@limiter.limit(WRITE_LIMIT)
 async def subscribe_to_notification(
+    request: Request,
     data: SubscribeToNotificationRequest,
 ):
     """
@@ -191,7 +205,8 @@ async def subscribe_to_notification(
     response_model=GetUserContractAddressResponse,
     response_description="Returns the contract address of the user or None if not deployed.",
 )
-async def get_user_contract_address(wallet_id: str) -> GetUserContractAddressResponse:
+@limiter.limit(USER_DATA_LIMIT, key_func=lambda request: f"wallet:{request.query_params.get('wallet_id', request.client.host)}")
+async def get_user_contract_address(request: Request, wallet_id: str) -> GetUserContractAddressResponse:
     """
     This endpoint retrieves the contract address of a user.
 
@@ -217,7 +232,8 @@ async def get_user_contract_address(wallet_id: str) -> GetUserContractAddressRes
     response_description="Total amount for all open positions across all users & \
                               Number of unique users in the database.",
 )
-async def get_stats() -> GetStatsResponse:
+@limiter.limit(READ_LIMIT)
+async def get_stats(request: Request) -> GetStatsResponse:
     """
     Retrieves the total amount for open positions converted to USDC
     and the count of unique users.
@@ -271,7 +287,8 @@ async def get_stats() -> GetStatsResponse:
     summary="Submit a bug report",
     response_description="Returns confirmation of bug report submission",
 )
-async def save_bug_report(report: BugReportRequest) -> BugReportResponse:
+@limiter.limit(READ_LIMIT)
+async def save_bug_report(request: Request, report: BugReportRequest) -> BugReportResponse:
     """
     Save a bug report and send it to Sentry for tracking.
 

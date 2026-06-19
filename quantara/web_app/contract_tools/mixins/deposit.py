@@ -8,7 +8,7 @@ on Soroban contracts.
 from decimal import Decimal
 
 from web_app.contract_tools.constants import TokenParams
-from web_app.contract_tools.blockchain_call import CLIENT
+from web_app.contract_tools.blockchain_call import StellarClient
 
 
 class DepositMixin:
@@ -24,6 +24,7 @@ class DepositMixin:
         multiplier: Decimal,
         wallet_id: str,
         borrowing_token: str,
+        client: StellarClient,
     ) -> dict:
         """
         Get transaction data for the deposit.
@@ -32,13 +33,14 @@ class DepositMixin:
         :param multiplier: Multiplier
         :param wallet_id: Wallet ID (Stellar public key)
         :param borrowing_token: Borrowing token symbol
+        :param client: StellarClient instance
         :return: loop_liquidity_data dict
         """
         deposit_token_address = TokenParams.get_token_address(deposit_token)
         decimal = TokenParams.get_token_decimals(deposit_token_address)
         amount = int(Decimal(amount) * 10 ** decimal)
 
-        loop_liquidity_data = await CLIENT.get_loop_liquidity_data(
+        loop_liquidity_data = await client.get_loop_liquidity_data(
             deposit_token_address,
             amount,
             multiplier,
@@ -50,12 +52,13 @@ class DepositMixin:
 
     @classmethod
     async def get_repay_data(
-        cls, supply_token: str
+        cls, supply_token: str, client: StellarClient
     ) -> dict:
         """
         Get transaction data for the repay/close.
 
         :param supply_token: Deposit token symbol
+        :param client: StellarClient instance
         :return: dict with repay data (supply_token, debt_token)
         """
         deposit_token_address = TokenParams.get_token_address(supply_token)
@@ -70,6 +73,6 @@ class DepositMixin:
             "debt_token": debt_token_address,
         }
 
-        return repay_data | await CLIENT.get_repay_data(
+        return repay_data | await client.get_repay_data(
             deposit_token_address, debt_token_address
         )

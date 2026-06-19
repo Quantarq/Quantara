@@ -6,12 +6,13 @@ Verifies that uncaught exceptions in API endpoints return a sanitized
 errors, file paths, etc.) to the API consumer.
 """
 
-from unittest.mock import patch
+from unittest.mock import patch, AsyncMock, MagicMock
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from web_app.api.main import app
+from web_app.db.database import get_database
 
 
 def test_global_exception_handler_masks_internal_details():
@@ -78,7 +79,12 @@ def test_health_endpoint_still_works():
     Verify that the /health endpoint still works alongside the
     global exception handler.
     """
-    test_client = TestClient(app)
-    response = test_client.get("/health")
-    assert response.status_code == 200
-    assert response.json() == {"status": "healthy"}
+    app.dependency_overrides[get_database] = lambda: MagicMock()
+    with patch("web_app.api.main.redis.from_url") as mock_redis:
+        mock_redis.return_value.ping = AsyncMock(return_value=True)
+        mock_redis.return_value.close = AsyncMock(return_value=None)
+        test_client = TestClient(app)
+        response = test_client.get("/health")
+        assert response.status_code == 200
+        assert response.json() == {"status": "healthy", "database": "up", "redis": "up"}
+    app.dependency_overrides.clear()

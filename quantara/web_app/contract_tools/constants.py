@@ -8,6 +8,7 @@ used throughout the contract interaction layer.
 from decimal import Decimal
 from dataclasses import dataclass
 from typing import Iterator
+import os
 
 # ------------------------------------------------------------------ #
 #  Stellar ecosystem addresses
@@ -23,7 +24,14 @@ ETH = "ETH"
 # "native" is the shorthand for XLM on Stellar
 XLM_ASSET_CODE = "native"
 USDC_ASSET_CODE = "USDC"
-USDC_ASSET_ISSUER = ""  # Set to the Stellar USDC issuer for your network
+# Read issuer from environment for flexibility between networks. Default to
+# a known testnet USDC issuer so testnet works out-of-the-box. To use
+# mainnet, set the `USDC_ASSET_ISSUER` environment variable to the
+# mainnet issuer (e.g. Circle's mainnet issuer).
+USDC_ASSET_ISSUER = os.getenv(
+    "USDC_ASSET_ISSUER",
+    "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NOJ4VBH6THS2G2V",
+)
 
 EXAMPLE_ASSET_ISSUER = (
     "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NO2KJ4DDG5T4GD"

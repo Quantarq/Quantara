@@ -22,6 +22,8 @@ from web_app.telegram.utils import (
     check_telegram_authorization,
 )
 
+from web_app.api.rate_limiter import limiter, WRITE_LIMIT, READ_LIMIT
+
 # Create a FastAPI router for handling Telegram webhook requests
 router = APIRouter()
 db_connector = DBConnector()
@@ -34,7 +36,8 @@ telegram_user_db_connector = TelegramUserDBConnector()
     tags=["Telegram Operations"],
     summary="Generate a Telegram subscription link",
 )
-async def generate_telegram_link(wallet_id: str):
+@limiter.limit(READ_LIMIT)
+async def generate_telegram_link(request: Request, wallet_id: str):
     """
     Generate a Telegram subscription link for a user by wallet ID.
 
@@ -60,6 +63,7 @@ async def generate_telegram_link(wallet_id: str):
     tags=["Telegram Operations"],
     summary="Setup telegram webhook",
 )
+@limiter.limit(READ_LIMIT)
 async def set_telegram_webhook(request: Request) -> Literal["ok"]:
     """
     Set the webhook for the Telegram bot.
@@ -104,7 +108,8 @@ async def telegram_webhook(update: Update):
     summary="Save or update Telegram user information",
     deprecated=True,
 )
-async def save_telegram_user(user: TelegramUserCreate):
+@limiter.limit(WRITE_LIMIT)
+async def save_telegram_user(request: Request, user: TelegramUserCreate):
     """
     Save or update Telegram user information in the database.
 
@@ -128,7 +133,8 @@ async def save_telegram_user(user: TelegramUserCreate):
     tags=["Telegram Operations"],
     summary="Get wallet ID for a Telegram user",
 )
-async def get_wallet_id(telegram_auth: TelegramUserAuth, telegram_id: str):
+@limiter.limit(READ_LIMIT)
+async def get_wallet_id(request: Request, telegram_auth: TelegramUserAuth, telegram_id: str):
     """
     Retrieve the wallet ID associated with a Telegram user.
 

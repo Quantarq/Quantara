@@ -4,6 +4,7 @@ Uses the Stellar-based Quantara protocol primitives.
 """
 
 import asyncio
+import inspect
 import logging
 from typing import List
 
@@ -44,9 +45,17 @@ class AirdropClaimer:
                         "Skipping airdrop %s: no contract address", airdrop.id
                     )
                     continue
-                proofs = self.airdrop_fetcher.get_contract_airdrop(
+                airdrop_data = self.airdrop_fetcher.get_contract_airdrop(
                     user_contract_address
                 )
+                if inspect.isawaitable(airdrop_data):
+                    airdrop_data = await airdrop_data
+                proofs = self._extract_proofs(airdrop_data)
+                if not proofs:
+                    logger.info(
+                        "Skipping airdrop %s: no proof data available", airdrop.id
+                    )
+                    continue
 
                 claim_successful = await self._claim_airdrop(
                     user_contract_address, proofs
@@ -73,6 +82,25 @@ class AirdropClaimer:
                 logger.error("Timeout during claim for airdrop %s: %s", airdrop.id, te)
             except Exception as e:
                 logger.error("Unexpected error claiming airdrop %s: %s", airdrop.id, e)
+
+    @staticmethod
+    def _extract_proofs(airdrop_data):
+        """
+        Normalize airdrop data into the proof list expected by claim logic.
+        """
+        if not airdrop_data:
+            return []
+
+        if hasattr(airdrop_data, "airdrops"):
+            proofs = []
+            for item in airdrop_data.airdrops:
+                proofs.extend(item.proof)
+            return proofs
+
+        if isinstance(airdrop_data, list):
+            return airdrop_data
+
+        return []
 
     async def _claim_airdrop(self, contract_address: str, proofs: List[str]) -> bool:
         """

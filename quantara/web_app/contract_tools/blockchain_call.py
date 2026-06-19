@@ -260,12 +260,9 @@ class StellarClient:
         return results
 
 
-CLIENT = StellarClient()
-
 if __name__ == "__main__":
-    call = CLIENT
     res = asyncio.run(
-        call.fetch_portfolio(
+        StellarClient().fetch_portfolio(
             "GA7QYNF7SOWQ3GLR2ZGMH2Z5Y2X2H5Y2X2H5Y2X2H5Y2X2H5Y2X2H5Y2"
         )
     )
