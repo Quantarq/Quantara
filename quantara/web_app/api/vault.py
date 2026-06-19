@@ -6,6 +6,7 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
+from web_app.api.wallet_auth import verify_wallet_signature
 from web_app.db.crud import DepositDBConnector, UserDBConnector
 from web_app.api.serializers.vault import (
     UpdateVaultBalanceRequest,
@@ -26,9 +27,12 @@ async def deposit_to_vault(
     request: Request,
     body: VaultDepositRequest,
     deposit_connector: DepositDBConnector = Depends(DepositDBConnector),
+    wallet: str = Depends(verify_wallet_signature),
 ) -> VaultDepositResponse:
     """
     Process a vault deposit request.
+
+    Requires wallet signature authentication via X-Wallet-Id, X-Nonce, and X-Signature headers.
     """
     logger.info(f"Processing deposit request for wallet {body.wallet_id}")
 
@@ -78,9 +82,12 @@ async def add_vault_balance(
     request: Request,
     body: UpdateVaultBalanceRequest,
     deposit_connector: DepositDBConnector = Depends(DepositDBConnector),
+    wallet: str = Depends(verify_wallet_signature),
 ) -> UpdateVaultBalanceResponse:
     """
     Add balance to a user's vault for a specific token.
+
+    Requires wallet signature authentication via X-Wallet-Id, X-Nonce, and X-Signature headers.
     """
     try:
         updated_vault = deposit_connector.add_vault_balance(
