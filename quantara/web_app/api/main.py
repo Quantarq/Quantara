@@ -2,8 +2,8 @@
 Main FastAPI application module for the QUANTARA API (Stellar/Soroban).
 
 Sets up FastAPI with session and CORS middleware, registers routers for
-dashboard, position, user, vault, leaderboard, referal, and telegram
-endpoints, and exposes a /health endpoint for CI orchestration.
+dashboard, position, user, vault, leaderboard, referal, telegram, and
+authentication endpoints, and exposes a /health endpoint for CI orchestration.
 """
 
 import logging
@@ -30,6 +30,7 @@ from web_app.api.user import router as user_router
 from web_app.api.vault import router as vault_router
 from web_app.api.leaderboard import router as leaderboard_router
 from web_app.api.referal import router as referal_router
+from web_app.api.wallet_auth import router as auth_router
 from web_app.config_validator import assert_valid_config
 from web_app.db.database import init_db
 from web_app.db.database import init_db, get_database
@@ -37,7 +38,7 @@ from web_app.db.database import init_db, get_database
 logger = logging.getLogger(__name__)
 DEFAULT_CORS_ORIGINS = ["http://localhost:3000"]
 CORS_ALLOW_METHODS = ["GET", "POST"]
-CORS_ALLOW_HEADERS = ["Content-Type", "Authorization"]
+CORS_ALLOW_HEADERS = ["Content-Type", "Authorization", "X-Wallet-Id", "X-Nonce", "X-Signature"]
 
 
 def get_cors_origins() -> list[str]:
@@ -135,7 +136,7 @@ app.add_middleware(
     allow_headers=CORS_ALLOW_HEADERS,
     allow_methods=CORS_ALLOW_METHODS,
 )
-# Rate limiting middleware — must be added after CORS/session so it wraps the
+# Rate limiting middleware -- must be added after CORS/session so it wraps the
 # full middleware stack and can reject requests before they reach routers.
 app.add_middleware(SlowAPIMiddleware)
 
@@ -175,7 +176,7 @@ async def health_check(response: Response, db: Session = Depends(get_database)):
     return health_status
 
 
-# No startup-time blockchain contract init needed – the frontend
+# No startup-time blockchain contract init needed -- the frontend
 # invokes Soroban contracts directly via Freighter + stellar-sdk.
 
 # Include the routers
@@ -186,3 +187,4 @@ app.include_router(telegram_router)
 app.include_router(vault_router)
 app.include_router(leaderboard_router)
 app.include_router(referal_router)
+app.include_router(auth_router)
