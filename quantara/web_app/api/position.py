@@ -19,6 +19,7 @@ from web_app.api.serializers.transaction import (
     RepayTransactionDataResponse,
     WithdrawAllData,
 )
+from web_app.api.wallet_auth import verify_wallet_signature
 from web_app.contract_tools.constants import TokenMultipliers, TokenParams
 from web_app.contract_tools.mixins import DashboardMixin, DepositMixin, PositionMixin
 from web_app.db.crud import PositionDBConnector, TransactionDBConnector
@@ -66,13 +67,16 @@ async def create_position_with_transaction_data(
     request: Request,
     form_data: PositionFormData,
     client: StellarClient = Depends(get_stellar_client),
+    wallet: str = Depends(verify_wallet_signature),
 ) -> LoopLiquidityData:
     """
     Create a new user position and return the data needed by the frontend
     to call the Soroban loop_liquidity contract.
 
+    Requires wallet signature authentication via X-Wallet-Id, X-Nonce, and X-Signature headers.
+
     Parameters:
-    - **wallet_id**: The wallet ID of the user (Stellar public key G…).
+    - **wallet_id**: The wallet ID of the user (Stellar public key G...).
     - **token_symbol**: The symbol of the token used for the position.
     - **amount**: The amount of the token being deposited.
     - **multiplier**: The multiplier applied to the user's position.
@@ -122,7 +126,7 @@ async def get_repay_data(
     """
     Obtain data for position closing.
 
-    :param wallet_id: Wallet ID (Stellar public key G…)
+    :param wallet_id: Wallet ID (Stellar public key G...)
     :return: Dict containing the repay transaction data
     """
     if not wallet_id:
@@ -286,9 +290,16 @@ async def get_add_deposit_data(request: Request, position_id: UUID, amount: str,
 
 @router.post("/api/add-extra-deposit/{position_id}")
 @limiter.limit(WRITE_LIMIT)
-async def add_extra_deposit(request: Request, position_id: UUID, data: AddPositionDepositData):
+async def add_extra_deposit(
+    request: Request,
+    position_id: UUID,
+    data: AddPositionDepositData,
+    wallet: str = Depends(verify_wallet_signature),
+):
     """
     Add extra deposit to a user position.
+
+    Requires wallet signature authentication via X-Wallet-Id, X-Nonce, and X-Signature headers.
 
     :param position_id: UUID of the position
     :param data: Deposit data to create extra deposit
