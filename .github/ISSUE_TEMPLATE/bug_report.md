@@ -1,27 +1,62 @@
 ---
 name: Bug report
-about: Report a bug to help us improve the CI/CD pipeline
+about: Report a product, frontend, backend, smart contract, or CI/CD bug
 title: '[BUG] '
 labels: 'bug'
 assignees: ''
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+## Bug type
 
-**CI Workflow**
-Which workflow is affected: `CI`, `CD`, `Frontend Tests`, `Pylint`, `Integration Tests`
+Select the area that best matches the issue:
 
-**Expected behavior**
-A clear description of what you expected to happen.
+- [ ] Product / user-facing behavior
+- [ ] Frontend UI or wallet flow
+- [ ] Backend API or data processing
+- [ ] Smart contract / on-chain behavior
+- [ ] CI/CD pipeline or developer tooling
+- [ ] Other:
 
-**Logs / Screenshots**
-If applicable, add CI logs or screenshots to help explain the problem.
+## Summary
 
-**Environment**
-- Branch: 
-- Commit SHA: 
+A clear and concise description of the bug.
 
-**Additional context**
-Add any other context about the problem here.
+## Steps to reproduce
+
+1.
+2.
+3.
+
+## Expected behavior
+
+What did you expect to happen?
+
+## Actual behavior
+
+What happened instead?
+
+## Environment
+
+- Browser and version:
+- Wallet and version:
+- Network: `local`, `testnet`, `mainnet`, or other:
+- Device / OS:
+- App version, branch, or commit SHA:
+
+## Logs / screenshots
+
+Add screenshots, console logs, API responses, transaction hashes, CI logs, or other evidence that helps explain the problem.
+
+## CI/CD details (only for pipeline issues)
+
+If this is a CI/CD bug, fill this section in. Otherwise, leave it blank.
+
+- Workflow: `CI`, `CD`, `Frontend Tests`, `Pylint`, `Integration Tests`, or other:
+- Failing job / step:
+- Link to run:
+- Relevant log excerpt:
+
+## Additional context
+
+Add any other context, suspected cause, or workaround here.
