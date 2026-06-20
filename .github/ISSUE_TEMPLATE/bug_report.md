@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Report a bug to help us improve the CI/CD pipeline
+about: Report a bug to help us improve
 title: '[BUG] '
 labels: 'bug'
 assignees: ''
@@ -10,18 +10,31 @@ assignees: ''
 **Describe the bug**
 A clear and concise description of what the bug is.
 
-**CI Workflow**
-Which workflow is affected: `CI`, `CD`, `Frontend Tests`, `Pylint`, `Integration Tests`
+**Steps to Reproduce**
+Steps to reproduce the behavior:
+1. Go to '...'
+2. Click on '....'
+3. Scroll down to '....'
+4. See error
 
 **Expected behavior**
-A clear description of what you expected to happen.
+A clear and concise description of what you expected to happen.
 
-**Logs / Screenshots**
-If applicable, add CI logs or screenshots to help explain the problem.
+**Actual behavior**
+A clear and concise description of what actually happened.
+
+**Screenshots**
+If applicable, add screenshots to help explain the problem.
 
 **Environment**
-- Branch: 
-- Commit SHA: 
+- Browser:
+- Wallet (if applicable):
+- Network (e.g., testnet, mainnet):
+- Branch (if applicable):
+- Commit SHA (if applicable):
+
+**CI Workflow (optional)**
+If this is a CI/CD issue, list the affected workflow(s): `CI`, `CD`, `Frontend Tests`, `Pylint`, `Integration Tests`. Skip this section entirely for product / application bugs.
 
 **Additional context**
 Add any other context about the problem here.
