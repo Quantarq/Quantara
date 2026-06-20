@@ -83,7 +83,7 @@ class Position(Base):
         UUID(as_uuid=True), ForeignKey("user.id"), index=True, nullable=False
     )
     token_symbol = Column(String, nullable=False)
-    amount = Column(String, nullable=False)
+    amount = Column(NUMERIC(38, 18), nullable=False)
     multiplier = Column(NUMERIC, nullable=False)
 
     created_at = Column(DateTime, nullable=False, default=func.now())
@@ -154,7 +154,7 @@ class Vault(Base):
         UUID(as_uuid=True), ForeignKey("user.id"), index=True, nullable=False
     )
     symbol = Column(String)
-    amount = Column(String)
+    amount = Column(NUMERIC(38, 18))
     created_at = Column(DateTime, nullable=False, default=func.now())
     updated_at = Column(
         DateTime, nullable=False, default=func.now(), onupdate=func.now()
@@ -217,7 +217,7 @@ class ExtraDeposit(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     token_symbol = Column(String, nullable=False)
-    amount = Column(String, nullable=False)
+    amount = Column(NUMERIC(38, 18), nullable=False)
     added_at = Column(DateTime, default=func.now())
     updated_at = Column(
         DateTime, nullable=False, default=func.now(), onupdate=func.now()
