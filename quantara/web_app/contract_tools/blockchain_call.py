@@ -77,10 +77,10 @@ class StellarClient:
             async with aiohttp.ClientSession() as session:
                 async with session.get(url) as response:
                     if response.status == 404:
-                    logger.info("horizon_account_not_found", account=holder_address)
+                        logger.info("horizon_account_not_found", account=holder_address)
                         return "0"
                     if response.status != 200:
-                    logger.warning("horizon_unexpected_status", status=response.status, url=url)
+                        logger.warning("horizon_unexpected_status", status=response.status, url=url)
                         return "0"
                     account = await response.json()
         except aiohttp.ClientError as exc:
@@ -263,9 +263,10 @@ class StellarClient:
 
 
 if __name__ == "__main__":
-    res = asyncio.run(
-        StellarClient().fetch_portfolio(
-            "GA7QYNF7SOWQ3GLR2ZGMH2Z5Y2X2H5Y2X2H5Y2X2H5Y2X2H5Y2X2H5Y2"
-        )
+    # Split the long dummy address to comply with 100-char linting limits
+    dummy_address = (
+        "GA7QYNF7SOWQ3GLR2ZGMH2Z5Y2"
+        "X2H5Y2X2H5Y2X2H5Y2X2H5Y2X2H5Y2"
     )
+    res = asyncio.run(StellarClient().fetch_portfolio(dummy_address))
     print(res)
