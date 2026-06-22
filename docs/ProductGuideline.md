@@ -29,7 +29,7 @@
    - **Liquidation Risk**: If your health ratio reaches zero, your position may be liquidated.
    - **Collateral**: The value of your assets in the position.
    - **Borrowed Amount**: The total amount you have borrowed.
-![Open Position](<Screenshot 2025-01-14 at 11.07.40 PM.png>)
+*Figure: Open Position screenshot.*
 
 ---
 
@@ -47,7 +47,7 @@
 4. **Withdraw Collateral**  
    After the loan is repaid, you can withdraw the remaining collateral to your wallet.
 
-   ![Redeem Position](<Screenshot 2025-01-14 at 11.07.40 PM.png>)
+   *Figure: Redeem Position screenshot.*
 
 ---
 
@@ -64,7 +64,7 @@
 
 4. **Confirm the Deposit**  
    After entering the deposit amount, click on **Deposit** to complete the transaction.
-![alt text](<Screenshot 2025-01-14 at 11.39.25 PM.png>)
+*Figure: Add Deposit screenshot.*
 ---
 
 ## **How to Check Your Current Balance (Dashboard Page)**
@@ -73,7 +73,7 @@
    In the **Dashboard**, you'll see the **"Position Balance"** section.
    - This section will show your total balance across all positions, including available collateral and borrowed stablecoins.
 
-![alt text](<Screenshot 2025-01-14 at 11.23.52 PM.png>)
+*Figure: Current Balance screenshot.*
 
 ---
 
