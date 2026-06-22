@@ -101,7 +101,9 @@ async def test_claim_airdrops_database_error(airdrop_claimer, mock_airdrop, capl
     with caplog.at_level(logging.ERROR):
         await airdrop_claimer.claim_airdrops()
 
-    assert "Database error while updating claim data" in caplog.text
+    # Updated to evaluate structlog dictionary components safely
+    assert "airdrop_db_error" in caplog.text
+    assert "Database error" in caplog.text
     airdrop_claimer.db_connector.save_claim_data.assert_called_once()
 
 
