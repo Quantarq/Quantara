@@ -21,7 +21,7 @@ import {
 import { getWalletPublicKey, signStellarTransaction, getNetworkPassphrase } from './wallet';
 import { getSorobanServer, pollForTransaction } from './soroban';
 import { SOROBAN_WASM_HASH } from '../utils/constants';
-import { axiosInstance } from '../utils/axios';
+import { axiosInstance, getAuthHeaders } from '../utils/axios';
 import { notify, ToastWithLink } from '../components/layout/notifier/Notifier';
 
 /**
@@ -193,11 +193,12 @@ export async function checkAndDeployContract(walletId) {
 
       console.log('Contract address:', contractAddress);
 
-      // Update the backend with deployment info
+      // Update the backend with deployment info (requires wallet auth headers)
+      const authHeaders = await getAuthHeaders(walletId);
       await axiosInstance.post(`/api/update-user-contract`, {
         wallet_id: walletId,
         contract_address: contractAddress,
-      });
+      }, { headers: authHeaders });
       console.log('Backend updated with deployment information.');
     } else {
       console.log('Contract is already deployed for wallet ID:', walletId);

@@ -9,7 +9,7 @@
 
 import { getWalletPublicKey } from './wallet';
 import { invokeSorobanContract } from './soroban';
-import { axiosInstance } from '../utils/axios';
+import { axiosInstance, getAuthHeaders } from '../utils/axios';
 import { notify, ToastWithLink } from '../components/layout/notifier/Notifier';
 import { STELLAR_NETWORK } from '../utils/constants';
 
@@ -256,8 +256,9 @@ export const handleTransaction = async (connectedWalletId, formData, setTokenAmo
       return;
     }
 
-    // Get position data from backend
-    const response = await axiosInstance.post(`/api/create-position`, formData);
+    // Get position data from backend (requires wallet auth headers)
+    const authHeaders = await getAuthHeaders(connectedWalletId);
+    const response = await axiosInstance.post(`/api/create-position`, formData, { headers: authHeaders });
     const transactionData = response.data;
 
     console.log('Position data received:', transactionData);

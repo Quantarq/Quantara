@@ -12,7 +12,13 @@ vi.mock('../../src/services/wallet', () => ({
   getNetworkPassphrase: vi.fn(() => 'Test SDF Network ; September 2015'),
 }));
 
-vi.mock('../../src/utils/axios');
+vi.mock('../../src/utils/axios', () => ({
+  axiosInstance: {
+    get: vi.fn(),
+    post: vi.fn(),
+  },
+  getAuthHeaders: vi.fn().mockResolvedValue({ 'x-wallet-id': 'mock', 'x-nonce': 'mock', 'x-signature': 'mock' }),
+}));
 vi.mock('../../src/utils/constants', () => ({
   SOROBAN_WASM_HASH: 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
 }));
@@ -231,7 +237,7 @@ describe('Contract Deployment Tests', () => {
       expect(axiosInstance.post).toHaveBeenCalledWith('/api/update-user-contract', {
         wallet_id: mockWalletId,
         contract_address: mockContractId,
-      });
+      }, { headers: { 'x-wallet-id': 'mock', 'x-nonce': 'mock', 'x-signature': 'mock' } });
     });
 
     it('should skip deployment if contract already exists', async () => {

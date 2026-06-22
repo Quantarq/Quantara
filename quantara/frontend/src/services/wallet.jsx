@@ -14,6 +14,7 @@ import {
   isConnected,
   getPublicKey,
   signTransaction,
+  signMessage,
 } from '@stellar/freighter-api';
 import { StrKey } from '@stellar/stellar-sdk';
 
@@ -205,6 +206,26 @@ export const getBalances = async (walletId, setBalances) => {
   } catch (error) {
     console.error('Error fetching user balances:', error);
   }
+};
+
+/**
+ * Sign a nonce string for API authentication using the Freighter wallet.
+ *
+ * Freighter's signMessage returns the Ed25519 signature as a base64-encoded string.
+ * We convert it to hex to match the backend's bytes.fromhex() expectation.
+ *
+ * @param {string} nonce - The nonce string obtained from GET /api/auth/nonce
+ * @param {string} walletId - The Stellar public key of the signer
+ * @returns {Promise<string>} Hex-encoded Ed25519 signature
+ */
+export const signNonce = async (nonce, walletId) => {
+  const result = await signMessage(nonce, { address: walletId });
+  if (result.error) {
+    throw new Error(`Failed to sign nonce: ${result.error}`);
+  }
+  // signedMessage is a base64 string — convert to hex for backend
+  const raw = atob(result.signedMessage);
+  return Array.from(raw, (c) => c.charCodeAt(0).toString(16).padStart(2, '0')).join('');
 };
 
 export const disconnectWallet = async () => {
