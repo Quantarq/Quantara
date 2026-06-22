@@ -15,6 +15,7 @@ from decimal import Decimal
 
 import aiohttp
 
+from .cache import get_cached_or_fetch
 from .constants import MULTIPLIER_POWER, TokenParams
 
 logger = logging.getLogger(__name__)
@@ -119,20 +120,25 @@ class StellarClient:
         :param holder_address: Stellar account public key.
         :return: dict mapping token symbols to balance strings.
         """
-        balances: dict[str, str] = {}
-        for token in TokenParams.tokens():
-            try:
-                bal = await self.get_balance(
-                    asset_code=token.asset_code,
-                    holder_address=holder_address,
-                    asset_issuer=getattr(token, "asset_issuer", None),
-                )
-                balances[token.name] = bal
-            except (aiohttp.ClientError, ValueError, KeyError) as exc:
-                logger.info(
-                    "Failed to get balance for %s: %s", token.name, exc
-                )
-        return balances
+
+        async def _fetch() -> dict[str, str]:
+            balances: dict[str, str] = {}
+            for token in TokenParams.tokens():
+                try:
+                    bal = await self.get_balance(
+                        asset_code=token.asset_code,
+                        holder_address=holder_address,
+                        asset_issuer=getattr(token, "asset_issuer", None),
+                    )
+                    balances[token.name] = bal
+                except (aiohttp.ClientError, ValueError, KeyError) as exc:
+                    logger.info(
+                        "Failed to get balance for %s: %s", token.name, exc
+                    )
+            return balances
+
+        cache_key = f"quantara:balances:{holder_address}"
+        return await get_cached_or_fetch(cache_key, 60, _fetch)
 
     # ------------------------------------------------------------------ #
     #  Loop liquidity / repay data stubs (pool-agnostic for Soroban)

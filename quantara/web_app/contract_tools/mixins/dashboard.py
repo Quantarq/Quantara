@@ -14,6 +14,7 @@ import aiohttp
 
 from web_app.contract_tools.api_request import APIRequest
 from web_app.contract_tools.blockchain_call import StellarClient
+from web_app.contract_tools.cache import get_cached_or_fetch
 from web_app.contract_tools.constants import MULTIPLIER_POWER, TokenParams
 from web_app.db.crud.position import PositionDBConnector
 
@@ -27,6 +28,8 @@ TOKEN_PRICE_IDS = {
     "USDC": "usd-coin",
     "ETH": "ethereum",
 }
+PRICE_CACHE_KEY = "quantara:prices"
+PRICE_CACHE_TTL = 30
 
 
 class DashboardMixin:
@@ -42,36 +45,48 @@ class DashboardMixin:
         Queries CoinGecko's simple price endpoint for the supported
         Stellar-compatible tokens and maps the response back to the
         internal token symbols used throughout Quantara.
+        Results are cached in Redis for 30 seconds.
 
         :return: Dictionary mapping token symbols to their current prices as Decimal.
         :raises: None (returns empty dict on any failure)
         """
-        prices = {}
-        try:
-            response = await APIRequest(base_url=COINGECKO_PRICE_URL).fetch(
-                "",
-                params={
-                    "ids": ",".join(TOKEN_PRICE_IDS.values()),
-                    "vs_currencies": "usd",
-                },
-            )
-            if not isinstance(response, dict):
+
+        async def _fetch() -> Dict[str, Decimal]:
+            prices: Dict[str, Decimal] = {}
+            try:
+                response = await APIRequest(base_url=COINGECKO_PRICE_URL).fetch(
+                    "",
+                    params={
+                        "ids": ",".join(TOKEN_PRICE_IDS.values()),
+                        "vs_currencies": "usd",
+                    },
+                )
+                if not isinstance(response, dict):
+                    return prices
+
+                for symbol, token_id in TOKEN_PRICE_IDS.items():
+                    token_data = response.get(token_id)
+                    current_price = (
+                        token_data.get("usd")
+                        if isinstance(token_data, dict)
+                        else None
+                    )
+                    if current_price is not None:
+                        prices[symbol] = Decimal(str(current_price))
+
+                return prices
+            except (aiohttp.ClientError, ValueError, KeyError, TypeError) as e:
+                logger.error(f"Error fetching current prices: {e}")
                 return prices
 
-            for symbol, token_id in TOKEN_PRICE_IDS.items():
-                token_data = response.get(token_id)
-                current_price = (
-                    token_data.get("usd")
-                    if isinstance(token_data, dict)
-                    else None
-                )
-                if current_price is not None:
-                    prices[symbol] = Decimal(str(current_price))
-
-            return prices
-        except (aiohttp.ClientError, ValueError, KeyError, TypeError) as e:
-            logger.error(f"Error fetching current prices: {e}")
-            return prices
+        cached_prices = await get_cached_or_fetch(
+            PRICE_CACHE_KEY,
+            PRICE_CACHE_TTL,
+            _fetch,
+        )
+        if cached_prices is not None:
+            return {k: Decimal(v) for k, v in cached_prices.items()}
+        return {}
 
     @classmethod
     async def get_wallet_balances(cls, holder_address: str, client: StellarClient) -> Dict[str, str]:
