@@ -18,7 +18,7 @@ from web_app.api.serializers.user import (
     SubscribeToNotificationRequest,
     UpdateUserContractResponse,
 )
-from web_app.api.dependencies import get_stellar_client
+from web_app.api.dependencies import get_stellar_client, verify_wallet_signature
 from web_app.contract_tools.blockchain_call import StellarClient
 from web_app.contract_tools.mixins import DashboardMixin, PositionMixin
 from web_app.db.crud import (
@@ -135,6 +135,7 @@ async def check_user(request: Request, wallet_id: str) -> CheckUserResponse:
 async def update_user_contract(
     request: Request,
     data: UpdateUserContractRequest,
+    wallet: str = Depends(verify_wallet_signature),
 ) -> UpdateUserContractResponse:
     """
     This endpoint updates the user's contract.
@@ -165,6 +166,7 @@ async def update_user_contract(
 async def subscribe_to_notification(
     request: Request,
     data: SubscribeToNotificationRequest,
+    wallet: str = Depends(verify_wallet_signature),
 ):
     """
     This endpoint subscribes a user to notifications by linking their telegram ID to their wallet.

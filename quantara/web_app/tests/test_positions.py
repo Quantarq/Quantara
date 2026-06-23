@@ -20,8 +20,6 @@ from web_app.api.main import app
 from web_app.db.models import TransactionStatus
 from web_app.tests.conftest import dict_to_object
 
-app.dependency_overrides.clear()
-
 
 @pytest.mark.anyio
 async def test_open_position_success(client: TestClient) -> None:

@@ -163,3 +163,11 @@ STELLAR_NODE_URL=<soroban-rpc-url>
 ## License
 
 MIT License — see [LICENSE](LICENSE) for details.
+
+---
+
+## Community
+
+- [Contributing Guide](CONTRIBUTING.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Security Policy](SECURITY.md)
