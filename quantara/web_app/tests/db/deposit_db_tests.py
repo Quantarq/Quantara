@@ -104,9 +104,9 @@ class TestAddVaultBalance:
             amount="50.00",
         )
 
-        updated_amount = Decimal(mock_vault.amount) + Decimal("50.00")
+        updated_amount = Decimal(str(mock_vault.amount)) + Decimal("50.00")
         mock_db_connector.Session().query().filter_by().update.assert_called_once_with(
-            {"amount": str(updated_amount)}
+            {"amount": updated_amount}
         )
 
     def test_add_balance_failure_vault_not_found(

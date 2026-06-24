@@ -65,8 +65,8 @@ class DepositDBConnector(DBConnector):
         if not vault:
             raise ValueError("Vault not found")
         with self.Session() as db:
-            new_amount = Decimal(vault.amount) + Decimal(amount)
-            db.query(Vault).filter_by(id=vault.id).update(amount=str(new_amount))
+            new_amount = Decimal(str(vault.amount or 0)) + Decimal(amount)
+            db.query(Vault).filter_by(id=vault.id).update({"amount": new_amount})
             db.commit()
             vault = self.get_vault(wallet_id, symbol)
         return vault
@@ -81,4 +81,5 @@ class DepositDBConnector(DBConnector):
         :returns: str or None
         """
         vault = self.get_vault(wallet_id, symbol)
-        return vault.amount if vault else None
+        return str(vault.amount) if (vault and vault.amount is not None) else None
+

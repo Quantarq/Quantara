@@ -40,7 +40,7 @@ class PositionDBConnector(UserDBConnector):
             "id": str(position.id),
             "user_id": str(position.user_id),
             "token_symbol": position.token_symbol,
-            "amount": position.amount,
+            "amount": str(position.amount),
             "multiplier": position.multiplier,
             "created_at": (
                 position.created_at.isoformat() if position.created_at else None
@@ -335,7 +335,7 @@ class PositionDBConnector(UserDBConnector):
                 token_amounts = (
                     db.query(
                         Position.token_symbol,
-                        func.sum(cast(Position.amount, Numeric)).label("total_amount"),
+                        func.sum(Position.amount).label("total_amount"),
                     )
                     .filter(Position.status != Status.PENDING.value)
                     .group_by(Position.token_symbol)
@@ -488,7 +488,7 @@ class PositionDBConnector(UserDBConnector):
                 .on_conflict_do_update(
                     index_elements=["position_id", "token_symbol"],
                     set_={
-                        "amount": cast(ExtraDeposit.amount, Numeric) + cast(amount, Numeric)
+                        "amount": ExtraDeposit.amount + cast(amount, Numeric)
                     },
                 )
             )
@@ -508,7 +508,7 @@ class PositionDBConnector(UserDBConnector):
                 .filter(ExtraDeposit.position_id == position_id)
                 .all()
             )
-            return {deposit.token_symbol: deposit.amount for deposit in deposits}
+            return {deposit.token_symbol: str(deposit.amount) for deposit in deposits}
 
     def get_extra_deposits_by_position_id(self, position_id: UUID) -> list[ExtraDeposit]:
         """
