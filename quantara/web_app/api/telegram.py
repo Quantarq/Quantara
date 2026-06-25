@@ -23,6 +23,9 @@ from web_app.telegram.utils import (
 )
 
 from web_app.api.rate_limiter import limiter, WRITE_LIMIT, READ_LIMIT
+from web_app.utils.logger import get_logger
+
+_logger = get_logger(__name__)
 
 # Create a FastAPI router for handling Telegram webhook requests
 router = APIRouter()
@@ -98,7 +101,7 @@ async def telegram_webhook(update: Update):
         result = await dp.feed_webhook_update(bot, update, db=db_connector)
         return build_multipart_response(bot, result)
     except (ValueError, KeyError, TypeError, AttributeError) as e:
-        logger.error(f"Error processing Telegram update {update.update_id}: {e}")
+        _logger.error("telegram_update_error", update_id=update.update_id, error=str(e))
         return b"", 200
 
 

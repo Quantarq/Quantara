@@ -12,8 +12,9 @@ from requests.exceptions import ConnectionError, Timeout
 from sqlalchemy.exc import SQLAlchemyError
 from web_app.contract_tools.airdrop import AirdropFetcher
 from web_app.db.crud import AirDropDBConnector
+from web_app.utils.logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class AirdropClaimer:
@@ -35,15 +36,13 @@ class AirdropClaimer:
         """
         unclaimed_airdrops = self.db_connector.get_all_unclaimed()
         if not unclaimed_airdrops:
-            logger.info("No unclaimed airdrops found")
+            logger.info("airdrop_no_unclaimed")
             return
         for airdrop in unclaimed_airdrops:
             try:
                 user_contract_address = airdrop.user.contract_address
                 if not user_contract_address:
-                    logger.warning(
-                        "Skipping airdrop %s: no contract address", airdrop.id
-                    )
+                    logger.warning("airdrop_skip_no_contract", airdrop_id=str(airdrop.id))
                     continue
                 airdrop_data = self.airdrop_fetcher.get_contract_airdrop(
                     user_contract_address
@@ -52,9 +51,7 @@ class AirdropClaimer:
                     airdrop_data = await airdrop_data
                 proofs = self._extract_proofs(airdrop_data)
                 if not proofs:
-                    logger.info(
-                        "Skipping airdrop %s: no proof data available", airdrop.id
-                    )
+                    logger.info("airdrop_skip_no_proof", airdrop_id=str(airdrop.id))
                     continue
 
                 claim_successful = await self._claim_airdrop(
@@ -63,25 +60,17 @@ class AirdropClaimer:
 
                 if claim_successful:
                     self.db_connector.save_claim_data(airdrop.id, airdrop.amount)
-                    logger.info("Airdrop %s claimed successfully.", airdrop.id)
+                    logger.info("airdrop_claimed", airdrop_id=str(airdrop.id))
             except ValueError as ve:
-                logger.error("Invalid data for airdrop %s: %s", airdrop.id, ve)
+                logger.error("airdrop_invalid_data", airdrop_id=str(airdrop.id), error=str(ve))
             except SQLAlchemyError as db_err:
-                logger.error(
-                    "Database error while updating claim data for airdrop %s: %s",
-                    airdrop.id,
-                    db_err,
-                )
+                logger.error("airdrop_db_error", airdrop_id=str(airdrop.id), error=str(db_err))
             except ConnectionError as ce:
-                logger.error(
-                    "Network connection error during claim for airdrop %s: %s",
-                    airdrop.id,
-                    ce,
-                )
+                logger.error("airdrop_connection_error", airdrop_id=str(airdrop.id), error=str(ce))
             except Timeout as te:
-                logger.error("Timeout during claim for airdrop %s: %s", airdrop.id, te)
+                logger.error("airdrop_timeout", airdrop_id=str(airdrop.id), error=str(te))
             except Exception as e:
-                logger.error("Unexpected error claiming airdrop %s: %s", airdrop.id, e)
+                logger.error("airdrop_unexpected_error", airdrop_id=str(airdrop.id), error=str(e))
 
     @staticmethod
     def _extract_proofs(airdrop_data):
@@ -113,32 +102,22 @@ class AirdropClaimer:
             # NOTE: Soroban contract invocation for airdrop claiming pending
             #       the deployment of the claim contract on the target network.
             logger.info(
-                "Airdrop claim for %s with %d proofs sent (mock implementation)",
-                contract_address,
-                len(proofs),
+                "airdrop_mock_claim_sent",
+                contract_address=contract_address,
+                proof_count=len(proofs),
             )
             return True
         except ConnectionError as ce:
-            logger.error(
-                "Network connection failed for address %s: %s", contract_address, ce
-            )
+            logger.error("airdrop_claim_network_error", contract_address=contract_address, error=str(ce))
             return False
         except Timeout as te:
-            logger.error(
-                "Timeout during claim for address %s: %s", contract_address, te
-            )
+            logger.error("airdrop_claim_timeout", contract_address=contract_address, error=str(te))
             return False
         except ValueError as ve:
-            logger.error(
-                "Invalid data format for calldata during claim for address %s: %s",
-                contract_address,
-                ve,
-            )
+            logger.error("airdrop_claim_invalid_data", contract_address=contract_address, error=str(ve))
             return False
         except Exception as e:
-            logger.error(
-                "Unexpected error claiming address %s: %s", contract_address, e
-            )
+            logger.error("airdrop_claim_unexpected_error", contract_address=contract_address, error=str(e))
             return False
 
 

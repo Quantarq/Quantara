@@ -28,8 +28,9 @@ from web_app.db.crud import (
 )
 
 from web_app.api.rate_limiter import limiter, WRITE_LIMIT, USER_DATA_LIMIT, READ_LIMIT
+from web_app.utils.logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 router = APIRouter()  # Initialize the router
 telegram_db = TelegramUserDBConnector()
 
@@ -231,8 +232,7 @@ async def get_user_contract_address(request: Request, wallet_id: str) -> GetUser
     tags=["User Operations"],
     summary="Get total opened amounts and number of unique users",
     response_model=GetStatsResponse,
-    response_description="Total amount for all open positions across all users & \
-                              Number of unique users in the database.",
+    response_description="Total amount for all open positions across all users & Number of unique users in the database.",
 )
 @limiter.limit(READ_LIMIT)
 async def get_stats(request: Request) -> GetStatsResponse:
@@ -256,7 +256,7 @@ async def get_stats(request: Request) -> GetStatsResponse:
         for token, amount in token_amounts.items():
             # Skip if no price available for the token
             if token not in current_prices:
-                logger.warning(f"No price data available for {token}")
+                logger.warning("no_price_data", token=token)
                 continue
 
             # If the token is USDC, use it directly
@@ -278,7 +278,7 @@ async def get_stats(request: Request) -> GetStatsResponse:
         )
 
     except Exception as e:
-        logger.exception("Error in get_stats")
+        logger.error("get_stats_error", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
@@ -337,6 +337,6 @@ async def save_bug_report(request: Request, report: BugReportRequest) -> BugRepo
         if isinstance(e, HTTPException):
             raise
 
-        logger.error(f"Failed to submit bug report: {str(e)}")
+        logger.error("bug_report_failed", error=str(e))
         sentry_sdk.capture_exception(e)
         raise HTTPException(status_code=500, detail="Failed to submit bug report")

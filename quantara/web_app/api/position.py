@@ -27,8 +27,10 @@ from web_app.api.dependencies import get_stellar_client
 from web_app.contract_tools.blockchain_call import StellarClient
 from web_app.db.models import Status, TransactionStatus
 from web_app.api.rate_limiter import limiter, WRITE_LIMIT, USER_DATA_LIMIT, READ_LIMIT
+from web_app.utils.logger import get_logger
 
 router = APIRouter()
+logger = get_logger(__name__)
 position_db_connector = PositionDBConnector()
 transaction_db_connector = TransactionDBConnector()
 

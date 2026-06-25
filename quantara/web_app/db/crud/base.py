@@ -12,8 +12,9 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 
 from web_app.db.database import get_database_url
 from web_app.db.models import AirDrop, Base
+from web_app.utils.logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 ModelType = TypeVar("ModelType", bound=Base)
 
 
@@ -71,7 +72,7 @@ class DBConnector:
         try:
             return db.query(model).filter(model.id == obj_id).first()
         except SQLAlchemyError as e:
-            logger.error("Failed to get object by id: %s", e)
+            logger.error("db_get_object_failed", error=str(e))
             return None
         finally:
             db.close()
@@ -127,7 +128,7 @@ class DBConnector:
 
         except SQLAlchemyError as e:
             db.rollback()
-            logger.error(f"Error deleting object: {e}")
+            logger.error("db_delete_object_failed", error=str(e))
 
         finally:
             db.close()

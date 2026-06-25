@@ -6,9 +6,9 @@ dashboard, position, user, vault, leaderboard, referal, telegram, and
 authentication endpoints, and exposes a /health endpoint for CI orchestration.
 """
 
-import logging
 import os
 import asyncio
+import uuid
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, Response, Depends
@@ -31,12 +31,16 @@ from web_app.api.vault import router as vault_router
 from web_app.api.leaderboard import router as leaderboard_router
 from web_app.api.referal import router as referal_router
 from web_app.api.wallet_auth import router as auth_router
+from web_app.api.metrics import router as metrics_router, PrometheusMiddleware
 from web_app.config_validator import assert_valid_config
 from web_app.api.middleware import MaxBodySizeMiddleware
 from web_app.db.database import init_db
 from web_app.db.database import init_db, get_database
+from web_app.utils.logger import configure_logging, get_logger
+import structlog
 
-logger = logging.getLogger(__name__)
+configure_logging()
+logger = get_logger(__name__)
 DEFAULT_CORS_ORIGINS = ["http://localhost:3000"]
 CORS_ALLOW_METHODS = ["GET", "POST"]
 CORS_ALLOW_HEADERS = ["Content-Type", "Authorization", "X-Wallet-Id", "X-Nonce", "X-Signature"]
@@ -63,6 +67,7 @@ async def lifespan(app: FastAPI):
     Handles application startup and shutdown events.
     """
     init_db()
+    configure_logging()
 
     # Validate required environment variables at startup.
     assert_valid_config()
@@ -117,7 +122,10 @@ async def global_exception_handler(request: Request, exc: Exception):
     :return: JSON response with a generic error message and 500 status.
     """
     logger.exception(
-        "Unhandled exception on %s %s", request.method, request.url.path
+        "unhandled_exception",
+        method=request.method,
+        path=request.url.path,
+        request_id=structlog.contextvars.get_contextvars().get("request_id", "-"),
     )
     return JSONResponse(
         status_code=500,
@@ -141,6 +149,17 @@ app.add_middleware(
 # full middleware stack and can reject requests before they reach routers.
 app.add_middleware(SlowAPIMiddleware)
 app.add_middleware(MaxBodySizeMiddleware, max_body_size=1024*1024)
+app.add_middleware(PrometheusMiddleware)
+
+
+@app.middleware("http")
+async def request_id_middleware(request: Request, call_next):
+    """Attach a unique request_id to every structlog context."""
+    request_id = request.headers.get("X-Request-Id", str(uuid.uuid4()))
+    with structlog.contextvars.bound_contextvars(request_id=request_id):
+        response = await call_next(request)
+        response.headers["X-Request-Id"] = request_id
+        return response
 
 
 @app.get("/health", tags=["Health"], summary="Health check endpoint")
@@ -156,7 +175,7 @@ async def health_check(response: Response, db: Session = Depends(get_database)):
             asyncio.to_thread(db.execute, text("SELECT 1")), timeout=2.0
         )
     except Exception as e:
-        logger.error(f"Database health check failed: {e}")
+        logger.error("health_check_db_failed", error=str(e))
         health_status["database"] = "down"
         is_healthy = False
 
@@ -167,7 +186,7 @@ async def health_check(response: Response, db: Session = Depends(get_database)):
         await asyncio.wait_for(r.ping(), timeout=2.0)
         await r.close()
     except Exception as e:
-        logger.error(f"Redis health check failed: {e}")
+        logger.error("health_check_redis_failed", error=str(e))
         health_status["redis"] = "down"
         is_healthy = False
 
@@ -190,3 +209,4 @@ app.include_router(vault_router)
 app.include_router(leaderboard_router)
 app.include_router(referal_router)
 app.include_router(auth_router)
+app.include_router(metrics_router)
