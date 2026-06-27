@@ -1,0 +1,93 @@
+name: Release
+
+# Publishes a GitHub Release for tagged versions of the project.
+# Triggers:
+#   - Tag push matching the SemVer pattern vMAJOR.MINOR.PATCH (e.g. v1.2.3).
+#   - Manual ``workflow_dispatch`` for one-off releases.
+#
+# Safety:
+#   - Runs in the ``release`` GitHub Environment so the project's configured
+#     manual approval gate applies before the job is allowed to start.
+#   - ``contents: write`` is scoped to this single job only.
+#   - User-supplied tag values are passed via ``env:`` (not direct shell
+#     interpolation) to avoid script injection in the validate step.
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (must match vMAJOR.MINOR.PATCH).'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build & publish release
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate release tag format
+        id: validate
+        env:
+          DISPATCH_TAG: ${{ inputs.tag }}
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            TAG="${GITHUB_REF_NAME}"
+          else
+            TAG="${DISPATCH_TAG}"
+          fi
+          if [[ -z "${TAG}" ]]; then
+            echo "Could not determine release tag from GITHUB_REF or inputs.tag." >&2
+            exit 1
+          fi
+          if [[ ! "${TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Tag '${TAG}' does not match the required pattern 'vMAJOR.MINOR.PATCH'." >&2
+            exit 1
+          fi
+          echo "TAG=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "VERSION=${TAG#v}" >> "$GITHUB_OUTPUT"
+          echo "Validated release tag: ${TAG}"
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Verify pyproject version matches tag (read-only)
+        working-directory: ./quantara
+        run: |
+          PYPROJECT_VERSION="$(poetry version -s)"
+          EXPECTED="${{ steps.validate.outputs.VERSION }}"
+          if [[ "${PYPROJECT_VERSION}" != "${EXPECTED}" ]]; then
+            echo "::error::pyproject.toml version (${PYPROJECT_VERSION}) does not match tag (${EXPECTED})." >&2
+            echo "This workflow does not auto-bump pyproject.toml. Bump the version locally, commit, push, and then tag the release." >&2
+            exit 1
+          fi
+          echo "pyproject.toml version ${PYPROJECT_VERSION} matches tag ${EXPECTED}."
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.validate.outputs.TAG }}
+          name: ${{ steps.validate.outputs.TAG }}
+          generate_release_notes: true
