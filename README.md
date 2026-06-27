@@ -97,6 +97,9 @@ make dev
 make back
 ```
 
+```markdown
+* 🚀 **[Production Deployment Guide](docs/deployment.md)** - Step-by-step instructions for deploying Quantara to production environments.
+
 ### Services
 
 | Service | URL | Description |
