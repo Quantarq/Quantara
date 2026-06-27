@@ -56,7 +56,7 @@ def check_telegram_authorization(
     if hash_value != check_hash:
         return False
 
-    if expiration_seconds and (int(time.time()) - auth_data.get("auth_date", 0)) > expiration_seconds:
+    if expiration_seconds and (int(time.time()) - int(auth_data.get("auth_date", 0))) > expiration_seconds:
         return False
 
     return True
