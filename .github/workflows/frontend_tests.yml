@@ -56,7 +56,7 @@ jobs:
       run: yarn bundle:size
 
     - name: Upload bundle size report
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: frontend-bundle-size-report
         path: quantara/frontend/bundle-size-report.json
