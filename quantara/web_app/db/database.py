@@ -12,7 +12,11 @@ from typing import Generator
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
-from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
+
+try:
+    from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
+except ImportError:
+    SQLAlchemyInstrumentor = None
 
 engine = None
 SessionLocal = None
@@ -65,7 +69,8 @@ def init_db() -> None:
         return
 
     engine = create_engine(get_database_url(), **_engine_pool_kwargs())
-    SQLAlchemyInstrumentor().instrument(engine=engine)
+    if SQLAlchemyInstrumentor is not None:
+        SQLAlchemyInstrumentor().instrument(engine=engine)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_database() -> Generator[Session, None, None]:

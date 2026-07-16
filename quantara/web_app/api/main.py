@@ -91,10 +91,13 @@ async def lifespan(app: FastAPI):
         )
 
     # Auto-instrument FastAPI + outgoing HTTP for OTel if configured
-    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-    from opentelemetry.instrumentation.aiohttp_client import AioHttpClientInstrumentor
-    FastAPIInstrumentor.instrument_app(app)
-    AioHttpClientInstrumentor().instrument()
+    try:
+        from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+        from opentelemetry.instrumentation.aiohttp_client import AioHttpClientInstrumentor
+        FastAPIInstrumentor.instrument_app(app)
+        AioHttpClientInstrumentor().instrument()
+    except ImportError:
+        pass
 
     yield
 

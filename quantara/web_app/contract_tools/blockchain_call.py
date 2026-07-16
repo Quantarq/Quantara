@@ -14,14 +14,35 @@ import os
 from decimal import Decimal
 
 import aiohttp
-from opentelemetry import trace
+
+try:
+    from opentelemetry import trace
+    _otel_tracer = trace.get_tracer(__name__)
+except ImportError:
+    _otel_tracer = None
+
+
+class _NoOpSpan:
+    def __enter__(self):
+        return self
+    def __exit__(self, *a):
+        pass
+    def set_attribute(self, *a, **kw):
+        pass
+
+_NOOP_SPAN = _NoOpSpan()
+
+
+def _start_span(name: str):
+    if _otel_tracer is not None:
+        return _otel_tracer.start_as_current_span(name)
+    return _NOOP_SPAN
 
 from .cache import get_cached_or_fetch
 from .constants import MULTIPLIER_POWER, TokenParams
 from web_app.utils.logger import get_logger
 
 logger = get_logger(__name__)
-tracer = trace.get_tracer(__name__)
 
 # Base64-encoded "wasm_hash" key for Soroban getContractData RPC calls
 _SOROBAN_WASM_HASH_KEY = "dHJ1c3RlZAB3YXNoX2hhc2g="
@@ -76,7 +97,7 @@ class StellarClient:
             return "0"
         url = f"{self.horizon_url.rstrip('/')}/accounts/{holder_address}"
         try:
-            with tracer.start_as_current_span("stellar.horizon.get_account") as span:
+            with _start_span("stellar.horizon.get_account") as span:
                 span.set_attribute("stellar.account", holder_address)
                 span.set_attribute("stellar.asset", asset_code)
                 async with aiohttp.ClientSession() as session:
@@ -121,7 +142,7 @@ class StellarClient:
             return None
         url = f"{self.horizon_url.rstrip('/')}/accounts/{holder_address}"
         try:
-            with tracer.start_as_current_span("stellar.horizon.get_account_data") as span:
+            with _start_span("stellar.horizon.get_account_data") as span:
                 span.set_attribute("stellar.account", holder_address)
                 async with aiohttp.ClientSession() as session:
                     async with session.get(url) as response:
@@ -253,7 +274,7 @@ class StellarClient:
                     "key": _SOROBAN_WASM_HASH_KEY,  # base64 "wasm_hash"
                 },
             }
-            with tracer.start_as_current_span("stellar.soroban.get_contract_data") as span:
+            with _start_span("stellar.soroban.get_contract_data") as span:
                 span.set_attribute("stellar.contract_id", contract_id)
                 async with aiohttp.ClientSession() as session:
                     async with session.post(rpc_url, json=payload) as response:
@@ -280,7 +301,7 @@ class StellarClient:
         :param contract_address: The account or contract ID to query.
         :return: dict mapping token keys to balance info.
         """
-        with tracer.start_as_current_span("stellar.fetch_portfolio") as span:
+        with _start_span("stellar.fetch_portfolio") as span:
             span.set_attribute("stellar.account", contract_address)
             results = {}
             for token in TokenParams.tokens():
