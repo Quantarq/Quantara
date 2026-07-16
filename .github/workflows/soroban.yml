@@ -1,0 +1,41 @@
+name: Soroban Contracts CI
+
+on:
+  push:
+    paths:
+      - 'quantara/soroban/**'
+  pull_request:
+    paths:
+      - 'quantara/soroban/**'
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./quantara/soroban
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Run Tests
+        run: cargo test
+
+      - name: Build Contracts
+        run: cargo build --target wasm32-unknown-unknown --release
+
+      - name: Check Wasm Sizes
+        run: |
+          for f in target/wasm32-unknown-unknown/release/*.wasm; do
+            SIZE=$(stat -c%s "$f")
+            echo "Size of $f is $SIZE bytes"
+            if [ $SIZE -gt 65536 ]; then
+              echo "Error: $f exceeds 64kB limit"
+              exit 1
+            fi
+          done
