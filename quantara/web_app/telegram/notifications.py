@@ -10,7 +10,7 @@ from aiogram.exceptions import TelegramRetryAfter
 from web_app.db.crud import TelegramUserDBConnector
 from web_app.telegram import bot
 
-from .texts import HEALTH_RATIO_WARNING_MESSAGE
+from .texts import i18n
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ async def send_health_ratio_notification(
     try:
         await bot.send_message(
             chat_id=telegram_id,
-            text=HEALTH_RATIO_WARNING_MESSAGE.format(health_ratio=health_ratio),
+            text=i18n.get("HEALTH_RATIO_WARNING_MESSAGE", health_ratio=health_ratio),
         )
     except TelegramRetryAfter as e:
         if retry_count < 1:

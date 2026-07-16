@@ -10,7 +10,7 @@ from aiogram.types import Message
 
 from web_app.db.models import User
 from ..markups import launch_main_web_app_kb
-from ..texts import WELCOME_MESSAGE, NOTIFICATION_ALLOWED_MESSAGE
+from ..texts import i18n
 from web_app.db.crud.telegram import TelegramUserDBConnector
 from web_app.db.crud import DBConnector
 
@@ -37,8 +37,9 @@ async def notification_allowed(message: Message, command: CommandObject):
     )
     telegram_db.set_allow_notification(str(message.from_user.id), user.wallet_id)
 
+    lang = message.from_user.language_code
     return await message.answer(
-        NOTIFICATION_ALLOWED_MESSAGE, reply_markup=launch_main_web_app_kb
+        i18n.get("NOTIFICATION_ALLOWED_MESSAGE", lang), reply_markup=launch_main_web_app_kb
     )
 
 
@@ -53,4 +54,5 @@ async def start_cmd(message: Message):
     Returns:
         None: Sends a welcome message with a button to launch the web app.
     """
-    return message.answer(WELCOME_MESSAGE, reply_markup=launch_main_web_app_kb)
+    lang = message.from_user.language_code
+    return message.answer(i18n.get("WELCOME_MESSAGE", lang), reply_markup=launch_main_web_app_kb)
