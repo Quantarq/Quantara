@@ -36,7 +36,8 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
-    "format": "prettier --check . --write"
+    "format": "prettier --check . --write",
+    "tsc": "tsc --noEmit"
   },
   "options": {
     "allowedHosts": [
@@ -60,6 +61,9 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@testing-library/jest-dom": "^6.9.1",
+    "@types/node": "^22.15.21",
+    "@types/react": "^18.3.23",
+    "@types/react-dom": "^18.3.7",
     "@vitest/ui": "^3.0.4",
     "class-variance-authority": "^0.7.1",
     "eslint": "^8.57.1",
@@ -73,6 +77,7 @@
     "prettier": "^3.8.4",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "tailwind-merge": "^3.6.0",
+    "typescript": "^5.8.3",
     "vite-plugin-svgr": "^4.3.0",
     "vitest": "^3.0.4"
   }

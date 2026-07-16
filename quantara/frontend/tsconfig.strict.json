@@ -1,0 +1,58 @@
+{
+  // Strict-mode TypeScript config.
+  // Every .ts / .tsx file that lives in a listed directory MUST pass this
+  // config.  CI enforces `yarn tsc --project tsconfig.strict.json` exits 0.
+  //
+  // How to migrate a directory:
+  //   1. Rename the files you want to migrate from .jsx → .tsx (or .js → .ts).
+  //   2. Add the directory glob to the "include" list below.
+  //   3. Fix all strict-mode errors — `tsc --noEmit` must exit 0.
+  //   4. Open a PR; the CI gate will enforce zero errors going forward.
+  //
+  // Currently migrated directories (strict):
+  //   • src/utils
+  //   • src/hooks
+  //   • src/stores
+  //   • src/QueryKeys
+  //   • src/services
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    // ── Full strict suite ────────────────────────────────────────────────────
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+
+    // ── Additional quality gates ─────────────────────────────────────────────
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "useUnknownInCatchVariables": true,
+
+    // ── Pure TS only — no JS files allowed in the strict set ─────────────────
+    "allowJs": false,
+    "checkJs": false
+  },
+
+  // Only .ts / .tsx files in migrated directories.
+  // Extend this list as more directories are converted.
+  "include": [
+    "src/vite-env.d.ts",
+    "src/utils/**/*.ts",
+    "src/utils/**/*.tsx",
+    "src/hooks/**/*.ts",
+    "src/hooks/**/*.tsx",
+    "src/stores/**/*.ts",
+    "src/stores/**/*.tsx",
+    "src/QueryKeys/**/*.ts",
+    "src/QueryKeys/**/*.tsx",
+    "src/services/**/*.ts",
+    "src/services/**/*.tsx"
+  ],
+  "exclude": ["node_modules", "dist", "**/*.spec.*", "**/*.test.*"]
+}
