@@ -15,6 +15,29 @@ from decimal import Decimal
 
 import aiohttp
 
+try:
+    from opentelemetry import trace
+    _otel_tracer = trace.get_tracer(__name__)
+except ImportError:
+    _otel_tracer = None
+
+
+class _NoOpSpan:
+    def __enter__(self):
+        return self
+    def __exit__(self, *a):
+        pass
+    def set_attribute(self, *a, **kw):
+        pass
+
+_NOOP_SPAN = _NoOpSpan()
+
+
+def _start_span(name: str):
+    if _otel_tracer is not None:
+        return _otel_tracer.start_as_current_span(name)
+    return _NOOP_SPAN
+
 from .cache import get_cached_or_fetch
 from .constants import MULTIPLIER_POWER, TokenParams
 from web_app.utils.logger import get_logger
@@ -74,15 +97,19 @@ class StellarClient:
             return "0"
         url = f"{self.horizon_url.rstrip('/')}/accounts/{holder_address}"
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url) as response:
-                    if response.status == 404:
-                        logger.info("horizon_account_not_found", account=holder_address)
-                        return "0"
-                    if response.status != 200:
-                        logger.warning("horizon_unexpected_status", status=response.status, url=url)
-                        return "0"
-                    account = await response.json()
+            with _start_span("stellar.horizon.get_account") as span:
+                span.set_attribute("stellar.account", holder_address)
+                span.set_attribute("stellar.asset", asset_code)
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(url) as response:
+                        span.set_attribute("http.status_code", response.status)
+                        if response.status == 404:
+                            logger.info("horizon_account_not_found", account=holder_address)
+                            return "0"
+                        if response.status != 200:
+                            logger.warning("horizon_unexpected_status", status=response.status, url=url)
+                            return "0"
+                        account = await response.json()
         except aiohttp.ClientError as exc:
             logger.error("horizon_network_error", account=holder_address, error=str(exc))
             return "0"
@@ -115,20 +142,23 @@ class StellarClient:
             return None
         url = f"{self.horizon_url.rstrip('/')}/accounts/{holder_address}"
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url) as response:
-                    if response.status == 404:
-                        logger.info(
-                            "Account %s not found on Stellar network",
-                            holder_address,
-                        )
-                        return None
-                    if response.status != 200:
-                        logger.warning(
-                            "Horizon returned %d for %s", response.status, url
-                        )
-                        return None
-                    return await response.json()
+            with _start_span("stellar.horizon.get_account_data") as span:
+                span.set_attribute("stellar.account", holder_address)
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(url) as response:
+                        span.set_attribute("http.status_code", response.status)
+                        if response.status == 404:
+                            logger.info(
+                                "Account %s not found on Stellar network",
+                                holder_address,
+                            )
+                            return None
+                        if response.status != 200:
+                            logger.warning(
+                                "Horizon returned %d for %s", response.status, url
+                            )
+                            return None
+                        return await response.json()
         except aiohttp.ClientError as exc:
             logger.error("Network error fetching account %s: %s", holder_address, exc)
             return None
@@ -244,16 +274,19 @@ class StellarClient:
                     "key": _SOROBAN_WASM_HASH_KEY,  # base64 "wasm_hash"
                 },
             }
-            async with aiohttp.ClientSession() as session:
-                async with session.post(rpc_url, json=payload) as response:
-                    if response.status == 200:
-                        data = await response.json()
-                        if "error" in data:
-                            logger.warning("rpc_contract_error", contract_id=contract_id, error=data["error"])
-                            return False
-                        return "result" in data
-                    logger.warning("rpc_unexpected_status", status=response.status, contract_id=contract_id)
-                    return False
+            with _start_span("stellar.soroban.get_contract_data") as span:
+                span.set_attribute("stellar.contract_id", contract_id)
+                async with aiohttp.ClientSession() as session:
+                    async with session.post(rpc_url, json=payload) as response:
+                        span.set_attribute("http.status_code", response.status)
+                        if response.status == 200:
+                            data = await response.json()
+                            if "error" in data:
+                                logger.warning("rpc_contract_error", contract_id=contract_id, error=data["error"])
+                                return False
+                            return "result" in data
+                        logger.warning("rpc_unexpected_status", status=response.status, contract_id=contract_id)
+                        return False
         except aiohttp.ClientError as e:
             logger.error("rpc_network_error", contract_id=contract_id, error=str(e))
             return False
@@ -268,38 +301,39 @@ class StellarClient:
         :param contract_address: The account or contract ID to query.
         :return: dict mapping token keys to balance info.
         """
-        results = {}
-        # Pre-initialize with zero balances
-        for token in TokenParams.tokens():
-            results[token.name] = {
-                "balance": "0",
-                "decimals": token.decimals,
-            }
-
-        account = await self._get_account_data(contract_address)
-        if not account:
-            return results
-
-        for balance in account.get("balances", []):
-            asset_type = balance.get("asset_type", "")
-            asset_code = balance.get("asset_code", "").lower()
-            asset_issuer = balance.get("asset_issuer", "")
-
+        with _start_span("stellar.fetch_portfolio") as span:
+            span.set_attribute("stellar.account", contract_address)
+            results = {}
             for token in TokenParams.tokens():
-                target_code = token.asset_code.lower()
-                target_issuer = getattr(token, "asset_issuer", None)
+                results[token.name] = {
+                    "balance": "0",
+                    "decimals": token.decimals,
+                }
 
-                if target_code == "native" or target_code == "xlm":
-                    if asset_type == "native":
-                        results[token.name]["balance"] = str(
-                            balance.get("balance", "0")
-                        )
-                elif asset_code == target_code:
-                    if target_issuer is None or asset_issuer == target_issuer:
-                        results[token.name]["balance"] = str(
-                            balance.get("balance", "0")
-                        )
-        return results
+            account = await self._get_account_data(contract_address)
+            if not account:
+                return results
+
+            for balance in account.get("balances", []):
+                asset_type = balance.get("asset_type", "")
+                asset_code = balance.get("asset_code", "").lower()
+                asset_issuer = balance.get("asset_issuer", "")
+
+                for token in TokenParams.tokens():
+                    target_code = token.asset_code.lower()
+                    target_issuer = getattr(token, "asset_issuer", None)
+
+                    if target_code == "native" or target_code == "xlm":
+                        if asset_type == "native":
+                            results[token.name]["balance"] = str(
+                                balance.get("balance", "0")
+                            )
+                    elif asset_code == target_code:
+                        if target_issuer is None or asset_issuer == target_issuer:
+                            results[token.name]["balance"] = str(
+                                balance.get("balance", "0")
+                            )
+            return results
 
 
 if __name__ == "__main__":
