@@ -1,0 +1,24 @@
+@startuml Quantara System Context
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title Quantara - System Context
+
+Person(user, "DeFi User", "Creates and manages leveraged Stellar positions through a web or Telegram experience.")
+Person(operator, "Protocol Operator", "Deploys, configures, and monitors Quantara.")
+
+System(quantara, "Quantara", "Automates leveraged capital loops by coordinating collateral, borrowing, swaps, and position health.")
+
+System_Ext(stellar, "Stellar Network", "Horizon and Soroban RPC provide accounts, transactions, and smart-contract execution.")
+System_Ext(blend, "Blend Protocol", "Stellar lending markets used to deposit collateral and borrow assets.")
+System_Ext(soroswap, "Soroswap", "Stellar AMM used for quotes, routing, and token swaps.")
+System_Ext(telegram, "Telegram", "Delivers the mini-app experience and position-health notifications.")
+
+Rel(user, quantara, "Creates and monitors leveraged positions", "HTTPS / Freighter")
+Rel(operator, quantara, "Configures and monitors")
+Rel(quantara, stellar, "Reads ledger state and submits transactions", "Horizon / Soroban RPC")
+Rel(quantara, blend, "Deposits, borrows, repays, and withdraws", "Soroban contracts")
+Rel(quantara, soroswap, "Requests quotes and swaps assets", "Soroban contracts")
+Rel(quantara, telegram, "Authenticates mini-app users and sends alerts", "Telegram Bot API")
+
+SHOW_LEGEND()
+@enduml
