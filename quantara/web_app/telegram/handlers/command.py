@@ -37,7 +37,7 @@ async def notification_allowed(message: Message, command: CommandObject):
     )
     telegram_db.set_allow_notification(str(message.from_user.id), user.wallet_id)
 
-    lang = message.from_user.language_code
+    lang = getattr(message.from_user, "language_code", None) or "en"
     return await message.answer(
         i18n.get("NOTIFICATION_ALLOWED_MESSAGE", lang), reply_markup=launch_main_web_app_kb
     )
@@ -54,5 +54,5 @@ async def start_cmd(message: Message):
     Returns:
         None: Sends a welcome message with a button to launch the web app.
     """
-    lang = message.from_user.language_code
+    lang = getattr(message.from_user, "language_code", None) or "en"
     return message.answer(i18n.get("WELCOME_MESSAGE", lang), reply_markup=launch_main_web_app_kb)
