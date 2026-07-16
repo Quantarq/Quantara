@@ -1,0 +1,34 @@
+{
+  // Root TypeScript config — covers the whole project with relaxed settings so
+  // that every existing .js/.jsx file compiles with zero errors today.
+  // Strict mode is enabled incrementally per-directory via tsconfig.strict.json.
+  // New .ts/.tsx files should be placed in a directory that is already listed
+  // in tsconfig.strict.json, or a new entry should be added before the file
+  // is merged.
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    // ── JavaScript interop ───────────────────────────────────────────────────
+    // Allow existing .js/.jsx files to be checked without converting them.
+    "allowJs": true,
+    "checkJs": false,
+
+    // ── Strict baseline (relaxed for legacy JS) ──────────────────────────────
+    // Individual strict flags are intentionally OFF at root level so legacy
+    // JS files continue to compile without type annotations.
+    // tsconfig.strict.json enables every flag for migrated directories.
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "useUnknownInCatchVariables": false
+  },
+
+  // All source files — JS, JSX, TS, and TSX — are included in the root check.
+  "include": [
+    "src/**/*.js",
+    "src/**/*.jsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/vite-env.d.ts"
+  ],
+  "exclude": ["node_modules", "dist", "test", "**/*.spec.*", "**/*.test.*"]
+}

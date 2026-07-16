@@ -1,0 +1,36 @@
+{
+  // Shared compiler options inherited by every TypeScript config in the
+  // frontend workspace.  Neither tsconfig.json nor tsconfig.strict.json should
+  // duplicate values that live here.
+  "compilerOptions": {
+    // ── Language & module ────────────────────────────────────────────────────
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+
+    // ── JSX ─────────────────────────────────────────────────────────────────
+    "jsx": "react-jsx",
+
+    // ── Emit ────────────────────────────────────────────────────────────────
+    "noEmit": true,
+    "isolatedModules": true,
+
+    // ── Module resolution helpers ────────────────────────────────────────────
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // ── Type roots ──────────────────────────────────────────────────────────
+    "types": ["vite/client", "node"],
+
+    // ── Safety defaults (always on) ───────────────────────────────────────────
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true
+  }
+}

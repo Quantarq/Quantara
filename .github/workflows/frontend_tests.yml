@@ -43,6 +43,12 @@ jobs:
     - name: Install dependencies
       run: yarn install --frozen-lockfile
 
+    - name: TypeScript type check (root — zero errors gate)
+      run: yarn tsc
+
+    - name: TypeScript type check (strict — migrated directories gate)
+      run: yarn tsc --project tsconfig.strict.json
+
     - name: Run tests
       run: yarn test:run
 
