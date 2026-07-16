@@ -37,6 +37,7 @@ from web_app.api.middleware import MaxBodySizeMiddleware, SecurityHeadersMiddlew
 from web_app.db.database import init_db
 from web_app.db.database import init_db, get_database
 from web_app.utils.logger import configure_logging, get_logger
+from web_app.tracing import setup_tracing
 import structlog
 
 configure_logging()
@@ -68,6 +69,7 @@ async def lifespan(app: FastAPI):
     """
     init_db()
     configure_logging()
+    setup_tracing()
 
     # Validate required environment variables at startup.
     assert_valid_config()
@@ -87,6 +89,13 @@ async def lifespan(app: FastAPI):
                 "continuous_profiling_auto_start": True,
             },
         )
+
+    # Auto-instrument FastAPI + outgoing HTTP for OTel if configured
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+    from opentelemetry.instrumentation.aiohttp_client import AioHttpClientInstrumentor
+    FastAPIInstrumentor.instrument_app(app)
+    AioHttpClientInstrumentor().instrument()
+
     yield
 
 app = FastAPI(
