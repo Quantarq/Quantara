@@ -71,7 +71,7 @@
     "globals": "^15.11.0",
     "jsdom": "^26.0.0",
     "prettier": "^3.8.4",
-    "prettier-plugin-tailwindcss": "^0.6.11",
+    "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwind-merge": "^3.6.0",
     "vite-plugin-svgr": "^4.3.0",
     "vitest": "^3.0.4"
