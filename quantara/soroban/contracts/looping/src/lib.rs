@@ -1,11 +1,11 @@
-//! Looping contract – leverage loop engine for the Quantara protocol.
+//! Looping contract - leverage loop engine for the Quantara protocol.
 //!
 //! This contract allows users to create and manage leveraged positions on
 //! the Stellar network by automating the borrow->swap->redeposit loop.
 
 #![no_std]
 
-use soroban_sdk::{contract, contractimpl, symbol_short, Address, Env, I128};
+use soroban_sdk::{contract, contractimpl, symbol_short, Address, Env};
 
 /// Quantara looping contract.
 #[contract]
@@ -23,7 +23,7 @@ impl LoopingContract {
     ///
     /// # Returns
     /// The position ID assigned to this new position.
-    pub fn open_position(env: Env, user: Address, collateral: I128, leverage: u32) -> u64 {
+    pub fn open_position(env: Env, user: Address, collateral: i128, leverage: u32) -> u64 {
         user.require_auth();
 
         assert!(collateral > 0, "collateral must be positive");
