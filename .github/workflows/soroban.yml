@@ -20,9 +20,10 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  # 1.85.0 is the minimum stable release that supports edition2024 in Cargo
-  # (required by transitive soroban-sdk deps such as digest v0.11.3+).
-  RUST_TOOLCHAIN: "1.85.0"
+  # 1.88.0 is required by transitive soroban-sdk deps:
+  #   - edition2024 Cargo feature (stable since 1.85.0)
+  #   - darling 0.23.0 and serde_with 3.21.0 require rustc >= 1.88.0
+  RUST_TOOLCHAIN: "1.88.0"
 
 defaults:
   run:
