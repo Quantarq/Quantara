@@ -20,7 +20,9 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  RUST_TOOLCHAIN: "1.82.0"
+  # 1.85.0 is the minimum stable release that supports edition2024 in Cargo
+  # (required by transitive soroban-sdk deps such as digest v0.11.3+).
+  RUST_TOOLCHAIN: "1.85.0"
 
 defaults:
   run:

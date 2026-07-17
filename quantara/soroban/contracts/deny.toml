@@ -1,25 +1,24 @@
 # cargo-deny configuration for Quantara Soroban contracts
-# https://embarkstudios.github.io/cargo-deny/
+# Compatible with cargo-deny v0.14+ (EmbarkStudios/cargo-deny-action@v2)
+# Keys removed in PR #611 (unlicensed, copyleft, allow-osi-fsf-free, default, deny)
+# have been dropped — all licenses not in [licenses.allow] are denied by default.
 
+# ── Graph ─────────────────────────────────────────────────────────────────────
 [graph]
-# Only check dependencies for the wasm32-unknown-unknown target used by Soroban.
 targets = [
     { triple = "wasm32-unknown-unknown" },
 ]
-# Exclude dev-only dependencies from most checks.
-exclude-dev = false
 
 # ── Advisories ────────────────────────────────────────────────────────────────
-# Fail on any unmaintained crate or security vulnerability.
 [advisories]
 version = 2
 db-urls = ["https://github.com/rustsec/advisory-db"]
 yanked = "deny"
 
 # ── Licenses ──────────────────────────────────────────────────────────────────
+# All licenses not in [allow] are denied by default (no extra keys needed).
 [licenses]
 version = 2
-# Allow permissive and copyleft-compatible licenses common in the Rust ecosystem.
 allow = [
     "MIT",
     "Apache-2.0",
@@ -30,41 +29,23 @@ allow = [
     "Unicode-DFS-2016",
     "CC0-1.0",
     "0BSD",
+    "Zlib",
 ]
-# Deny licenses that require source disclosure or are incompatible with MIT.
-deny = [
-    "GPL-2.0",
-    "GPL-3.0",
-    "AGPL-3.0",
-    "LGPL-2.0",
-    "LGPL-2.1",
-    "LGPL-3.0",
-]
-copyleft = "deny"
-# Treat unlicensed crates as an error.
-unlicensed = "deny"
-# Treat crates whose license cannot be determined from their metadata as an error.
-allow-osi-fsf-free = "neither"
-default = "deny"
+unused-allowed-license = "allow"
 
 [[licenses.clarify]]
 name = "ring"
-version = "*"
 expression = "MIT AND ISC AND OpenSSL"
 license-files = [{ path = "LICENSE", hash = 0xbd0eed23 }]
 
 # ── Bans ──────────────────────────────────────────────────────────────────────
 [bans]
-# Deny duplicate versions of the same crate to keep the dependency tree lean.
 multiple-versions = "warn"
-# Deny wildcard dependencies.
 wildcards = "deny"
 highlight = "all"
 
 # ── Sources ───────────────────────────────────────────────────────────────────
 [sources]
-# Only allow dependencies from crates.io (and git for Soroban SDK during development).
 unknown-registry = "deny"
 unknown-git = "deny"
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
-allow-git = []
