@@ -35,10 +35,37 @@ from web_app.utils.logger import get_logger
 logger = get_logger(__name__)
 
 # ── Prometheus metrics ────────────────────────────────────────────────────────
+# Guard against duplicate registration when the module is reloaded (e.g. in
+# tests that call ``importlib.reload``).  prometheus_client raises ValueError
+# on duplicate metric names, so we reuse any collector that is already
+# registered under the same name instead of creating a new one.
+
+from prometheus_client import REGISTRY as _PROM_REGISTRY  # noqa: E402
+
+
+def _get_or_create_histogram(name, documentation, labelnames, buckets):
+    """Return an existing Histogram from the registry or create a new one."""
+    existing = _PROM_REGISTRY._names_to_collectors.get(name)
+    if existing is not None:
+        return existing
+    return Histogram(name, documentation, labelnames, buckets=buckets)
+
+
+def _get_or_create_counter(name, documentation):
+    """Return an existing Counter from the registry or create a new one."""
+    # prometheus_client stores counters under '<name>_total' in newer versions.
+    existing = (
+        _PROM_REGISTRY._names_to_collectors.get(name)
+        or _PROM_REGISTRY._names_to_collectors.get(f"{name}_total")
+    )
+    if existing is not None:
+        return existing
+    return Counter(name, documentation)
+
 
 #: Total seconds spent executing database queries (histogram).
 #: Label ``query_type`` is always "sql" — extend if you need finer granularity.
-DB_QUERY_DURATION = Histogram(
+DB_QUERY_DURATION = _get_or_create_histogram(
     "http_db_query_seconds",
     "Duration of individual database queries in seconds",
     ["query_type"],
@@ -46,7 +73,7 @@ DB_QUERY_DURATION = Histogram(
 )
 
 #: Incremented every time a query exceeds SLOW_QUERY_THRESHOLD_MS.
-DB_SLOW_QUERY_COUNTER = Counter(
+DB_SLOW_QUERY_COUNTER = _get_or_create_counter(
     "db_slow_queries_total",
     "Number of database queries that exceeded the slow-query threshold",
 )
