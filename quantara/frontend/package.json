@@ -41,7 +41,7 @@
     "test": "vitest",
     "test:run": "vitest run",
     "format": "prettier --check . --write",
-    "i18n:scan": "i18next-scanner --config i18next-scanner.config.js"
+    "i18n:scan": "i18next-scanner --config i18next-scanner.config.cjs"
   },
   "options": {
     "allowedHosts": [
