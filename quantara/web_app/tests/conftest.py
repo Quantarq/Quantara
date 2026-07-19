@@ -19,35 +19,6 @@ from web_app.db.models import ExtraDeposit
 
 
 @pytest.fixture(autouse=True)
-def disable_rate_limiting():
-    """Disable rate limiting in all tests to avoid Redis dependency.
-
-    Three separate Limiter instances can exist during a test run:
-      1. _ORIGINAL_LIMITER -- created when rate_limiter.py was first loaded;
-         all @limiter.limit() wrappers in user.py, vault.py, etc. close over it.
-      2. A reloaded limiter -- TestRateLimiterConfig calls importlib.reload(),
-         which creates a fresh instance and updates the module-level name.
-      3. A memory_limiter -- TestRateLimitEnforcement swaps app.state.limiter for
-         an in-memory instance so tests don't need Redis.
-    We collect every unique instance we can find and disable them all so that
-    the middleware, the decorator wrappers, and direct function calls all skip
-    rate limiting during tests.
-    """
-    limiters: set = set()
-    limiters.add(_ORIGINAL_LIMITER)
-    limiters.add(app.state.limiter)
-    rate_limiter_mod = sys.modules.get("web_app.api.rate_limiter")
-    if rate_limiter_mod is not None:
-        limiters.add(rate_limiter_mod.limiter)
-
-    for lim in limiters:
-        lim.enabled = False
-    yield
-    for lim in limiters:
-        lim.enabled = True
-
-
-@pytest.fixture(autouse=True)
 def bypass_wallet_auth():
     """Bypass wallet signature verification for all tests.
 
