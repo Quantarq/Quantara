@@ -10,12 +10,18 @@ checks, and position management across Stellar ecosystem protocols.
 Asset addresses are resolved at import time from
 ``quantara.web_app.contract_tools.constants`` which reads from the environment,
 so no TODO placeholders or hardcoded addresses exist in this module.
+
+Rounding Policy:
+All financial calculations adopt the ``ROUND_HALF_UP`` rounding mode.
 """
 
 import logging
 from dataclasses import dataclass, field
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP, getcontext
 from typing import Dict, List, Optional
+
+# Set rounding policy
+getcontext().rounding = ROUND_HALF_UP
 
 from web_app.contract_tools.constants import (
     ETH_ASSET_ID,
@@ -30,6 +36,7 @@ logger = logging.getLogger(__name__)
 _INFINITE_HEALTH = Decimal("999999")
 _ZERO = Decimal("0")
 _ONE = Decimal("1")
+_PRECISION = Decimal("0.0000000001")
 
 
 # ---------------------------------------------------------------------------
@@ -96,6 +103,9 @@ class CollateralManager:
 
     Class-level SUPPORTED_TOKENS is built once at class definition time using
     the constants resolved in ``constants.py``.
+
+    Rounding Policy:
+    All financial calculations adopt the ``ROUND_HALF_UP`` rounding mode.
     """
 
     SUPPORTED_TOKENS: Dict[str, CollateralConfig] = {
@@ -130,6 +140,11 @@ class CollateralManager:
             is_active=IS_MAINNET,            # ETH disabled on Testnet until liquidity confirmed
         ),
     }
+
+    @staticmethod
+    def _round(value: Decimal) -> Decimal:
+        """Apply ROUND_HALF_UP."""
+        return value.quantize(_PRECISION, rounding=ROUND_HALF_UP)
 
     # ------------------------------------------------------------------
     # Configuration queries
@@ -208,7 +223,7 @@ class CollateralManager:
         if borrowed_value == _ZERO:
             return _INFINITE_HEALTH
 
-        return (collateral_value * collateral_factor) / borrowed_value
+        return cls._round((collateral_value * collateral_factor) / borrowed_value)
 
     @classmethod
     def calculate_liquidation_price(
@@ -235,7 +250,7 @@ class CollateralManager:
         if collateral_amount == _ZERO:
             return _ZERO
 
-        return borrowed_value / (collateral_amount * liquidation_threshold)
+        return cls._round(borrowed_value / (collateral_amount * liquidation_threshold))
 
     @classmethod
     def calculate_max_leverage(
@@ -268,7 +283,7 @@ class CollateralManager:
                 "infinite leverage — check your configuration."
             )
 
-        return _ONE / denominator
+        return cls._round(_ONE / denominator)
 
     @classmethod
     def calculate_max_withdrawable(
@@ -291,7 +306,7 @@ class CollateralManager:
 
         min_required = borrowed_value / collateral_factor
         withdrawable = collateral_value - min_required
-        return max(_ZERO, withdrawable)
+        return cls._round(max(_ZERO, withdrawable))
 
     @classmethod
     def calculate_max_borrowable(
@@ -313,7 +328,7 @@ class CollateralManager:
         cls._validate_factor(collateral_factor, "collateral_factor")
 
         borrow_cap = collateral_value * collateral_factor
-        return max(_ZERO, borrow_cap - borrowed_value)
+        return cls._round(max(_ZERO, borrow_cap - borrowed_value))
 
     # ------------------------------------------------------------------
     # Higher-level helpers
