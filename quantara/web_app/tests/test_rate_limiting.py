@@ -140,12 +140,10 @@ class TestRateLimitEnforcement:
             key_func=get_remote_address,
             storage_uri="memory://",
         )
-        with patch("web_app.api.main.limiter", memory_limiter), \
-             patch("web_app.api.position.limiter", memory_limiter), \
-             patch("web_app.api.dashboard.limiter", memory_limiter):
-            app.state.limiter = memory_limiter
+        
+        # Patch app state
+        with patch.object(app.state, "limiter", memory_limiter):
             yield
-            app.state.limiter = app.state.limiter  # restore handled by app teardown
 
     @pytest.fixture
     def client(self):
@@ -214,7 +212,7 @@ class TestRateLimitEnforcement:
 
     def test_read_endpoint_allows_many_requests(self, client):
         """Read endpoints (100/min) allow substantially more calls than write (5/min)."""
-        with patch("web_app.api.position.limiter") as mock_limiter:
+        with patch("web_app.api.rate_limiter.limiter") as mock_limiter:
             mock_limiter.limit.return_value = lambda func: func
 
             # 5 rapid calls to a read endpoint should all succeed
