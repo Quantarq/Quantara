@@ -32,6 +32,8 @@ from web_app.api.leaderboard import router as leaderboard_router
 from web_app.api.referal import router as referal_router
 from web_app.api.wallet_auth import router as auth_router
 from web_app.api.metrics import router as metrics_router, PrometheusMiddleware
+from web_app.api.pausable import protocol_pause_middleware
+from web_app.api.pausable import router as pausable_router
 from web_app.config_validator import assert_valid_config
 from web_app.api.middleware import MaxBodySizeMiddleware, SecurityHeadersMiddleware
 from web_app.db.database import init_db
@@ -163,6 +165,9 @@ async def request_id_middleware(request: Request, call_next):
         return response
 
 
+app.middleware("http")(protocol_pause_middleware)
+
+
 @app.get("/health", tags=["Health"], summary="Health check endpoint")
 async def health_check(response: Response, db: Session = Depends(get_database)):
     """Returns 200 OK when the service is running and dependencies are healthy."""
@@ -211,3 +216,4 @@ app.include_router(leaderboard_router)
 app.include_router(referal_router)
 app.include_router(auth_router)
 app.include_router(metrics_router)
+app.include_router(pausable_router)
