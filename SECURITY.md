@@ -9,29 +9,37 @@ please report it responsibly.
 
 Instead, please email us at: **security@quantara.protocol**
 
-You should receive a response within 48 hours. If you do not receive a response,
-please follow up to ensure we received your report.
+## Response SLA
 
-## Disclosure Timeline
+| Stage | Timeline |
+| --- | --- |
+| Acknowledgement | 48 hours |
+| Initial assessment | 5 business days |
+| Fix release (critical/high) | 30 days |
+| Fix release (medium/low) | 90 days |
 
-We aim to:
-- Acknowledge receipt of vulnerability reports within 48 hours
-- Provide an initial assessment within 5 business days
-- Release a fix within 90 days of confirmation (depending on severity)
+## Bounty Scope
 
-## Scope
+### In Scope
 
-This security policy covers:
-- The Quantara smart contracts (Soroban)
-- The backend API (FastAPI)
-- The frontend application (React)
-- The build and deployment pipeline
+- Soroban smart contracts (reentrancy, integer overflow, access control, logic flaws)
+- FastAPI backend (auth bypass, injection, IDOR, RCE)
+- React frontend (XSS, wallet injection, sensitive data exposure)
+- Docker / CI pipeline (secret leakage, supply chain)
+- API keys or private keys exposed in the repository
+
+### Out of Scope
+
+- Denial of service attacks
+- Social engineering
+- Vulnerabilities in third-party dependencies (report upstream)
+- Issues requiring physical access to a user's device
 
 ## Supported Versions
 
-| Version | Supported          |
-| ------- | ------------------ |
-| Latest  | :white_check_mark: |
+| Version | Supported |
+| --- | --- |
+| Latest | :white_check_mark: |
 
 ## Responsible Disclosure
 
