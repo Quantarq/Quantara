@@ -62,6 +62,19 @@ def get_cors_origins() -> list[str]:
     origins = [origin.strip() for origin in raw_origins.split(",")]
     return [origin for origin in origins if origin] or DEFAULT_CORS_ORIGINS
 
+def custom_traces_sampler(sampling_context):
+    asgi_scope = sampling_context.get("asgi_scope", {})
+    path = asgi_scope.get("path", "")
+    method = asgi_scope.get("method", "")
+
+    if path in ("/api/save-bug-report", "/api/auth/connect"):
+        return 1.0
+    if path == "/health":
+        return 0.005
+    if method in ("POST", "PUT", "PATCH", "DELETE"):
+        return 0.5
+    return 0.05
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
@@ -84,7 +97,7 @@ async def lifespan(app: FastAPI):
         import sentry_sdk
         sentry_sdk.init(
             dsn=os.getenv("SENTRY_DSN"),
-            traces_sample_rate=1.0,
+            traces_sampler=custom_traces_sampler,
             _experiments={
                 "continuous_profiling_auto_start": True,
             },
