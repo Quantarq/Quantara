@@ -84,3 +84,6 @@ jobs:
         with:
           filename: tests/load/${{ matrix.target }}.js
           flags: --env API_URL=http://127.0.0.1:8000/api/v1
+        env:
+          # Forces the Docker container to share the host's networking stack
+          K6_DOCKER_OPTIONS: "--network=host"
