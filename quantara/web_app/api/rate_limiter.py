@@ -18,6 +18,7 @@ get_wallet_key   : keys by wallet_id from query/path params, falls back to IP.
                    IP running multiple wallets isn't unfairly throttled.
 """
 
+import asyncio
 import os
 
 from fastapi import Request
@@ -38,9 +39,43 @@ def get_wallet_key(request: Request) -> str:
     return get_remote_address(request)
 
 
-limiter = Limiter(
-    key_func=get_remote_address,
-    storage_uri=os.getenv("REDIS_URL", "redis://localhost:6379"),
-    headers_enabled=True,
-    in_memory_fallback_enabled=True,
-)
+def get_limiter(request: Request) -> Limiter:
+    return request.app.state.limiter
+
+
+class LazyLimiter:
+    def __init__(self):
+        # Placeholder limiter just to provide the .limit() method
+        self._limiter = Limiter(key_func=get_remote_address)
+        self.enabled = True
+
+    def limit(self, *args, **kwargs):
+        real_decorator = self._limiter.limit(*args, **kwargs)
+
+        def decorator(func):
+            @wraps(func)
+            async def wrapper(*func_args, **func_kwargs):
+                if not self.enabled:
+                    return await func(*func_args, **func_kwargs)
+                return await real_decorator(func)(*func_args, **func_kwargs)
+
+            # Support synchronous handlers if any
+            @wraps(func)
+            def sync_wrapper(*func_args, **func_kwargs):
+                if not self.enabled:
+                    return func(*func_args, **func_kwargs)
+                return real_decorator(func)(*func_args, **func_kwargs)
+
+            import asyncio
+            if asyncio.iscoroutinefunction(func):
+                return wrapper
+            return sync_wrapper
+
+        return decorator
+
+    def __getattr__(self, name: str):
+        """Proxy attribute access to the underlying Limiter instance."""
+        return getattr(self._limiter, name)
+
+
+limiter = LazyLimiter()
