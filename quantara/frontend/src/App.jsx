@@ -26,7 +26,9 @@ import WithdrawAll from '@/pages/quantara/dashboard/withdraw-all/WithdrawAll';
 import { DefiSpringPage } from '@/pages/quantara/defi-spring/DefiSpring';
 import { AddDeposit } from '@/pages/add-deposit/AddDeposit';
 import Leaderboard from '@/pages/leaderboard/Leaderboard';
+import AddressBookPage from '@/pages/address-book/AddressBookPage';
 import NotFound from '@/pages/not-found/NotFound';
+import { initTelemetry } from '@/services/telemetry';
 
 function App() {
   const { setWalletId, removeWalletId } = useWalletStore();
@@ -35,6 +37,13 @@ function App() {
   const location = useLocation();
   const [isMobileRestrictionModalOpen, setisMobileRestrictionModalOpen] = useState(true);
   const isMobile = useCheckMobile();
+
+  // Sentry initialization per Issue #277 acceptance criterion. Calls into
+  // the same idempotent initTelemetry() used in main.jsx — the no-op
+  // guard inside initTelemetry() ensures we only initialize once.
+  useEffect(() => {
+    initTelemetry();
+  }, []);
 
   const disableDesktopOnMobile = process.env.VITE_APP_DISABLE_DESKTOP_ON_MOBILE !== 'false';
 
@@ -117,6 +126,7 @@ function App() {
           <Route path="/stake" element={<Stake />} />
           <Route path="/defispring" element={<DefiSpringPage />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/dashboard/address-book" element={<AddressBookPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

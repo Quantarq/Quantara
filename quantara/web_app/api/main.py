@@ -34,6 +34,7 @@ from web_app.api.wallet_auth import router as auth_router
 from web_app.api.metrics import router as metrics_router, PrometheusMiddleware
 from web_app.api.pausable import protocol_pause_middleware
 from web_app.api.pausable import router as pausable_router
+from web_app.api.walletconnect import router as walletconnect_router
 from web_app.config_validator import assert_valid_config
 from web_app.api.middleware import MaxBodySizeMiddleware, SecurityHeadersMiddleware
 from web_app.db.database import init_db
@@ -230,3 +231,5 @@ app.include_router(referal_router)
 app.include_router(auth_router)
 app.include_router(metrics_router)
 app.include_router(pausable_router)
+# Issue #273 — WalletConnect bridge for Stellar mobile wallets (Redis TTL).
+app.include_router(walletconnect_router)
