@@ -1,0 +1,50 @@
+name: "CodeQL SAST Analysis"
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+  schedule:
+    - cron: '30 4 * * 6' # Runs every Saturday at 04:30 UTC
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: CodeQL Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # CodeQL supports: 'cpp', 'csharp', 'go', 'java-bytecode', 'javascript-typescript', 'python', 'ruby', 'swift'
+        # Adjust languages based on your repository stack (e.g., python, javascript-typescript)
+        language: [ 'python', 'javascript-typescript' ]
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+        queries: security-extended,security-and-quality
+
+    # Autobuild attempts to build any compiled languages if present
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v3
+
+    # If Autobuild fails, uncomment and adjust manual build steps for compiled languages:
+    # - run: |
+    #     make build
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{matrix.language}}"
