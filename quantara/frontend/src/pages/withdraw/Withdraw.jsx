@@ -4,34 +4,8 @@ import TimeIcon from '@/assets/icons/time.svg?react';
 import SettingIcon from '@/assets/icons/settings.svg?react';
 import MetricCard from '@/components/vault/metric-card/MetricCard';
 import { VaultLayout } from '@/components/vault/VaultLayout';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { notify } from '@/components/layout/notifier/Notifier';
-
-const schema = z.object({
-  amount: z
-    .string()
-    .regex(/^\d+(\.\d+)?$/, { message: 'Enter a valid amount' })
-    .refine((val) => parseFloat(val) > 0, { message: 'Amount must be greater than 0' }),
-});
 
 export default function Withdraw() {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isValid },
-  } = useForm({
-    resolver: zodResolver(schema),
-    mode: 'onChange',
-    defaultValues: { amount: '' },
-  });
-
-  const onSubmit = (data) => {
-    // Placeholder: integrate actual withdraw logic here
-    notify(`Withdrawing ${data.amount}`, 'success');
-  };
-
   return (
     <VaultLayout>
       <div className="flex h-full w-screen flex-col items-center justify-center lg:ml-32 2xl:h-screen">
@@ -67,31 +41,31 @@ export default function Withdraw() {
             </div>
 
             <div className="flex flex-col items-start">
-              <label htmlFor="withdraw-input" className="mt-10 -mb-3.5 text-[#83919f]">Input Unstake Amount</label>
-              <form onSubmit={handleSubmit(onSubmit)}>
-                <input
-                  type="text"
-                  id="withdraw-input"
-                  placeholder="Enter Amount to Withdraw"
-                  className="mt-4 h-12 w-full rounded-lg border border-[#36294e] px-3 py-7 text-[#83919f] placeholder:text-[#83919f]"
-                  {...register('amount')}
-                />
-                {errors.amount && (
-                  <p className="mt-1 text-sm text-red-500">{errors.amount.message}</p>
-                )}
-                <div className="mt-5">
-                  <button
-                    type="submit"
-                    className="relative mt-5 mb-5 rounded-lg bg-gradient-to-r from-[#74d6fd] to-[#e01dee] p-[2px]"
-                    disabled={!isValid}
-                  >
-                    <div className="h-full w-full cursor-pointer rounded-lg bg-[rgb(18,7,33)] px-4 py-3 font-semibold text-white">
-                      Withdraw
-                    </div>
-                  </button>
-                </div>
-              </form>
+              <label htmlFor="withdraw-input" className="mt-10 -mb-3.5 text-[#83919f]">
+                Input Unstake Amount
+              </label>
+              <input
+                type="text"
+                id="withdraw-input"
+                placeholder="Enter Amount to Withdraw"
+                className="mt-4 h-12 w-full rounded-lg border border-[#36294e] px-3 py-7 text-[#83919f] placeholder:text-[#83919f]"
+              />
             </div>
+
+            <div>
+              <div className="mt-16 h-0.5 w-full bg-[#201338]"></div>
+              <div className="mt-3 flex w-full items-center justify-between">
+                <div className="rounded-full bg-[#201338] p-2">
+                  <SettingIcon />
+                </div>
+                <p className="text-stormy-gray text-xs">Gas fee: 0.00 STRK</p>
+              </div>
+            </div>
+          </div>
+          <div class="relative mt-5 mb-5 rounded-lg bg-gradient-to-r from-[#74d6fd] to-[#e01dee] p-[2px]">
+            <button class="h-full w-full cursor-pointer rounded-lg bg-[rgb(18,7,33)] px-4 py-3 font-semibold text-white">
+              Withdraw
+            </button>
           </div>
         </div>
       </div>
