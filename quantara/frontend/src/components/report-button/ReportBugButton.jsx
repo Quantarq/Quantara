@@ -4,9 +4,7 @@ import ReportBugIcon from '../../assets/icons/customer-service-01.svg';
 export function ReportBugButton({ onClick }) {
   // Changed position to fixed and adjusted to stick to bottom instead of top
   return (
-    <button
-      className="border-border-color hover:border-opacity-50 fixed right-[35px] bottom-[65px] z-10 hidden h-[46px] cursor-pointer items-center gap-2 rounded-[12px] border-x border-y bg-[#11061E] px-6 py-3 opacity-40 transition-all hover:border hover:opacity-100 md:flex"
-      onClick={(e) => {
+    <button aria-label="Report bug" className="border-border-color hover:border-opacity-50 fixed right-[35px] bottom-[65px] z-10 hidden h-[46px] cursor-pointer items-center gap-2 rounded-[12px] border-x border-y bg-[#11061E] px-6 py-3 opacity-40 transition-all hover:border hover:opacity-100 md:flex"
         e.stopPropagation();
         onClick();
       }}
