@@ -82,6 +82,7 @@ class UserDBConnector(DBConnector):
     ) -> None:
         """
         Updates the contract of a user in the database and logs the audit trail.
+        Sets is_contract_deployed to True (no toggle).
         :param user: User
         :param contract_address: str
         :param actor: str | None
