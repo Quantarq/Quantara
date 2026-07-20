@@ -1,0 +1,45 @@
+name: Docs Check
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '*.md'
+      - '.github/**/*.md'
+      - '.github/**/*.yml'
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Validate issue template frontmatter
+        run: |
+          failed=0
+          for f in .github/ISSUE_TEMPLATE/*.md; do
+            if ! head -1 "$f" | grep -q '^---'; then
+              echo "::error file=$f::Missing YAML frontmatter (must start with ---)"
+              failed=1
+            fi
+          done
+          if [ "$failed" -eq 1 ]; then exit 1; fi
+          echo "All issue templates have valid frontmatter."
+
+      - name: Check required sections in SECURITY.md
+        run: |
+          for section in "Reporting a Vulnerability" "Response SLA" "Bounty Scope" "Responsible Disclosure"; do
+            if ! grep -q "## $section" SECURITY.md; then
+              echo "::error file=SECURITY.md::Missing required section: $section"
+              exit 1
+            fi
+          done
+          echo "SECURITY.md has all required sections."

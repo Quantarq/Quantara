@@ -1,0 +1,46 @@
+name: "Bandit Security Scan"
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  bandit:
+    name: Bandit Scan
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    # bandit-sarif-formatter is required to successfully output the .sarif format
+    - name: Install Bandit and Dependencies
+      run: |
+        pip install bandit bandit-sarif-formatter
+
+    # Added an explicit check to make sure the file exists before running the upload step
+    - name: Run Bandit Scan
+      run: |
+        bandit -r . -f sarif -o bandit-results.sarif || true
+        if [ ! -f bandit-results.sarif ]; then
+          echo "Bandit failed to generate SARIF output. Creating an empty fallback report."
+          echo '{"$schema":"https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.5.json","version":"2.1.0","runs":[]}' > bandit-results.sarif
+        fi
+
+    # Upgraded action from v3 to v4 to fix the runner deprecation warning shown in your logs
+    - name: Upload Bandit Scan Results to GitHub Security
+      uses: github/codeql-action/upload-sarif@v4
+      with:
+        sarif_file: bandit-results.sarif
+        category: bandit

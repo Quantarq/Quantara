@@ -1,0 +1,149 @@
+name: Soroban Contracts CI
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'quantara/soroban/contracts/**'
+      - '.github/workflows/soroban.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'quantara/soroban/contracts/**'
+      - '.github/workflows/soroban.yml'
+
+env:
+  CARGO_TERM_COLOR: always
+  # 1.88.0 is required by transitive soroban-sdk deps:
+  #   - edition2024 Cargo feature (stable since 1.85.0)
+  #   - darling 0.23.0 and serde_with 3.21.0 require rustc >= 1.88.0
+  RUST_TOOLCHAIN: "1.88.0"
+
+defaults:
+  run:
+    working-directory: quantara/soroban/contracts
+
+jobs:
+  # ── 1. Formatting ───────────────────────────────────────────────────────────
+  fmt:
+    name: Formatting (cargo fmt --check)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          targets: wasm32-unknown-unknown
+          components: rustfmt
+
+      - name: Cache Cargo registry & build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            quantara/soroban/contracts/target/
+          key: ${{ runner.os }}-cargo-fmt-${{ hashFiles('quantara/soroban/contracts/Cargo.toml', 'quantara/soroban/contracts/**/Cargo.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-fmt-
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+  # ── 2. Lint ─────────────────────────────────────────────────────────────────
+  clippy:
+    name: Lint (cargo clippy -- -D warnings)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          targets: wasm32-unknown-unknown
+          components: clippy
+
+      - name: Cache Cargo registry & build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            quantara/soroban/contracts/target/
+          key: ${{ runner.os }}-cargo-clippy-${{ hashFiles('quantara/soroban/contracts/Cargo.toml', 'quantara/soroban/contracts/**/Cargo.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-clippy-
+
+      - name: Run Clippy (deny all warnings)
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+  # ── 3. Dependency audit ──────────────────────────────────────────────────────
+  deny:
+    name: Dependency audit (cargo deny check)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Run cargo deny
+        uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          rust-version: ${{ env.RUST_TOOLCHAIN }}
+          command: check
+          manifest-path: quantara/soroban/contracts/Cargo.toml
+          arguments: --config quantara/soroban/contracts/deny.toml
+
+  # ── 4. Build ────────────────────────────────────────────────────────────────
+  build:
+    name: Build (wasm32-unknown-unknown)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    needs: [fmt, clippy, deny]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          targets: wasm32-unknown-unknown
+
+      - name: Cache Cargo registry & build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            quantara/soroban/contracts/target/
+          key: ${{ runner.os }}-cargo-build-${{ hashFiles('quantara/soroban/contracts/Cargo.toml', 'quantara/soroban/contracts/**/Cargo.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-build-
+
+      - name: Build contracts
+        run: cargo build --target wasm32-unknown-unknown --release
