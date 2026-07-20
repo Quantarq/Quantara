@@ -20,8 +20,13 @@ app = FastAPI()
 app.include_router(router)
 
 
-VALID_STELLAR_PUBKEY = "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-assert len(VALID_STELLAR_PUBKEY) == 56
+# Built deterministically so we never count-by-eye wrong again:
+# StrKey ed25519 public keys are 1 prefix char + 55 base32 alphabet chars.
+VALID_STELLAR_PUBKEY = "G" + "A" * 55
+assert len(VALID_STELLAR_PUBKEY) == 56, (
+    f"VALID_STELLAR_PUBKEY fixture must be 56 chars (G + 55 base32); "
+    f"got {len(VALID_STELLAR_PUBKEY)}"
+)
 
 
 class _FakeRedis:
