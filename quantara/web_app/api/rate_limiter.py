@@ -19,6 +19,7 @@ get_wallet_key   : keys by wallet_id from query/path params, falls back to IP.
 """
 
 import asyncio
+import functools
 import os
 from functools import wraps
 
@@ -70,6 +71,20 @@ class LazyLimiter(Limiter):
             if asyncio.iscoroutinefunction(func):
                 return wrapper
             return sync_wrapper
+            if asyncio.iscoroutinefunction(func):
+                @functools.wraps(func)
+                async def wrapper(*func_args, **func_kwargs):
+                    if not self.enabled:
+                        return await func(*func_args, **func_kwargs)
+                    return await real_decorator(func)(*func_args, **func_kwargs)
+                return wrapper
+            else:
+                @functools.wraps(func)
+                def sync_wrapper(*func_args, **func_kwargs):
+                    if not self.enabled:
+                        return func(*func_args, **func_kwargs)
+                    return real_decorator(func)(*func_args, **func_kwargs)
+                return sync_wrapper
 
         return decorator
 

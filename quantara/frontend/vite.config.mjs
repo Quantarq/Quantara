@@ -9,7 +9,10 @@ export default defineConfig({
   server: {
     port: 3000,
   },
-  plugins: [react(), svgr(), EnvironmentPlugin('all'), tailwindcss()],
+  plugins: [react(), svgr(), EnvironmentPlugin('all', { prefix: 'VITE_' }), tailwindcss()],
+  build: {
+    target: 'es2022',
+  },
   test: {
     globals: true,
     environment: 'jsdom',

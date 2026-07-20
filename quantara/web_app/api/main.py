@@ -32,6 +32,8 @@ from web_app.api.leaderboard import router as leaderboard_router
 from web_app.api.referal import router as referal_router
 from web_app.api.wallet_auth import router as auth_router
 from web_app.api.metrics import router as metrics_router, PrometheusMiddleware
+from web_app.api.pausable import protocol_pause_middleware
+from web_app.api.pausable import router as pausable_router
 from web_app.config_validator import assert_valid_config
 from web_app.api.middleware import MaxBodySizeMiddleware, SecurityHeadersMiddleware
 from web_app.db.database import init_db
@@ -60,6 +62,19 @@ def get_cors_origins() -> list[str]:
     origins = [origin.strip() for origin in raw_origins.split(",")]
     return [origin for origin in origins if origin] or DEFAULT_CORS_ORIGINS
 
+def custom_traces_sampler(sampling_context):
+    asgi_scope = sampling_context.get("asgi_scope", {})
+    path = asgi_scope.get("path", "")
+    method = asgi_scope.get("method", "")
+
+    if path in ("/api/save-bug-report", "/api/auth/connect"):
+        return 1.0
+    if path == "/health":
+        return 0.005
+    if method in ("POST", "PUT", "PATCH", "DELETE"):
+        return 0.5
+    return 0.05
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
@@ -82,7 +97,7 @@ async def lifespan(app: FastAPI):
         import sentry_sdk
         sentry_sdk.init(
             dsn=os.getenv("SENTRY_DSN"),
-            traces_sample_rate=1.0,
+            traces_sampler=custom_traces_sampler,
             _experiments={
                 "continuous_profiling_auto_start": True,
             },
@@ -163,6 +178,9 @@ async def request_id_middleware(request: Request, call_next):
         return response
 
 
+app.middleware("http")(protocol_pause_middleware)
+
+
 @app.get("/health", tags=["Health"], summary="Health check endpoint")
 async def health_check(response: Response, db: Session = Depends(get_database)):
     """Returns 200 OK when the service is running and dependencies are healthy."""
@@ -211,3 +229,4 @@ app.include_router(leaderboard_router)
 app.include_router(referal_router)
 app.include_router(auth_router)
 app.include_router(metrics_router)
+app.include_router(pausable_router)
