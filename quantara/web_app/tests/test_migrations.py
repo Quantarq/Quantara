@@ -8,7 +8,7 @@ import psycopg2
 
 def _run_alembic(args, env, cwd):
     cmd = [sys.executable, "-m", "alembic"] + args
-    result = subprocess.run(cmd, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    result = subprocess.run(cmd, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)  # nosec B603
     if result.returncode != 0:
         print(f"Alembic command failed with exit code {result.returncode}")
         print("Output:")
