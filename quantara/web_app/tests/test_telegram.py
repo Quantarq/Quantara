@@ -251,12 +251,13 @@ class TestCommandHandlers:
         command.telegram_db.set_allow_notification = MagicMock(return_value=None)
 
         msg = self._fake_message()
-        cmd_obj = SimpleNamespace(args="USER-123")
+        cmd_obj = SimpleNamespace(args="42:fake-nonce-value")
 
-        await command.notification_allowed(msg, cmd_obj)
+        with patch.object(command.nonce_store, "validate", return_value=True):
+            await command.notification_allowed(msg, cmd_obj)
 
         command.db_connector.get_object.assert_called_once_with(
-            User, "USER-123",
+            User, 42,
         )
         command.telegram_db.update_telegram_user.assert_called_once_with(
             "999", {"wallet_id": "WALLET-XYZ"},
