@@ -21,8 +21,6 @@ Security notes:
   rate-limited per session so a single pair cannot starve Redis.
 """
 
-from __future__ import annotations
-
 import json
 import logging
 import os
@@ -34,8 +32,14 @@ import redis.asyncio as redis
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 
-# Imported lazily inside route handlers so importing this module from
-# tests does not pull in the rate limiter unless needed.
+# Note: `from __future__ import annotations` is intentionally NOT used here.
+# The `LazyLimiter.limit()` decorator in rate_limiter.py produces a wrapper
+# whose `__globals__` belongs to the rate_limiter module. With PEP 563
+# string annotations, FastAPI tries to resolve the wrapper's signature
+# against the wrapper's globals and fails to find `PairRequest` /
+# `SignRequest` / `CompleteRequest` — raising PydanticUndefinedAnnotation
+# during the conftest.py app import (CI failure observed on the
+# migration round-trip test).
 from web_app.api.rate_limiter import WRITE_LIMIT, READ_LIMIT, limiter
 
 logger = logging.getLogger(__name__)
