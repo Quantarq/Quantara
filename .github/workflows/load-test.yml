@@ -1,0 +1,86 @@
+name: Load Testing Gate
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  load-test:
+    name: Run k6 (${{ matrix.target }})
+    runs-on: ubuntu-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [health, dashboard, leaderboard]
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: quantara
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_NAME: quantara
+      DB_USER: postgres
+      DB_PASSWORD: password
+      STELLAR_HORIZON_URL: https://horizon-testnet.stellar.org
+      STELLAR_SOROBAN_RPC_URL: https://soroban-testnet.stellar.org
+      API_URL: http://localhost:8000/api/v1
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: 'pip'
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install Dependencies
+        working-directory: ./quantara
+        run: |
+          poetry config virtualenvs.create false
+          poetry install --no-interaction --no-root
+
+      - name: Run Database Migrations
+        working-directory: ./quantara
+        run: |
+          poetry run alembic -c web_app/alembic.ini upgrade head
+
+      - name: Start FastAPI Application Server
+        working-directory: ./quantara
+        run: |
+          poetry run uvicorn web_app.api.main:app --host 127.0.0.1 --port 8000 &
+          echo "Waiting for backend API server to spin up..."
+          executable="curl"
+          until $executable -s http://127.0.0.1:8000/api/v1/status > /dev/null; do
+            sleep 1
+          done
+          echo "Backend server successfully started!"
+
+      - name: Execute k6 Load Test
+        uses: grafana/k6-action@v0.3.1
+        with:
+          filename: tests/load/${{ matrix.target }}.js
+          flags: --env API_URL=http://127.0.0.1:8000/api/v1
