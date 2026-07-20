@@ -8,6 +8,7 @@ import useLockBodyScroll from '@/hooks/useLockBodyScroll';
 import MobDropdownMenu from '@/components/layout/mob-dropdown-menu/MobDropdownMenu';
 import { ReportBugButton } from '@/components/report-button/ReportBugButton';
 import { ReportBugModal } from '@/components/report-modal/ReportBugModal';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 const STICKY_ROUTES = [
   '/overview',
@@ -97,6 +98,7 @@ function Header({ onConnectWallet, onLogout }) {
           <NavigationLinks onNavClick={closeMenu} />
 
           <div className="flex items-center">
+            <ThemeToggle />
             <div className="relative block lg:hidden">
               <MobDropdownMenu isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
             </div>

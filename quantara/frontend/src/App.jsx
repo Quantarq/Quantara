@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import './globals.css';
+import { ThemeProvider } from '@/context/ThemeContext';
 import Header from '@/components/layout/header/Header';
 import Dashboard from '@/pages/dashboard/Dashboard';
 import Footer from '@/components/layout/footer/Footer';
@@ -87,21 +88,56 @@ function App() {
   const isNarrowSidebar = narrowSidebarPaths.includes(location.pathname);
 
   return (
-    <div className={`${location.pathname === '/' ? 'home' : isNarrowSidebar ? 'App narrow-sidebar' : 'App'}`}>
-      <Notifier />
-      {showModal &&
-        createPortal(
+    <ThemeProvider>
+      <div className={`${location.pathname === '/' ? 'home' : isNarrowSidebar ? 'App narrow-sidebar' : 'App'}`}>
+        <Notifier />
+        {showModal &&
+          createPortal(
+            <ActionModal
+              isOpen={showModal}
+              title="Logout"
+              subTitle={'Do you want to disconnect your wallet and logout of this account?'}
+              cancelLabel="Cancel"
+              submitLabel="Yes, logout"
+              submitAction={handleLogout}
+              cancelAction={closeModal}
+            />,
+            document.body
+          )}
+        <Header onConnectWallet={handleConnectWallet} onLogout={handleLogoutModal} />
+        <main>
+          <Routes>
+            <Route index element={<QuantaraApp onConnectWallet={handleConnectWallet} onLogout={handleLogout} />} />
+            <Route path="/dashboard" element={<Dashboard telegramId={window?.Telegram?.WebApp?.initData?.user?.id} />} />
+            <Route path="/dashboard/position-history" element={<PositionHistory />} />
+            <Route path="/dashboard/withdraw" element={<WithdrawAll />} />
+            <Route path="/dashboard/deposit" element={<AddDeposit />} />
+            <Route path="/withdraw" element={<Withdraw />} />
+            <Route path="/overview" element={<OverviewPage />} />
+            <Route path="/form" element={<Form />} />
+            <Route path="/documentation" element={<Documentation />} />
+            <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
+            <Route path="/stake" element={<Stake />} />
+            <Route path="/defispring" element={<DefiSpringPage />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </main>
+        <Footer />
+        {isMobile && disableDesktopOnMobile && (
           <ActionModal
-            isOpen={showModal}
-            title="Logout"
-            subTitle={'Do you want to disconnect your wallet and logout of this account?'}
+            isOpen={isMobileRestrictionModalOpen}
+            title="Mobile website restriction"
+            subTitle="Please, use desktop version or telegram mini-app"
+            content={[]}
             cancelLabel="Cancel"
-            submitLabel="Yes, logout"
-            submitAction={handleLogout}
-            cancelAction={closeModal}
-          />,
-          document.body
+            submitLabel="Open in Telegram"
+            submitAction={openTelegramBot}
+            cancelAction={handleisMobileRestrictionModalClose}
+          />
         )}
+      </div>
+    </ThemeProvider>
       <Header onConnectWallet={handleConnectWallet} onLogout={handleLogoutModal} />
       <main>
         <Routes>
