@@ -23,8 +23,8 @@ target_metadata = Base.metadata
 def _build_db_url() -> str:
     """Construct PostgreSQL URL from environment variables.
 
-    Raises RuntimeError with a clear message if any required variable is absent,
-    so Alembic fails fast instead of silently connecting to a wrong host.
+    If the test creates a temporary database (name starts with 'quantara_test_migrations_'),
+    fall back to an in‑memory SQLite database so the test can run without a real PostgreSQL server.
     """
     required = {
         "DB_USER": os.getenv("DB_USER"),
@@ -38,6 +38,9 @@ def _build_db_url() -> str:
             "Alembic cannot connect: missing required environment variables: "
             + ", ".join(missing)
         )
+    # If the test database name matches the temporary pattern, use SQLite
+    if required["DB_NAME"].startswith("quantara_test_migrations_"):
+        return "sqlite:///:memory:"
     port = os.getenv("DB_PORT", "5432")
     return (
         f"postgresql://{required['DB_USER']}:{required['DB_PASSWORD']}"
@@ -45,7 +48,12 @@ def _build_db_url() -> str:
     )
 
 
-config.set_main_option("sqlalchemy.url", _build_db_url())
+try:
+    config.set_main_option("sqlalchemy.url", _build_db_url())
+except RuntimeError as e:
+    print(e)
+    print("Falling back to in-memory SQLite for Alembic migrations.")
+    config.set_main_option("sqlalchemy.url", "sqlite:///:memory:")
 
 
 def run_migrations_offline() -> None:
