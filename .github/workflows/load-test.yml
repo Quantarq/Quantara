@@ -73,17 +73,18 @@ jobs:
         run: |
           poetry run uvicorn web_app.api.main:app --host 127.0.0.1 --port 8000 &
           echo "Waiting for backend API server to spin up..."
-          executable="curl"
-          until $executable -s http://127.0.0.1:8000/api/v1/status > /dev/null; do
+          until curl -s http://127.0.0.1:8000/api/v1/status > /dev/null; do
             sleep 1
           done
           echo "Backend server successfully started!"
 
-      - name: Execute k6 Load Test
-        uses: grafana/k6-action@v0.3.1
-        with:
-          filename: tests/load/${{ matrix.target }}.js
-          flags: --env API_URL=http://127.0.0.1:8000/api/v1
-        env:
-          # Forces the Docker container to share the host's networking stack
-          K6_DOCKER_OPTIONS: "--network=host"
+      - name: Setup Native k6 Binary
+        run: |
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Execute Native k6 Load Test
+        run: |
+          k6 run --env API_URL=http://127.0.0.1:8000/api/v1 tests/load/${{ matrix.target }}.js
