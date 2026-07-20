@@ -49,6 +49,11 @@ class LazyLimiter:
         self.enabled = True
 
     def limit(self, *args, **kwargs):
+        if not self.enabled:
+            # Pass-through decorator when limiter is disabled in test environments
+            def decorator(func):
+                return func
+            return decorator
         return self._limiter.limit(*args, **kwargs)
 
     def __getattr__(self, name: str):

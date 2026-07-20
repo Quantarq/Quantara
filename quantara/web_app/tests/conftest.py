@@ -19,6 +19,26 @@ from web_app.db.models import ExtraDeposit
 
 
 @pytest.fixture(autouse=True)
+def disable_rate_limiter():
+    """Automatically disable rate limiting during test runs to prevent HTTP 429 failures."""
+    _ORIGINAL_LIMITER.enabled = False
+    yield
+    _ORIGINAL_LIMITER.enabled = True
+
+
+@pytest.fixture(autouse=True)
+def mock_redis_connection():
+    """Mock Redis connection to prevent tests from attempting connection to localhost:6379."""
+    with patch("redis.asyncio.Redis.from_url") as mock_from_url, \
+         patch("redis.Redis.from_url") as mock_sync_from_url:
+        
+        mock_redis = AsyncMock()
+        mock_from_url.return_value = mock_redis
+        mock_sync_from_url.return_value = MagicMock()
+        yield mock_redis
+
+
+@pytest.fixture(autouse=True)
 def bypass_wallet_auth():
     """Bypass wallet signature verification for all tests.
 
