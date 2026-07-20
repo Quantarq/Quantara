@@ -103,16 +103,54 @@ def test_create_user(user_db):
 
 def test_update_user_contract(user_db):
     """
-    Test updating a user contract.
+    Test updating a user contract and writing to the audit log.
     """
+    from web_app.db.models import ContractAudit
     user = User(
-        wallet_id="wallet_123", contract_address=None, is_contract_deployed=False
+        id="12345678-1234-1234-1234-1234567890ab",
+        wallet_id="wallet_123",
+        contract_address=None,
+        is_contract_deployed=False,
     )
     with patch.object(user_db, "write_to_db") as mock_write:
-        user_db.update_user_contract(user, "0xABC")
+        user_db.update_user_contract(user, "0xABC", actor="actor_wallet", request_id="req_123")
         assert user.contract_address == "0xABC"
         assert user.is_contract_deployed is True
-        mock_write.assert_called_once()
+        assert mock_write.call_count == 2
+        mock_write.assert_any_call(user)
+        call_args = [args[0] for args, kwargs in mock_write.call_args_list]
+        audit_log = next(arg for arg in call_args if isinstance(arg, ContractAudit))
+        assert audit_log.user_id == user.id
+        assert audit_log.old_address is None
+        assert audit_log.new_address == "0xABC"
+        assert audit_log.actor == "actor_wallet"
+        assert audit_log.request_id == "req_123"
+
+
+def test_get_contract_audit_logs(user_db):
+    """
+    Test retrieving contract audit logs.
+    """
+    from web_app.db.models import ContractAudit
+    mock_session = MagicMock()
+    mock_context = mock_session.__enter__.return_value
+    mock_query = mock_context.query.return_value
+
+    mock_audits = [
+        ContractAudit(
+            user_id="user_id_123",
+            old_address=None,
+            new_address="0xABC",
+            actor="actor_1",
+            request_id="req_1",
+        )
+    ]
+    mock_query.filter.return_value.order_by.return_value.all.return_value = mock_audits
+
+    with patch.object(user_db, "Session", return_value=mock_session):
+        result = user_db.get_contract_audit_logs("user_id_123")
+
+    assert result == mock_audits
 
 
 def test_get_users_for_notifications(user_db):

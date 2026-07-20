@@ -73,16 +73,55 @@ class UserDBConnector(DBConnector):
         self.write_to_db(user)
         return user
 
-    def update_user_contract(self, user: User, contract_address: str) -> None:
+    def update_user_contract(
+        self,
+        user: User,
+        contract_address: str,
+        actor: str | None = None,
+        request_id: str | None = None,
+    ) -> None:
         """
-        Updates the contract of a user in the database.
+        Updates the contract of a user in the database and logs the audit trail.
         :param user: User
         :param contract_address: str
+        :param actor: str | None
+        :param request_id: str | None
         :return: None
         """
-        user.is_contract_deployed = not user.is_contract_deployed
+        from web_app.db.models import ContractAudit
+
+        old_address = user.contract_address
+        user.is_contract_deployed = True
         user.contract_address = contract_address
         self.write_to_db(user)
+
+        audit_log = ContractAudit(
+            user_id=user.id,
+            old_address=old_address,
+            new_address=contract_address,
+            actor=actor,
+            request_id=request_id,
+        )
+        self.write_to_db(audit_log)
+
+    def get_contract_audit_logs(self, user_id: str) -> list:
+        """
+        Retrieves the contract audit log entries for a user, sorted chronologically (ascending).
+        :param user_id: The ID of the user (UUID)
+        :return: List of ContractAudit instances
+        """
+        from web_app.db.models import ContractAudit
+        with self.Session() as db:
+            try:
+                return (
+                    db.query(ContractAudit)
+                    .filter(ContractAudit.user_id == user_id)
+                    .order_by(ContractAudit.timestamp.asc())
+                    .all()
+                )
+            except SQLAlchemyError as e:
+                logger.error("db_get_contract_audit_logs_failed", user_id=user_id, error=str(e))
+                return []
 
     def get_unique_users_count(self) -> int:
         """

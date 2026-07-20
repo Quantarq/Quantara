@@ -226,3 +226,23 @@ class ExtraDeposit(Base):
     __table_args__ = (
         UniqueConstraint("position_id", "token_symbol", name="_position_token_uc"),
     )
+
+
+class ContractAudit(Base):
+    """
+    SQLAlchemy model for the contract_audit table.
+    Tracks changes to users' contract addresses.
+    """
+
+    __tablename__ = "contract_audit"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("user.id"), index=True, nullable=False
+    )
+    old_address = Column(String, nullable=True)
+    new_address = Column(String, nullable=False)
+    actor = Column(String, nullable=True)
+    request_id = Column(String, nullable=True)
+    timestamp = Column(DateTime, nullable=False, default=func.now())
+

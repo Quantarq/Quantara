@@ -151,7 +151,14 @@ async def update_user_contract(
 
     user = user_db.get_user_by_wallet_id(data.wallet_id)
     if user:
-        user_db.update_user_contract(user, data.contract_address)
+        import structlog
+        request_id = structlog.contextvars.get_contextvars().get("request_id", "-")
+        user_db.update_user_contract(
+            user,
+            data.contract_address,
+            actor=wallet,
+            request_id=request_id,
+        )
         return {"is_contract_deployed": True}
     else:
         return {"is_contract_deployed": False}
