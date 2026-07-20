@@ -6,16 +6,20 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from web_app.api.main import app
 from web_app.api.serializers.transaction import UpdateUserContractRequest
 from web_app.db.models import TelegramUser, User
 from web_app.tests.conftest import client
 
 
 @pytest.fixture(autouse=True)
-def bypass_rate_limiter_in_user_tests():
-    """Bypass slowapi rate limit check calls for user tests to prevent 429 errors."""
-    with patch("slowapi.Limiter.check", return_value=True):
-        yield
+def disable_app_rate_limiter():
+    """Disable slowapi rate limiter on the app instance for all user tests."""
+    if hasattr(app.state, "limiter"):
+        app.state.limiter.enabled = False
+    yield
+    if hasattr(app.state, "limiter"):
+        app.state.limiter.enabled = True
 
 
 @pytest.mark.asyncio
