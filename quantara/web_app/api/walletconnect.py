@@ -209,8 +209,8 @@ def _signing_key(sub_sid: str) -> str:
     return f"walletconnect:sign:{sub_sid}"
 
 
-def _validate_session(sid: str) -> dict:
-    raw = _redis().get(_session_key(sid))
+async def _validate_session(sid: str) -> dict:
+    raw = await _redis().get(_session_key(sid))
     if raw is None:
         raise HTTPException(status_code=404, detail="Pairing session not found or expired")
     return json.loads(raw)
@@ -260,9 +260,9 @@ async def create_pair_session(payload: PairRequest, request: Request):
 @limiter.limit(READ_LIMIT)
 async def poll_session(session_id: str, request: Request):
     """Read the current state of a pairing or signing sub-session."""
-    raw = _redis().get(_session_key(session_id))
+    raw = await _redis().get(_session_key(session_id))
     if raw is None:
-        raw = _redis().get(_signing_key(session_id))
+        raw = await _redis().get(_signing_key(session_id))
     if raw is None:
         raise HTTPException(status_code=404, detail="Session not found or expired")
     data = json.loads(raw)
@@ -283,7 +283,7 @@ async def open_signing_sub_session(payload: SignRequest, request: Request):
     The mobile wallet uses this sub-session id to look up the XDR that
     needs to be signed and to upload the resulting signed XDR.
     """
-    parent = _validate_session(payload.session_id)
+    parent = await _validate_session(payload.session_id)
     if parent.get("public_key") is None:
         raise HTTPException(
             status_code=409,
@@ -320,10 +320,10 @@ async def submit_signed_envelope(
 ):
     """Endpoint used by the mobile wallet to upload a signed XDR or to
     confirm the pairing by submitting the public key."""
-    raw = _redis().get(_signing_key(session_id))
+    raw = await _redis().get(_signing_key(session_id))
     if raw is None:
         # Wallet hit the pairing endpoint instead of the signing one.
-        raw = _redis().get(_session_key(session_id))
+        raw = await _redis().get(_session_key(session_id))
         if raw is None:
             raise HTTPException(status_code=404, detail="Unknown session")
         data = json.loads(raw)
@@ -337,7 +337,8 @@ async def submit_signed_envelope(
     data = json.loads(raw)
     parent = None
     if data.get("parent"):
-        parent = json.loads(_redis().get(_session_key(data["parent"])) or "{}")
+        parent_raw = await _redis().get(_session_key(data["parent"]))
+        parent = json.loads(parent_raw) if parent_raw else {}
 
     pk_from_xdr = (
         _xdr_source_account(payload.signed_xdr)
