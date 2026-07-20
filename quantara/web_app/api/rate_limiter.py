@@ -45,8 +45,10 @@ def get_limiter(request: Request) -> Limiter:
 
 
 class LazyLimiter(Limiter):
-    def __init__(self):
-        super().__init__(key_func=get_remote_address)
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("key_func", get_remote_address)
+        kwargs.setdefault("headers_enabled", True)
+        super().__init__(*args, **kwargs)
         self.enabled = True
 
     def limit(self, *args, **kwargs):
