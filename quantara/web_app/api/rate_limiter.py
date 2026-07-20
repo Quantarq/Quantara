@@ -38,9 +38,18 @@ def get_wallet_key(request: Request) -> str:
     return get_remote_address(request)
 
 
-limiter = Limiter(
-    key_func=get_remote_address,
-    storage_uri=os.getenv("REDIS_URL", "redis://localhost:6379"),
-    headers_enabled=True,
-    in_memory_fallback_enabled=True,
-)
+def get_limiter(request: Request) -> Limiter:
+    return request.app.state.limiter
+
+
+class LazyLimiter:
+    def __init__(self):
+        # Placeholder limiter just to provide the .limit() method
+        self._limiter = Limiter(key_func=get_remote_address)
+        self.enabled = True
+
+    def limit(self, *args, **kwargs):
+        return self._limiter.limit(*args, **kwargs)
+
+
+limiter = LazyLimiter()
