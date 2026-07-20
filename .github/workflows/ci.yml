@@ -88,7 +88,7 @@ jobs:
       - name: Run migrations
         working-directory: ./quantara
         run: |
-          poetry run alembic -c web_app/alembic.ini upgrade head
+          poetry run alembic -c web_app/alembic.ini upgrade heads
 
       - name: Run tests
         working-directory: ./quantara

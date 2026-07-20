@@ -44,8 +44,8 @@ def test_migration_roundtrip():
     env["DB_NAME"] = test_db
 
     try:
-        # Upgrade to head
-        _run_alembic(["-c", "web_app/alembic.ini", "upgrade", "head"], env, project_dir)
+        # Upgrade to heads
+        _run_alembic(["-c", "web_app/alembic.ini", "upgrade", "heads"], env, project_dir)
 
         # Downgrade back to base
         _run_alembic(["-c", "web_app/alembic.ini", "downgrade", "base"], env, project_dir)
