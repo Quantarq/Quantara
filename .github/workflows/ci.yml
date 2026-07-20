@@ -93,4 +93,12 @@ jobs:
       - name: Run tests
         working-directory: ./quantara
         run: |
-          poetry run pytest web_app/tests -v --tb=short
+          poetry run pytest web_app/tests -v --tb=short --cov-fail-under=80
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: quantara/coverage.xml
+          retention-days: 14
