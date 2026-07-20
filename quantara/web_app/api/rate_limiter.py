@@ -51,5 +51,9 @@ class LazyLimiter:
     def limit(self, *args, **kwargs):
         return self._limiter.limit(*args, **kwargs)
 
+    def __getattr__(self, name: str):
+        """Proxy attribute access to the underlying Limiter instance."""
+        return getattr(self._limiter, name)
+
 
 limiter = LazyLimiter()
