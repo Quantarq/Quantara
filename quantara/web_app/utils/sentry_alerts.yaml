@@ -1,0 +1,85 @@
+# quantara/web_app/utils/sentry_alerts.yaml
+#
+# Per-endpoint SLO burn-rate alert routing.
+#
+# WHY THIS EXISTS
+# Sentry, by default, treats every error identically. This file is the
+# single source of truth for how much error budget each class of route
+# gets, and where an alert should go when that budget is burned too fast.
+# It is read by both:
+#   - the Sentry alert-rule sync (creates/updates rules in Sentry's UI
+#     via API, see scripts/sync_sentry_alerts.py if added), and
+#   - tests/test_sentry_alerts.py, which proves the routing logic works
+#     without needing a live Sentry project.
+#
+# HOW BURN RATE WORKS HERE
+# Each class has a `success_budget` (e.g. 0.99 = 99% of requests must
+# succeed). The allowed error rate is (1 - success_budget).
+#   burn_rate = observed_error_rate / allowed_error_rate
+# A burn_rate of 1.0 means the route is failing exactly as fast as its
+# budget allows over that window. We fire on the *short* window for a
+# fast page, and require the *long* window to also be elevated so a
+# single blip doesn't page anyone (classic multi-window confirmation).
+#
+# MATCHING
+# `match` patterns are checked top-to-bottom. First class whose pattern
+# matches the route wins. `probe` is listed first so health checks never
+# fall through to a paging class. `read` includes a catch-all "/api/*"
+# so anything new defaults to the safer, non-paging tier until someone
+# explicitly classifies it as auth/mutation.
+
+version: 1
+
+route_classes:
+  probe:
+    description: Liveness/metrics endpoints. Never alert.
+    match:
+      - "/health"
+      - "/metrics"
+    slo: null
+    alert:
+      disabled: true
+
+  auth_mutation:
+    description: Auth and state-changing endpoints. Tightest budget, pages on-call.
+    match:
+      - "/api/check-user"
+      - "/api/login"
+      - "/api/logout"
+      - "/api/signup"
+      - "/api/reset-password"
+      - "/api/*/mutate"
+    slo:
+      success_budget: 0.99          # 99% success required -> 1% error budget
+      windows:
+        short: "1h"
+        long: "6h"
+      burn_rate_thresholds:
+        # Fires when the short window is burning budget at least this
+        # fast AND the long window confirms sustained burn.
+        short_window_burn_rate: 1.0   # short-window error rate >= 1% (the full budget)
+        long_window_burn_rate: 0.5    # long-window error rate >= 0.5% (confirmation)
+    alert:
+      severity: critical
+      channel: "#oncall-protocol"
+      notify: "@oncall"
+
+  read:
+    description: Read-only / low-risk endpoints. Looser budget, informational only.
+    match:
+      - "/api/save-bug-report"
+      - "/api/get-*"
+      - "/api/list-*"
+      - "/api/*"                    # catch-all: unclassified routes land here, not in auth_mutation
+    slo:
+      success_budget: 0.95          # 95% success required -> 5% error budget
+      windows:
+        short: "1h"
+        long: "6h"
+      burn_rate_thresholds:
+        short_window_burn_rate: 1.0   # short-window error rate >= 1% (20% of the 5% budget)
+        long_window_burn_rate: 0.5    # long-window error rate >= 0.5% confirmation
+    alert:
+      severity: info
+      channel: "#oncall-fyi"
+      notify: null
