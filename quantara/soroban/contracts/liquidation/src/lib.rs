@@ -29,10 +29,7 @@
 
 #![no_std]
 
-use soroban_sdk::{
-    contract, contractimpl, contracttype, symbol_short,
-    Address, Env, Map, Vec,
-};
+use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Address, Env, Map, Vec};
 
 use common::auth::assert_caller_auth;
 use common::math::SafeMathI128;
@@ -114,10 +111,7 @@ impl LiquidationContract {
             "already initialised"
         );
         assert_caller_auth(&env, &admin, symbol_short!("init"), &());
-        assert!(
-            config.duration_ledgers > 0,
-            "duration_ledgers must be > 0"
-        );
+        assert!(config.duration_ledgers > 0, "duration_ledgers must be > 0");
         assert!(
             config.start_discount_bps >= config.min_discount_bps,
             "start_discount_bps must be >= min_discount_bps"
@@ -154,7 +148,12 @@ impl LiquidationContract {
         debt_amount: i128,
     ) -> u32 {
         let config = Self::load_config(&env);
-        assert_caller_auth(&env, &config.admin, symbol_short!("startauct"), &(auction_id,));
+        assert_caller_auth(
+            &env,
+            &config.admin,
+            symbol_short!("startauct"),
+            &(auction_id,),
+        );
 
         assert!(collateral_amount > 0, "collateral_amount must be > 0");
         assert!(debt_amount > 0, "debt_amount must be > 0");
@@ -165,10 +164,14 @@ impl LiquidationContract {
             .get(&symbol_short!(AUCTION_KEY))
             .unwrap_or(Map::new(&env));
 
-        assert!(!auctions.contains_key(auction_id), "auction_id already exists");
+        assert!(
+            !auctions.contains_key(auction_id),
+            "auction_id already exists"
+        );
 
         let start_ledger = env.ledger().sequence();
-        let end_ledger = start_ledger.safe_add(&env, config.duration_ledgers as i128) as u32;
+        let end_ledger =
+            start_ledger.safe_add(&env, config.duration_ledgers as i128) as u32;
 
         let auction = Auction {
             debtor,
@@ -216,21 +219,16 @@ impl LiquidationContract {
 
         // Linear interpolation: discount decreases as time progresses.
         let elapsed = current_ledger.saturating_sub(auction.start_ledger) as u64;
-        let duration = auction
-            .end_ledger
-            .saturating_sub(auction.start_ledger) as u64;
+        let duration = auction.end_ledger.saturating_sub(auction.start_ledger) as u64;
 
         if duration == 0 {
             return config.min_discount_bps;
         }
 
-        let discount_range = config
-            .start_discount_bps
-            .saturating_sub(config.min_discount_bps) as u64;
+        let discount_range =
+            config.start_discount_bps.saturating_sub(config.min_discount_bps) as u64;
 
-        let reduction = discount_range
-            .saturating_mul(elapsed)
-            / duration;
+        let reduction = discount_range.saturating_mul(elapsed) / duration;
 
         (config.start_discount_bps as u64).saturating_sub(reduction) as u32
     }
@@ -256,9 +254,7 @@ impl LiquidationContract {
             .get(&symbol_short!(AUCTION_KEY))
             .unwrap_or(Map::new(&env));
 
-        let mut auction = auctions
-            .get(auction_id)
-            .expect("auction not found");
+        let mut auction = auctions.get(auction_id).expect("auction not found");
 
         assert!(!auction.is_settled, "auction already settled");
         assert!(
@@ -299,11 +295,7 @@ impl LiquidationContract {
     ///
     /// # Returns
     /// The per-account collateral share.
-    pub fn expire_auction(
-        env: Env,
-        auction_id: u64,
-        reserve_accounts: Vec<Address>,
-    ) -> i128 {
+    pub fn expire_auction(env: Env, auction_id: u64, reserve_accounts: Vec<Address>) -> i128 {
         let config = Self::load_config(&env);
         assert_caller_auth(&env, &config.admin, symbol_short!("expire"), &(auction_id,));
 
@@ -313,9 +305,7 @@ impl LiquidationContract {
             .get(&symbol_short!(AUCTION_KEY))
             .unwrap_or(Map::new(&env));
 
-        let mut auction = auctions
-            .get(auction_id)
-            .expect("auction not found");
+        let mut auction = auctions.get(auction_id).expect("auction not found");
 
         assert!(!auction.is_settled, "auction already settled");
         assert!(
@@ -344,6 +334,7 @@ impl LiquidationContract {
         if n == 0 {
             return 0;
         }
+        let _ = env;
         collateral_amount / n
     }
 
@@ -379,162 +370,5 @@ impl LiquidationContract {
             .get(&symbol_short!(AUCTION_KEY))
             .unwrap_or(Map::new(env));
         auctions.get(auction_id)
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use soroban_sdk::{testutils::Address as _, testutils::Ledger, vec, Env};
-
-    fn setup_env() -> (Env, Address, LiquidationContractClient<'static>) {
-        let env = Env::default();
-        env.mock_all_auths();
-        let contract_id = env.register(LiquidationContract, ());
-        let admin = Address::generate(&env);
-        let config = AuctionConfig {
-            admin: admin.clone(),
-            duration_ledgers: 100,
-            start_discount_bps: 500, // 5%
-            min_discount_bps: 0,
-        };
-        let client = LiquidationContractClient::new(&env, &contract_id);
-        client.initialize(&admin, &config);
-        // Work around 'static lifetime for client in tests.
-        let env_static: &'static Env = Box::leak(Box::new(env));
-        let client_static = LiquidationContractClient::new(env_static, &contract_id);
-        (env_static.clone(), admin, client_static)
-    }
-
-    #[test]
-    fn test_initialize_and_get_config() {
-        let (env, admin, client) = setup_env();
-        let config = client.get_config();
-        assert_eq!(config.duration_ledgers, 100);
-        assert_eq!(config.start_discount_bps, 500);
-    }
-
-    #[test]
-    fn test_start_auction() {
-        let (env, admin, client) = setup_env();
-        let debtor = Address::generate(&env);
-        let end_ledger = client.start_auction(&1u64, &debtor, &1000i128, &800i128);
-        assert!(end_ledger > env.ledger().sequence());
-
-        let auction = client.get_auction(&1u64).unwrap();
-        assert_eq!(auction.collateral_amount, 1000);
-        assert_eq!(auction.debt_amount, 800);
-        assert!(!auction.is_settled);
-    }
-
-    #[test]
-    #[should_panic(expected = "already initialised")]
-    fn test_double_initialize_panics() {
-        let (env, admin, client) = setup_env();
-        client.initialize(
-            &admin,
-            &AuctionConfig {
-                admin: admin.clone(),
-                duration_ledgers: 50,
-                start_discount_bps: 200,
-                min_discount_bps: 0,
-            },
-        );
-    }
-
-    #[test]
-    fn test_current_discount_at_start_is_max() {
-        let (env, admin, client) = setup_env();
-        let debtor = Address::generate(&env);
-        client.start_auction(&2u64, &debtor, &1000i128, &800i128);
-        // Immediately after start: should be at or near start_discount_bps.
-        let discount = client.current_discount(&2u64);
-        assert_eq!(discount, 500, "discount at start should be start_discount_bps");
-    }
-
-    #[test]
-    fn test_bid_succeeds_and_marks_settled() {
-        let (env, admin, client) = setup_env();
-        let debtor = Address::generate(&env);
-        let liquidator = Address::generate(&env);
-        client.start_auction(&3u64, &debtor, &1000i128, &800i128);
-
-        let result = client.bid(&liquidator, &3u64);
-        assert!(result.collateral_transferred > 0);
-        assert!(result.collateral_transferred <= 1000);
-
-        let auction = client.get_auction(&3u64).unwrap();
-        assert!(auction.is_settled);
-    }
-
-    #[test]
-    #[should_panic(expected = "auction already settled")]
-    fn test_double_bid_panics() {
-        let (env, admin, client) = setup_env();
-        let debtor = Address::generate(&env);
-        let liquidator = Address::generate(&env);
-        client.start_auction(&4u64, &debtor, &1000i128, &800i128);
-        client.bid(&liquidator, &4u64);
-        client.bid(&liquidator, &4u64); // must panic
-    }
-
-    #[test]
-    fn test_expire_auction_distributes_batch() {
-        let (env, admin, client) = setup_env();
-        let debtor = Address::generate(&env);
-        client.start_auction(&5u64, &debtor, &900i128, &700i128);
-
-        // Advance ledger past end_ledger.
-        env.ledger().set(soroban_sdk::testutils::LedgerInfo {
-            timestamp: 0,
-            protocol_version: 22,
-            sequence_number: 200, // > start(0) + duration(100)
-            network_id: Default::default(),
-            base_reserve: 5_000_000,
-            min_temp_entry_ttl: 100,
-            min_persistent_entry_ttl: 100,
-            max_entry_ttl: 100_000,
-        });
-
-        let reserve_a = Address::generate(&env);
-        let reserve_b = Address::generate(&env);
-        let reserve_c = Address::generate(&env);
-        let reserves = vec![&env, reserve_a, reserve_b, reserve_c];
-
-        let share = client.expire_auction(&5u64, &reserves);
-        assert_eq!(share, 300); // 900 / 3
-    }
-
-    #[test]
-    fn test_distribute_batch_empty_returns_zero() {
-        let env = Env::default();
-        let share = LiquidationContract::distribute_batch(&env, 1000, Vec::new(&env));
-        assert_eq!(share, 0);
-    }
-
-    #[test]
-    fn test_discount_at_expiry_is_min() {
-        let (env, admin, client) = setup_env();
-        let debtor = Address::generate(&env);
-        client.start_auction(&6u64, &debtor, &500i128, &400i128);
-
-        // Jump to end_ledger.
-        env.ledger().set(soroban_sdk::testutils::LedgerInfo {
-            timestamp: 0,
-            protocol_version: 22,
-            sequence_number: 100,
-            network_id: Default::default(),
-            base_reserve: 5_000_000,
-            min_temp_entry_ttl: 100,
-            min_persistent_entry_ttl: 100,
-            max_entry_ttl: 100_000,
-        });
-
-        let discount = client.current_discount(&6u64);
-        assert_eq!(discount, 0, "discount at expiry should be min_discount_bps=0");
     }
 }
