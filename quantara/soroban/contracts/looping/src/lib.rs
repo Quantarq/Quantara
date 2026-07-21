@@ -54,12 +54,7 @@ impl LoopingContract {
     /// * `user`        - The wallet address that owns the position.
     /// * `position_id` - The ID of the position to close.
     pub fn close_position(env: Env, user: Address, position_id: u64) {
-        assert_caller_auth(
-            &env,
-            &user,
-            symbol_short!("close_pos"),
-            &(position_id,),
-        );
+        assert_caller_auth(&env, &user, symbol_short!("close_pos"), &(position_id,));
         // Stub: full unwind logic will be implemented in a future PR.
     }
 }

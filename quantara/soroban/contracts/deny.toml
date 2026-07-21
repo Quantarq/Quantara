@@ -45,6 +45,12 @@ multiple-versions = "warn"
 wildcards = "deny"
 highlight = "all"
 
+# Workspace-internal path dependencies are exempt from the wildcard ban.
+# These are local crates that do not have a published version on crates.io
+# and are referenced only by path within the workspace.
+[[bans.allow]]
+name = "common"
+
 # ── Sources ───────────────────────────────────────────────────────────────────
 [sources]
 unknown-registry = "deny"
