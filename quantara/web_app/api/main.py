@@ -128,10 +128,7 @@ async def health():
 async def ready():
     """Readiness check — confirms the app can actually serve traffic (e.g. DB is reachable)."""
     try:
-        # TODO: replace this with a real, lightweight DB check, e.g.:
-        # await database.execute("SELECT 1")
-        db_ok = True
-    except Exception:
+        db_ok = True  # TODO: replace with a real DB check, e.g. await database.execute("SELECT 1")
         db_ok = False
 
     if not db_ok:
