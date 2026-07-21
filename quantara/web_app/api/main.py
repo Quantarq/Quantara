@@ -118,6 +118,24 @@ app = FastAPI(
     },
     lifespan=lifespan,
 )
+@app.get("/health")
+async def health():
+    """Simple liveness check — used by CI/docker to know the app is up."""
+    return {"status": "ok"}
+
+
+@app.get("/ready")
+async def ready():
+    """Readiness check — confirms the app can actually serve traffic (e.g. DB is reachable)."""
+    try:
+        db_ok = True  # TODO: replace with a real DB check, e.g. await database.execute("SELECT 1")
+        db_ok = False
+
+    if not db_ok:
+        from fastapi import Response
+        return Response(status_code=503, content='{"status": "unavailable"}', media_type="application/json")
+
+    return {"status": "ready"}
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
