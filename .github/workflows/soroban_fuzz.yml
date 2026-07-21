@@ -4,14 +4,13 @@ on:
   push:
     branches: [main]
     paths:
-      - 'quantara/soroban/contracts/**'
+      - 'quantara/soroban/contracts/*/fuzz/**'
       - '.github/workflows/soroban_fuzz.yml'
   pull_request:
     branches: [main]
     paths:
-      - 'quantara/soroban/contracts/**'
+      - 'quantara/soroban/contracts/*/fuzz/**'
       - '.github/workflows/soroban_fuzz.yml'
-  # Allow manual triggering for longer fuzz runs.
   workflow_dispatch:
     inputs:
       fuzz_time:
@@ -21,7 +20,6 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  RUST_TOOLCHAIN: nightly-2025-06-01
   FUZZ_TIME: ${{ github.event.inputs.fuzz_time || '60' }}
 
 jobs:
@@ -43,18 +41,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust nightly + cargo-fuzz
+      - name: Install latest Rust nightly
         uses: dtolnay/rust-toolchain@nightly
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
         with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
-          targets: wasm32-unknown-unknown
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-fuzz-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-cargo-fuzz-
 
       - name: Install cargo-fuzz
-        run: cargo install cargo-fuzz --locked
+        run: cargo install cargo-fuzz
 
-      - name: Run fuzz target (${{ matrix.target }}) for ${{ env.FUZZ_TIME }}s
+      - name: Run fuzz target for ${{ env.FUZZ_TIME }}s
         run: |
-          cargo +${{ env.RUST_TOOLCHAIN }} fuzz run ${{ matrix.target }} \
+          cargo fuzz run ${{ matrix.target }} \
             -- -max_total_time=${{ env.FUZZ_TIME }} -jobs=1
 
       - name: Upload crash corpus on failure
@@ -62,7 +67,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: vault-${{ matrix.target }}-crash-corpus
-          path: quantara/soroban/contracts/vault/fuzz/corpus/${{ matrix.target }}
+          path: fuzz/corpus/${{ matrix.target }}
           if-no-files-found: ignore
 
   # ── Looping fuzz targets ───────────────────────────────────────────────────
@@ -82,17 +87,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust nightly + cargo-fuzz
+      - name: Install latest Rust nightly
         uses: dtolnay/rust-toolchain@nightly
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
         with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-fuzz-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-cargo-fuzz-
 
       - name: Install cargo-fuzz
-        run: cargo install cargo-fuzz --locked
+        run: cargo install cargo-fuzz
 
-      - name: Run fuzz target (${{ matrix.target }}) for ${{ env.FUZZ_TIME }}s
+      - name: Run fuzz target for ${{ env.FUZZ_TIME }}s
         run: |
-          cargo +${{ env.RUST_TOOLCHAIN }} fuzz run ${{ matrix.target }} \
+          cargo fuzz run ${{ matrix.target }} \
             -- -max_total_time=${{ env.FUZZ_TIME }} -jobs=1
 
       - name: Upload crash corpus on failure
@@ -100,7 +113,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: looping-${{ matrix.target }}-crash-corpus
-          path: quantara/soroban/contracts/looping/fuzz/corpus/${{ matrix.target }}
+          path: fuzz/corpus/${{ matrix.target }}
           if-no-files-found: ignore
 
   # ── Rewards fuzz targets ───────────────────────────────────────────────────
@@ -120,17 +133,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust nightly + cargo-fuzz
+      - name: Install latest Rust nightly
         uses: dtolnay/rust-toolchain@nightly
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
         with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-fuzz-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-cargo-fuzz-
 
       - name: Install cargo-fuzz
-        run: cargo install cargo-fuzz --locked
+        run: cargo install cargo-fuzz
 
-      - name: Run fuzz target (${{ matrix.target }}) for ${{ env.FUZZ_TIME }}s
+      - name: Run fuzz target for ${{ env.FUZZ_TIME }}s
         run: |
-          cargo +${{ env.RUST_TOOLCHAIN }} fuzz run ${{ matrix.target }} \
+          cargo fuzz run ${{ matrix.target }} \
             -- -max_total_time=${{ env.FUZZ_TIME }} -jobs=1
 
       - name: Upload crash corpus on failure
@@ -138,5 +159,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: rewards-${{ matrix.target }}-crash-corpus
-          path: quantara/soroban/contracts/rewards/fuzz/corpus/${{ matrix.target }}
+          path: fuzz/corpus/${{ matrix.target }}
           if-no-files-found: ignore

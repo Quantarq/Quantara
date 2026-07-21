@@ -1,15 +1,19 @@
 //! cargo-fuzz harness for LoopingContract::open_position entry-point.
 //!
-//! Validates:
-//! - Positive collateral with valid leverage (100–500) always succeeds.
-//! - Returned position IDs are monotonically increasing (no wrap-around).
-//! - Non-positive collateral or out-of-range leverage panics as documented.
+//! Invariants checked:
+//! - Valid inputs (collateral > 0, leverage 100–500) must succeed.
+//! - Returned position IDs are >= 1.
+//!
+//! Run:
+//! ```bash
+//! cargo +nightly fuzz run fuzz_looping_open_position -- -max_total_time=60
+//! ```
 
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
 use soroban_sdk::{testutils::Address as _, Address, Env};
-use looping::LoopingContractClient;
+use looping::LoopingContract;
 
 fuzz_target!(|data: &[u8]| {
     if data.len() < 12 {
@@ -20,20 +24,23 @@ fuzz_target!(|data: &[u8]| {
 
     let env = Env::default();
     env.mock_all_auths();
-    let contract_id = env.register(looping::LoopingContract, ());
-    let client = LoopingContractClient::new(&env, &contract_id);
+    let contract_id = env.register(LoopingContract, ());
     let user = Address::generate(&env);
 
-    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        client.open_position(&user, &collateral, &leverage)
-    }));
+    let result = env.try_invoke_contract::<u64, _>(
+        &contract_id,
+        &soroban_sdk::symbol_short!("open_pos"),
+        soroban_sdk::vec![
+            &env,
+            user.to_val(),
+            collateral.into(),
+            leverage.into(),
+        ],
+    );
 
-    let is_valid = collateral > 0 && (100..=500).contains(&leverage);
-
-    if is_valid {
-        let position_id = result.expect("open_position with valid args panicked unexpectedly");
-        // Position ID must be >= 1.
-        assert!(position_id >= 1, "position_id should be >= 1, got {}", position_id);
+    if collateral > 0 && (100..=500).contains(&leverage) {
+        let position_id = result.expect("open_position with valid args returned error");
+        assert!(position_id >= 1, "position_id must be >= 1, got {position_id}");
     }
-    // Invalid args may panic; no further assertion needed.
+    // Invalid inputs may error; no further assertion needed.
 });

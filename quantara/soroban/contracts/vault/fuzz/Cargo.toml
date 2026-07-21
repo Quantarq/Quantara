@@ -9,6 +9,8 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4"
+# Fuzz targets call contract functions via the Soroban test environment.
+# testutils provides Env::default(), mock_all_auths(), and Address::generate().
 soroban-sdk = { version = "22.0.0", features = ["testutils"] }
 vault = { path = ".." }
 
