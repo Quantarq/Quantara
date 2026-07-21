@@ -163,3 +163,15 @@ def test_set_allow_notification(telegram_user_db):
     with patch.object(telegram_user_db, "save_or_update_user", return_value=True):
         result = telegram_user_db.set_allow_notification("t9", "w9")
         assert result is True
+
+
+def test_get_notification_recipients_returns_only_query_results(telegram_user_db):
+    """Return the distinct opted-in Telegram IDs selected by the query."""
+    session = MagicMock()
+    telegram_user_db.Session.return_value.__enter__.return_value = session
+    session.query.return_value.filter.return_value.distinct.return_value.all.return_value = [
+        ("t1",),
+        ("t2",),
+    ]
+
+    assert telegram_user_db.get_notification_recipients() == ["t1", "t2"]

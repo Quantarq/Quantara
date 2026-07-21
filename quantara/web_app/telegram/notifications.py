@@ -7,10 +7,12 @@ import logging
 from decimal import Decimal
 
 from aiogram.exceptions import TelegramRetryAfter
+
 from web_app.db.crud import TelegramUserDBConnector
 from web_app.telegram import bot
 
 from .dedupe import NotificationDedupe
+from .handlers.admin import notifications_are_paused
 from .texts import i18n
 
 logger = logging.getLogger(__name__)
@@ -32,6 +34,12 @@ async def send_health_ratio_notification(
     Send notification about health ratio to user.
     Deduplication prevents repeated alerts for the same user/position within 4h.
     """
+    if await notifications_are_paused():
+        logger.info(
+            "Telegram alerts are paused; skipping notification to %s", telegram_id
+        )
+        return
+
     if position_id and not await dedupe.should_send(telegram_id, position_id):
         return
 
@@ -55,7 +63,10 @@ async def send_health_ratio_notification(
 
         await asyncio.sleep(retry_after)
         await send_health_ratio_notification(
-            telegram_id, health_ratio, position_id=position_id, retry_count=retry_count - 1
+            telegram_id,
+            health_ratio,
+            position_id=position_id,
+            retry_count=retry_count - 1,
         )
     except Exception as e:
         if position_id:
