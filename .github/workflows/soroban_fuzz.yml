@@ -1,0 +1,142 @@
+name: Soroban Fuzz (Smoke — 60 s per target)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'quantara/soroban/contracts/**'
+      - '.github/workflows/soroban_fuzz.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'quantara/soroban/contracts/**'
+      - '.github/workflows/soroban_fuzz.yml'
+  # Allow manual triggering for longer fuzz runs.
+  workflow_dispatch:
+    inputs:
+      fuzz_time:
+        description: 'Seconds to fuzz per target'
+        default: '60'
+        required: false
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_TOOLCHAIN: nightly-2025-06-01
+  FUZZ_TIME: ${{ github.event.inputs.fuzz_time || '60' }}
+
+jobs:
+  # ── Vault fuzz targets ────────────────────────────────────────────────────
+  fuzz-vault:
+    name: Fuzz vault (${{ matrix.target }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - fuzz_vault_deposit
+          - fuzz_vault_withdraw
+
+    defaults:
+      run:
+        working-directory: quantara/soroban/contracts/vault
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust nightly + cargo-fuzz
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          targets: wasm32-unknown-unknown
+
+      - name: Install cargo-fuzz
+        run: cargo install cargo-fuzz --locked
+
+      - name: Run fuzz target (${{ matrix.target }}) for ${{ env.FUZZ_TIME }}s
+        run: |
+          cargo +${{ env.RUST_TOOLCHAIN }} fuzz run ${{ matrix.target }} \
+            -- -max_total_time=${{ env.FUZZ_TIME }} -jobs=1
+
+      - name: Upload crash corpus on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vault-${{ matrix.target }}-crash-corpus
+          path: quantara/soroban/contracts/vault/fuzz/corpus/${{ matrix.target }}
+          if-no-files-found: ignore
+
+  # ── Looping fuzz targets ───────────────────────────────────────────────────
+  fuzz-looping:
+    name: Fuzz looping (${{ matrix.target }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - fuzz_looping_open_position
+
+    defaults:
+      run:
+        working-directory: quantara/soroban/contracts/looping
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust nightly + cargo-fuzz
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+
+      - name: Install cargo-fuzz
+        run: cargo install cargo-fuzz --locked
+
+      - name: Run fuzz target (${{ matrix.target }}) for ${{ env.FUZZ_TIME }}s
+        run: |
+          cargo +${{ env.RUST_TOOLCHAIN }} fuzz run ${{ matrix.target }} \
+            -- -max_total_time=${{ env.FUZZ_TIME }} -jobs=1
+
+      - name: Upload crash corpus on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: looping-${{ matrix.target }}-crash-corpus
+          path: quantara/soroban/contracts/looping/fuzz/corpus/${{ matrix.target }}
+          if-no-files-found: ignore
+
+  # ── Rewards fuzz targets ───────────────────────────────────────────────────
+  fuzz-rewards:
+    name: Fuzz rewards (${{ matrix.target }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - fuzz_rewards_accrue_claim
+
+    defaults:
+      run:
+        working-directory: quantara/soroban/contracts/rewards
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust nightly + cargo-fuzz
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+
+      - name: Install cargo-fuzz
+        run: cargo install cargo-fuzz --locked
+
+      - name: Run fuzz target (${{ matrix.target }}) for ${{ env.FUZZ_TIME }}s
+        run: |
+          cargo +${{ env.RUST_TOOLCHAIN }} fuzz run ${{ matrix.target }} \
+            -- -max_total_time=${{ env.FUZZ_TIME }} -jobs=1
+
+      - name: Upload crash corpus on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rewards-${{ matrix.target }}-crash-corpus
+          path: quantara/soroban/contracts/rewards/fuzz/corpus/${{ matrix.target }}
+          if-no-files-found: ignore
