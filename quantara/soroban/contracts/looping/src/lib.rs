@@ -7,6 +7,8 @@
 
 use soroban_sdk::{contract, contractimpl, symbol_short, Address, Env};
 
+use common::auth::assert_caller_auth;
+
 /// Quantara looping contract.
 #[contract]
 pub struct LoopingContract;
@@ -24,7 +26,12 @@ impl LoopingContract {
     /// # Returns
     /// The position ID assigned to this new position.
     pub fn open_position(env: Env, user: Address, collateral: i128, leverage: u32) -> u64 {
-        user.require_auth();
+        assert_caller_auth(
+            &env,
+            &user,
+            symbol_short!("open_pos"),
+            &(collateral, leverage),
+        );
 
         assert!(collateral > 0, "collateral must be positive");
         assert!(
@@ -46,8 +53,13 @@ impl LoopingContract {
     /// * `env`         - The Soroban environment.
     /// * `user`        - The wallet address that owns the position.
     /// * `position_id` - The ID of the position to close.
-    pub fn close_position(_env: Env, user: Address, _position_id: u64) {
-        user.require_auth();
+    pub fn close_position(env: Env, user: Address, position_id: u64) {
+        assert_caller_auth(
+            &env,
+            &user,
+            symbol_short!("close_pos"),
+            &(position_id,),
+        );
         // Stub: full unwind logic will be implemented in a future PR.
     }
 }

@@ -11,3 +11,4 @@ doctest = false
 
 [dependencies]
 soroban-sdk = { version = "22.0.0" }
+common = { path = "../common" }
