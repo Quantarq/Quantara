@@ -10,8 +10,9 @@ from sqlalchemy.exc import SQLAlchemyError
 from web_app.db.models import Base, Position, Status, TelegramUser, User
 
 from .base import DBConnector
+from web_app.utils.logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 ModelType = TypeVar("ModelType", bound=Base)
 
 
@@ -42,7 +43,7 @@ class UserDBConnector(DBConnector):
                 )
                 return results
             except SQLAlchemyError as e:
-                logger.error(f"Error retrieving users with OPENED positions: {e}")
+                logger.error("db_get_notification_users_failed", error=str(e))
                 return []
 
     def get_user_by_wallet_id(self, wallet_id: str) -> User | None:
@@ -95,7 +96,7 @@ class UserDBConnector(DBConnector):
                 return unique_users_count
 
             except SQLAlchemyError as e:
-                logger.error(f"Failed to retrieve unique users count: {str(e)}")
+                logger.error("db_unique_users_count_failed", error=str(e))
                 return 0
 
     def fetch_user_history(self, user_id: int) -> list[dict]:
@@ -141,9 +142,7 @@ class UserDBConnector(DBConnector):
                 ]
 
             except SQLAlchemyError as e:
-                logger.error(
-                    f"Failed to fetch user history for user_id={user_id}: {str(e)}"
-                )
+                logger.error("db_fetch_user_history_failed", user_id=user_id, error=str(e))
                 return []
 
     def delete_user_by_wallet_id(self, wallet_id: str) -> None:
@@ -161,12 +160,10 @@ class UserDBConnector(DBConnector):
                 if user:
                     session.delete(user)
                     session.commit()
-                    logger.info(
-                        f"User with wallet_id {wallet_id} deleted successfully."
-                    )
+                    logger.info("db_user_deleted", wallet_id=wallet_id)
                 else:
-                    logger.warning(f"No user found with wallet_id {wallet_id}.")
+                    logger.warning("db_user_not_found", wallet_id=wallet_id)
             except SQLAlchemyError as e:
                 session.rollback()
-                logger.error(f"Failed to delete user with wallet_id {wallet_id}: {e}")
+                logger.error("db_delete_user_failed", wallet_id=wallet_id, error=str(e))
                 raise e

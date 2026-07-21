@@ -1,0 +1,52 @@
+# cargo-deny configuration for Quantara Soroban contracts
+# Compatible with cargo-deny v0.14+ (EmbarkStudios/cargo-deny-action@v2)
+# Keys removed in PR #611 (unlicensed, copyleft, allow-osi-fsf-free, default, deny)
+# have been dropped — all licenses not in [licenses.allow] are denied by default.
+
+# ── Graph ─────────────────────────────────────────────────────────────────────
+[graph]
+targets = [
+    { triple = "wasm32-unknown-unknown" },
+]
+
+# ── Advisories ────────────────────────────────────────────────────────────────
+[advisories]
+version = 2
+db-urls = ["https://github.com/rustsec/advisory-db"]
+yanked = "deny"
+
+# ── Licenses ──────────────────────────────────────────────────────────────────
+# All licenses not in [allow] are denied by default (no extra keys needed).
+[licenses]
+version = 2
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "ISC",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "Unicode-DFS-2016",
+    "Unicode-3.0",
+    "CC0-1.0",
+    "0BSD",
+    "Zlib",
+]
+unused-allowed-license = "allow"
+
+[[licenses.clarify]]
+name = "ring"
+expression = "MIT AND ISC AND OpenSSL"
+license-files = [{ path = "LICENSE", hash = 0xbd0eed23 }]
+
+# ── Bans ──────────────────────────────────────────────────────────────────────
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+highlight = "all"
+
+# ── Sources ───────────────────────────────────────────────────────────────────
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

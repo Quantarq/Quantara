@@ -15,9 +15,11 @@ from decimal import Decimal
 
 import aiohttp
 
+from .cache import get_cached_or_fetch
 from .constants import MULTIPLIER_POWER, TokenParams
+from web_app.utils.logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Base64-encoded "wasm_hash" key for Soroban getContractData RPC calls
 _SOROBAN_WASM_HASH_KEY = "dHJ1c3RlZAB3YXNoX2hhc2g="
@@ -75,22 +77,17 @@ class StellarClient:
             async with aiohttp.ClientSession() as session:
                 async with session.get(url) as response:
                     if response.status == 404:
-                        logger.info(
-                            "Account %s not found on Stellar network",
-                            holder_address,
-                        )
+                        logger.info("horizon_account_not_found", account=holder_address)
                         return "0"
                     if response.status != 200:
-                        logger.warning(
-                            "Horizon returned %d for %s", response.status, url
-                        )
+                        logger.warning("horizon_unexpected_status", status=response.status, url=url)
                         return "0"
                     account = await response.json()
         except aiohttp.ClientError as exc:
-            logger.error("Network error fetching account %s: %s", holder_address, exc)
+            logger.error("horizon_network_error", account=holder_address, error=str(exc))
             return "0"
         except (ValueError, KeyError, TypeError) as exc:
-            logger.error("Data error fetching account %s: %s", holder_address, exc)
+            logger.error("horizon_data_error", account=holder_address, error=str(exc))
             return "0"
 
         code = asset_code.lower()
@@ -110,6 +107,35 @@ class StellarClient:
 
         return "0"
 
+    async def _get_account_data(self, holder_address: str) -> dict | None:
+        """
+        Fetch full account data from Horizon.
+        """
+        if not holder_address:
+            return None
+        url = f"{self.horizon_url.rstrip('/')}/accounts/{holder_address}"
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as response:
+                    if response.status == 404:
+                        logger.info(
+                            "Account %s not found on Stellar network",
+                            holder_address,
+                        )
+                        return None
+                    if response.status != 200:
+                        logger.warning(
+                            "Horizon returned %d for %s", response.status, url
+                        )
+                        return None
+                    return await response.json()
+        except aiohttp.ClientError as exc:
+            logger.error("Network error fetching account %s: %s", holder_address, exc)
+            return None
+        except (ValueError, KeyError, TypeError) as exc:
+            logger.error("Data error fetching account %s: %s", holder_address, exc)
+            return None
+
     async def get_token_balances(
         self, holder_address: str
     ) -> dict[str, str]:
@@ -119,19 +145,29 @@ class StellarClient:
         :param holder_address: Stellar account public key.
         :return: dict mapping token symbols to balance strings.
         """
-        balances: dict[str, str] = {}
-        for token in TokenParams.tokens():
-            try:
-                bal = await self.get_balance(
-                    asset_code=token.asset_code,
-                    holder_address=holder_address,
-                    asset_issuer=getattr(token, "asset_issuer", None),
-                )
-                balances[token.name] = bal
-            except (aiohttp.ClientError, ValueError, KeyError) as exc:
-                logger.info(
-                    "Failed to get balance for %s: %s", token.name, exc
-                )
+        balances: dict[str, str] = {
+            token.name: "0" for token in TokenParams.tokens()
+        }
+        account = await self._get_account_data(holder_address)
+        if not account:
+            return balances
+
+        for balance in account.get("balances", []):
+            asset_type = balance.get("asset_type", "")
+            asset_code = balance.get("asset_code", "").lower()
+            asset_issuer = balance.get("asset_issuer", "")
+
+            for token in TokenParams.tokens():
+                target_code = token.asset_code.lower()
+                target_issuer = getattr(token, "asset_issuer", None)
+
+                if target_code == "native" or target_code == "xlm":
+                    if asset_type == "native":
+                        balances[token.name] = str(balance.get("balance", "0"))
+                elif asset_code == target_code:
+                    if target_issuer is None or asset_issuer == target_issuer:
+                        balances[token.name] = str(balance.get("balance", "0"))
+
         return balances
 
     # ------------------------------------------------------------------ #
@@ -213,24 +249,16 @@ class StellarClient:
                     if response.status == 200:
                         data = await response.json()
                         if "error" in data:
-                            logger.warning(
-                                "RPC error checking contract %s: %s",
-                                contract_id,
-                                data["error"],
-                            )
+                            logger.warning("rpc_contract_error", contract_id=contract_id, error=data["error"])
                             return False
                         return "result" in data
-                    logger.warning(
-                        "RPC returned %d checking contract %s",
-                        response.status,
-                        contract_id,
-                    )
+                    logger.warning("rpc_unexpected_status", status=response.status, contract_id=contract_id)
                     return False
         except aiohttp.ClientError as e:
-            logger.error("Network error checking contract %s: %s", contract_id, e)
+            logger.error("rpc_network_error", contract_id=contract_id, error=str(e))
             return False
         except (ValueError, KeyError, TypeError) as e:
-            logger.error("Data error checking contract %s: %s", contract_id, e)
+            logger.error("rpc_data_error", contract_id=contract_id, error=str(e))
             return False
 
     async def fetch_portfolio(self, contract_address: str) -> dict:
@@ -241,29 +269,44 @@ class StellarClient:
         :return: dict mapping token keys to balance info.
         """
         results = {}
+        # Pre-initialize with zero balances
         for token in TokenParams.tokens():
-            try:
-                balance = await self.get_balance(
-                    asset_code=token.asset_code,
-                    holder_address=contract_address,
-                )
-                results[token.name] = {
-                    "balance": balance,
-                    "decimals": token.decimals,
-                }
-            except (aiohttp.ClientError, ValueError, KeyError) as exc:
-                logger.info(
-                    "Failed to get portfolio balance for %s: %s",
-                    token.name,
-                    exc,
-                )
+            results[token.name] = {
+                "balance": "0",
+                "decimals": token.decimals,
+            }
+
+        account = await self._get_account_data(contract_address)
+        if not account:
+            return results
+
+        for balance in account.get("balances", []):
+            asset_type = balance.get("asset_type", "")
+            asset_code = balance.get("asset_code", "").lower()
+            asset_issuer = balance.get("asset_issuer", "")
+
+            for token in TokenParams.tokens():
+                target_code = token.asset_code.lower()
+                target_issuer = getattr(token, "asset_issuer", None)
+
+                if target_code == "native" or target_code == "xlm":
+                    if asset_type == "native":
+                        results[token.name]["balance"] = str(
+                            balance.get("balance", "0")
+                        )
+                elif asset_code == target_code:
+                    if target_issuer is None or asset_issuer == target_issuer:
+                        results[token.name]["balance"] = str(
+                            balance.get("balance", "0")
+                        )
         return results
 
 
 if __name__ == "__main__":
-    res = asyncio.run(
-        StellarClient().fetch_portfolio(
-            "GA7QYNF7SOWQ3GLR2ZGMH2Z5Y2X2H5Y2X2H5Y2X2H5Y2X2H5Y2X2H5Y2"
-        )
+    # Split the long dummy address to comply with 100-char linting limits
+    dummy_address = (
+        "GA7QYNF7SOWQ3GLR2ZGMH2Z5Y2"
+        "X2H5Y2X2H5Y2X2H5Y2X2H5Y2X2H5Y2"
     )
+    res = asyncio.run(StellarClient().fetch_portfolio(dummy_address))
     print(res)

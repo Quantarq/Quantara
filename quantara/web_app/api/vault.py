@@ -16,8 +16,9 @@ from web_app.api.serializers.vault import (
     VaultDepositResponse,
 )
 from web_app.api.rate_limiter import limiter, WRITE_LIMIT, USER_DATA_LIMIT
+from web_app.utils.logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 router = APIRouter(prefix="/api/vault", tags=["vault"])
 
 
@@ -34,7 +35,7 @@ async def deposit_to_vault(
 
     Requires wallet signature authentication via X-Wallet-Id, X-Nonce, and X-Signature headers.
     """
-    logger.info(f"Processing deposit request for wallet {body.wallet_id}")
+    logger.info("vault_deposit_request", wallet_id=body.wallet_id)
 
     try:
         user_db = UserDBConnector()
@@ -53,7 +54,7 @@ async def deposit_to_vault(
             symbol=body.symbol,
         )
     except (ValueError, TypeError) as e:
-        logger.error(f"Invalid input data: {str(e)}")
+        logger.error("vault_deposit_invalid_input", error=str(e))
         raise HTTPException(status_code=400, detail=str(e))
 
 

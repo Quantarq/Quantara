@@ -1,4 +1,46 @@
 import json
+import os
+
+
+class SecurityHeadersMiddleware:
+    """ASGI middleware that injects security headers into every HTTP response.
+
+    Adds Content-Security-Policy, Strict-Transport-Security (production only),
+    X-Frame-Options, X-Content-Type-Options, and Referrer-Policy headers as a
+    defense-in-depth measure against XSS, clickjacking, MIME-sniffing, and
+    protocol-downgrade attacks.
+    """
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        is_production = os.getenv("ENV_VERSION") == "PROD"
+
+        async def send_with_headers(message):
+            if message["type"] == "http.response.start":
+                headers = [
+                    (b"content-security-policy", b"default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://*.stellar.org; frame-ancestors 'none';"),
+                    (b"x-frame-options", b"DENY"),
+                    (b"x-content-type-options", b"nosniff"),
+                    (b"referrer-policy", b"strict-origin-when-cross-origin"),
+                ]
+                if is_production:
+                    headers.append((b"strict-transport-security", b"max-age=31536000; includeSubDomains"))
+
+                existing_headers = list(message.get("headers", []))
+                existing_names = {name.lower() for name, _ in existing_headers}
+                filtered = [h for h in existing_headers if h[0].lower() not in {name.lower() for name, _ in headers}]
+                message["headers"] = filtered + headers
+
+            await send(message)
+
+        await self.app(scope, receive, send_with_headers)
+
 
 class MaxBodySizeMiddleware:
     """ASGI middleware to enforce a maximum request body size.

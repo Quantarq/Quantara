@@ -16,8 +16,9 @@ from sqlalchemy.exc import SQLAlchemyError
 from web_app.db.models import Base, ExtraDeposit, Position, Status, Transaction, User
 
 from .user import UserDBConnector
+from web_app.utils.logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 ModelType = TypeVar("ModelType", bound=Base)
 
 
@@ -101,7 +102,7 @@ class PositionDBConnector(UserDBConnector):
                 return positions_dict
 
             except SQLAlchemyError as e:
-                logger.error(f"Failed to retrieve positions: {str(e)}")
+                logger.error("db_get_positions_failed", error=str(e))
                 return []
       
     def get_all_positions_by_wallet_id(
@@ -136,7 +137,7 @@ class PositionDBConnector(UserDBConnector):
                 return [self._position_to_dict(position) for position in positions]
 
             except SQLAlchemyError as e:
-                logger.error(f"Failed to retrieve positions: {str(e)}")
+                logger.error("db_get_all_positions_failed", error=str(e))
                 return []
     
     def get_count_positions_by_wallet_id(self, wallet_id: str) -> int:
@@ -160,7 +161,7 @@ class PositionDBConnector(UserDBConnector):
                 return total_positions or 0
 
             except SQLAlchemyError as e:
-                logger.error(f"Failed to count user positions: {str(e)}")
+                logger.error("db_count_positions_failed", error=str(e))
                 return 0
 
     def has_opened_position(self, wallet_id: str) -> bool:
@@ -186,7 +187,7 @@ class PositionDBConnector(UserDBConnector):
                 return position_exists
 
             except SQLAlchemyError as e:
-                logger.error(f"Failed to check for opened positions: {str(e)}")
+                logger.error("db_check_opened_positions_failed", error=str(e))
                 return False
 
     def create_position(
@@ -203,7 +204,7 @@ class PositionDBConnector(UserDBConnector):
         """
         user = self._get_user_by_wallet_id(wallet_id)
         if not user:
-            logger.error(f"User with wallet ID {wallet_id} not found")
+            logger.error("db_create_position_user_not_found", wallet_id=wallet_id)
             return None
 
         # Check if a position with status 'pending' already exists for this user
@@ -297,7 +298,7 @@ class PositionDBConnector(UserDBConnector):
             self.save_current_price(position, current_prices)
             return position.status
         else:
-            logger.error(f"Position with ID {position_id} not found")
+            logger.error("db_open_position_not_found", position_id=str(position_id))
             return None
 
     def get_repay_data(self, wallet_id: str) -> tuple:
@@ -344,7 +345,7 @@ class PositionDBConnector(UserDBConnector):
                 return {token: Decimal(str(amount)) for token, amount in token_amounts}
 
             except SQLAlchemyError as e:
-                logger.error(f"Error calculating amounts for open positions: {e}")
+                logger.error("db_calc_open_amounts_failed", error=str(e))
                 return {}
 
     def save_current_price(self, position: Position, price_dict: dict) -> None:
@@ -357,7 +358,7 @@ class PositionDBConnector(UserDBConnector):
             position.start_price = start_price
             self.write_to_db(position)
         except SQLAlchemyError as e:
-            logger.error(f"Error while saving current_price for position: {e}")
+            logger.error("db_save_current_price_failed", error=str(e))
 
     def save_transaction(
         self, position_id: uuid.UUID, status: str, transaction_hash: str
@@ -381,7 +382,7 @@ class PositionDBConnector(UserDBConnector):
             )
             return self.write_to_db(transaction)
         except SQLAlchemyError as e:
-            logger.error(f"Failed to save transaction: {str(e)}")
+            logger.error("db_save_transaction_failed", error=str(e))
             return None
 
     def liquidate_position(self, position_id: UUID) -> bool:
@@ -398,18 +399,18 @@ class PositionDBConnector(UserDBConnector):
                 position = db.query(Position).filter(Position.id == position_id).first()
 
                 if not position:
-                    logger.warning(f"Position with ID {position_id} not found.")
+                    logger.warning("db_liquidate_position_not_found", position_id=str(position_id))
                     return False
 
                 position.is_liquidated = True
                 position.datetime_liquidation = datetime.now()
 
                 self.write_to_db(position)
-                logger.info(f"Position {position_id} successfully liquidated.")
+                logger.info("db_position_liquidated", position_id=str(position_id))
                 return True
 
             except SQLAlchemyError as e:
-                logger.error(f"Error liquidating position {position_id}: {str(e)}")
+                logger.error("db_liquidate_position_failed", position_id=str(position_id), error=str(e))
                 db.rollback()
                 return False
 
@@ -445,7 +446,7 @@ class PositionDBConnector(UserDBConnector):
                 ]
 
             except SQLAlchemyError as e:
-                logger.error(f"Error retrieving liquidated positions: {str(e)}")
+                logger.error("db_get_liquidated_positions_failed", error=str(e))
                 return []
 
     def get_position_by_id(self, position_id: UUID) -> Position | None:
@@ -468,7 +469,7 @@ class PositionDBConnector(UserDBConnector):
                     db.delete(position)
                 db.commit()
             except SQLAlchemyError as e:
-                logger.error(f"Error deleting positions for user {user_id}: {str(e)}")
+                logger.error("db_delete_positions_failed", user_id=str(user_id), error=str(e))
 
     def add_extra_deposit_to_position(
         self, position: Position, token_symbol: str, amount: str

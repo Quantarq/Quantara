@@ -9,8 +9,9 @@ from typing import TypeVar
 from web_app.db.models import Base, User, Vault
 
 from .base import DBConnector
+from web_app.utils.logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 ModelType = TypeVar("ModelType", bound=Base)
 
 
@@ -45,7 +46,7 @@ class DepositDBConnector(DBConnector):
         with self.Session() as db:
             user = self.get_object_by_field(User, "wallet_id", wallet_id)
             if not user:
-                logger.error(f"User with wallet id {wallet_id} not found")
+                logger.error("db_get_vault_user_not_found", wallet_id=wallet_id)
                 return None
             vault = db.query(Vault).filter_by(user_id=user.id, symbol=symbol).first()
         return vault

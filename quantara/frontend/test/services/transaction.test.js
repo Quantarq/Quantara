@@ -15,7 +15,13 @@ vi.mock('../../src/services/soroban', () => ({
   invokeSorobanContract: vi.fn(),
 }));
 
-vi.mock('../../src/utils/axios');
+vi.mock('../../src/utils/axios', () => ({
+  axiosInstance: {
+    get: vi.fn(),
+    post: vi.fn(),
+  },
+  getAuthHeaders: vi.fn().mockResolvedValue({ 'x-wallet-id': 'mock', 'x-nonce': 'mock', 'x-signature': 'mock' }),
+}));
 vi.mock('../../src/services/contract');
 
 describe('Transaction Functions', () => {
@@ -108,7 +114,7 @@ describe('Transaction Functions', () => {
 
       expect(mockSetLoading).toHaveBeenCalledWith(true);
       expect(getWalletPublicKey).toHaveBeenCalled();
-      expect(axiosInstance.post).toHaveBeenCalledWith('/api/create-position', mockFormData);
+      expect(axiosInstance.post).toHaveBeenCalledWith('/api/create-position', mockFormData, { headers: { 'x-wallet-id': 'mock', 'x-nonce': 'mock', 'x-signature': 'mock' } });
       expect(invokeSorobanContract).toHaveBeenCalled();
       expect(axiosInstance.get).toHaveBeenCalledWith('/api/open-position', {
         params: { position_id: 1, transaction_hash: mockTransactionHash },

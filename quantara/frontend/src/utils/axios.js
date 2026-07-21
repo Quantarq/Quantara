@@ -25,3 +25,22 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+/**
+ * Build the three auth headers required by protected API endpoints.
+ *
+ * Flow: GET /api/auth/nonce → sign nonce with Freighter → return headers.
+ *
+ * @param {string} walletId - The Stellar public key (G...)
+ * @returns {Promise<{'x-wallet-id': string, 'x-nonce': string, 'x-signature': string}>}
+ */
+export const getAuthHeaders = async (walletId) => {
+  const { signNonce } = await import('../services/wallet');
+  const { data } = await axiosInstance.get('/api/auth/nonce', { params: { wallet_id: walletId } });
+  const signature = await signNonce(data.nonce, walletId);
+  return {
+    'x-wallet-id': walletId,
+    'x-nonce': data.nonce,
+    'x-signature': signature,
+  };
+};
