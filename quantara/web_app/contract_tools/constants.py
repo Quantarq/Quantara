@@ -38,6 +38,32 @@ EXAMPLE_ASSET_ISSUER = (
     # Testnet USDC issuer – replace for mainnet
 )
 
+# ------------------------------------------------------------------ #
+#  Network detection
+# ------------------------------------------------------------------ #
+
+#: True when the node URL points at the Stellar mainnet, False for testnet /
+#: futurenet. Used by CollateralManager to enable assets that are only safe
+#: to use on mainnet (e.g. ETH until testnet liquidity is confirmed).
+IS_MAINNET: bool = os.getenv("STELLAR_NETWORK", "testnet").lower() == "mainnet"
+
+# ------------------------------------------------------------------ #
+#  Canonical Stellar asset identifiers for CollateralManager
+# ------------------------------------------------------------------ #
+
+#: XLM is always the Stellar native asset.
+XLM_ASSET_ID: str = "native"
+
+#: USDC canonical identifier: "USDC:<issuer>" or just USDC_ASSET_CODE for
+#: environments where the issuer is implicit.
+USDC_ASSET_ID: str = f"{USDC_ASSET_CODE}:{USDC_ASSET_ISSUER}"
+
+#: ETH bridged token on Stellar (testnet stub; override via ETH_ASSET_ID env).
+ETH_ASSET_ID: str = os.getenv(
+    "ETH_ASSET_ID",
+    "ETH:GBDEVU63Y6NTHJQQZIKVTC23NWLQVP3WJ2RI2OTSJTNYOIGICST6DUXR",
+)
+
 
 @dataclass(frozen=True)
 class TokenConfig:
