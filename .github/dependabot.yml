@@ -1,8 +1,7 @@
 version: 2
-# Dependabot disabled per team decision: weekly Dependabot PRs were noisy
-# and we'd rather update dependencies deliberately. To re-enable, remove
-# the next line (or set it to `true`).
-enabled: false
+# Security-only Dependabot (issue #204).
+# Weekly security updates for pip/npm; monthly for docker/actions.
+# Version updates remain off so the PR queue stays focused on advisories.
 updates:
   # Python / Poetry Dependencies
   - package-ecosystem: "pip"
@@ -10,13 +9,25 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    # Security advisories only — no routine version bumps.
+    # (GitHub applies security updates regardless; groups keep noise low.)
+    groups:
+      python-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
 
   # React / Yarn Dependencies
   - package-ecosystem: "npm"
-    directory: "/quantara/frontend" # Updated to reflect nested structure
+    directory: "/quantara/frontend"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    groups:
+      npm-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
 
   # Docker Dependencies
   - package-ecosystem: "docker"
@@ -27,7 +38,7 @@ updates:
 
   # GitHub Actions Dependencies
   - package-ecosystem: "github-actions"
-    directory: "/" # GitHub Actions must remain at the absolute root
+    directory: "/"
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 5
