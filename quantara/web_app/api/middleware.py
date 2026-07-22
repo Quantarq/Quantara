@@ -109,3 +109,99 @@ class MaxBodySizeMiddleware:
             "body": json.dumps({"detail": "Request payload too large"}).encode("utf-8"),
             "more_body": False
         })
+
+
+# Paths that accept mutation bodies and must be JSON-only (issue #205).
+DEFAULT_MUTATING_PATH_PREFIXES = (
+    "/api/add-extra-deposit/",
+    "/api/save-bug-report",
+)
+
+# Methods that carry a body and should be constrained on mutating routes.
+_MUTATING_METHODS = frozenset({b"POST", b"PUT", b"PATCH", b"DELETE"})
+
+
+class RequireJsonContentTypeMiddleware:
+    """Reject non-JSON bodies on mutating API routes.
+
+    FastAPI/Pydantic can accept form-encoded or multipart bodies for models
+    that look like JSON. This middleware fails closed on configured mutating
+    path prefixes unless ``Content-Type`` is ``application/json`` (optionally
+    with a charset parameter). Safe methods (GET/HEAD/OPTIONS) and non-matching
+    paths are never blocked.
+    """
+
+    def __init__(
+        self,
+        app,
+        mutating_path_prefixes: tuple[str, ...] = DEFAULT_MUTATING_PATH_PREFIXES,
+    ):
+        self.app = app
+        self.mutating_path_prefixes = mutating_path_prefixes
+
+    def _is_mutating_path(self, path: str) -> bool:
+        for prefix in self.mutating_path_prefixes:
+            if path == prefix.rstrip("/") or path.startswith(prefix):
+                return True
+        return False
+
+    @staticmethod
+    def _content_type(scope) -> str:
+        for name, value in scope.get("headers", []):
+            if name.lower() == b"content-type":
+                return value.decode("latin-1").split(";", 1)[0].strip().lower()
+        return ""
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        method = scope.get("method", "GET").encode("ascii")
+        path = scope.get("path", "")
+        is_mutating = self._is_mutating_path(path)
+
+        # Expose flag for downstream consumers as noted in #205.
+        state = scope.get("state")
+        if state is not None and not isinstance(state, dict):
+            try:
+                state.is_mutating = is_mutating
+            except Exception:
+                pass
+        else:
+            scope.setdefault("state", {})
+            if isinstance(scope["state"], dict):
+                scope["state"]["is_mutating"] = is_mutating
+
+        if method in _MUTATING_METHODS and is_mutating:
+            content_type = self._content_type(scope)
+            if content_type != "application/json":
+                await self._send_415(send)
+                return
+
+        await self.app(scope, receive, send)
+
+    async def _send_415(self, send):
+        body = json.dumps(
+            {
+                "detail": "Unsupported Media Type. Use Content-Type: application/json",
+                "accept": "application/json",
+            }
+        ).encode("utf-8")
+        await send(
+            {
+                "type": "http.response.start",
+                "status": 415,
+                "headers": [
+                    (b"content-type", b"application/json"),
+                    (b"accept", b"application/json"),
+                ],
+            }
+        )
+        await send(
+            {
+                "type": "http.response.body",
+                "body": body,
+                "more_body": False,
+            }
+        )
