@@ -88,3 +88,55 @@ def test_create_referral_link_for_multiple_users(client, mock_get_user_by_wallet
     assert referral_code1 != referral_code2
 
 
+def test_generate_random_string_uses_secrets_not_random():
+    """Referral codes must come from secrets (CSPRNG), not random."""
+    import inspect
+    import random
+    import string
+
+    from web_app.api import referal
+
+    source = inspect.getsource(referal.generate_random_string)
+    assert "secrets" in source
+    assert "random.choices" not in source
+    assert "random.random" not in source
+
+    alphabet = string.ascii_letters + string.digits
+    code = referal.generate_random_string(16)
+    assert len(code) == 16
+    assert all(ch in alphabet for ch in code)
+
+    # Sanity: many draws stay unique enough that collision is rare.
+    codes = {referal.generate_random_string(16) for _ in range(200)}
+    assert len(codes) == 200
+
+
+def test_generate_random_string_character_distribution():
+    """Rough uniform distribution over the 62-symbol alphabet (10k draws)."""
+    import string
+    from collections import Counter
+
+    from web_app.api.referal import generate_random_string
+
+    alphabet = string.ascii_letters + string.digits
+    draws = 10_000
+    length = 16
+    counts = Counter()
+    for _ in range(draws):
+        counts.update(generate_random_string(length))
+
+    total = draws * length
+    expected = total / len(alphabet)
+    # ±0.5% absolute frequency band around 1/62 as specified in #196.
+    for ch in alphabet:
+        freq = counts[ch] / total
+        assert abs(freq - (1 / len(alphabet))) <= 0.005, (
+            f"char {ch!r} frequency {freq:.6f} outside ±0.5% of 1/62"
+        )
+    # Entropy floor for 16 alnum chars: log2(62^16) ≈ 95.3 bits.
+    import math
+
+    entropy_bits = length * math.log2(len(alphabet))
+    assert entropy_bits >= 95
+
+
