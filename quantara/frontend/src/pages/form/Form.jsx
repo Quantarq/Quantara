@@ -12,6 +12,18 @@ import { useNavigate } from 'react-router-dom';
 import { ActionModal } from '@/components/ui/action-modal';
 import { useHealthFactor } from '@/hooks/useHealthRatio';
 import { notify } from '@/components/layout/notifier/Notifier';
+import { useForm, Controller } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+const schema = z.object({
+  tokenAmount: z
+    .string()
+    .regex(/^\d+(\.\d+)?$/, { message: 'Enter a valid amount' })
+    .refine((val) => parseFloat(val) > 0, { message: 'Amount must be greater than 0' }),
+  selectedToken: z.string().nonempty({ message: 'Select a token' }),
+  selectedMultiplier: z.string().nonempty({ message: 'Select a multiplier' }),
+});
 
 // Error icon — non-color cue for invalid input (per #272 acceptance criterion).
 const ErrorIcon = () => (
@@ -26,11 +38,7 @@ const ErrorIcon = () => (
 const Form = () => {
   const navigate = useNavigate();
   const { walletId, setWalletId } = useWalletStore();
-  const [tokenAmount, setTokenAmount] = useState('');
-  const [selectedToken, setSelectedToken] = useState('ETH');
-  const [selectedMultiplier, setSelectedMultiplier] = useState('');
   const [loading, setLoading] = useState(false);
-
   const [isClosePositionOpen, setClosePositionOpen] = useState(false);
   // Field-level errors are now surfaced via aria-invalid + role=alert so the
   // message is announced to assistive tech without relying on red color alone.
@@ -42,12 +50,32 @@ const Form = () => {
 
   const connectWalletMutation = useConnectWallet(setWalletId);
   const { data: positionData, refetch: refetchPosition } = useCheckPosition();
-
   const { healthFactor, isLoading: isHealthFactorLoading } = useHealthFactor(
-    selectedToken,
-    tokenAmount,
-    selectedMultiplier
+    // placeholder; will be updated via watch if needed
+    '',
+    '',
+    ''
   );
+
+  const {
+    control,
+    register,
+    handleSubmit: rhHandleSubmit,
+    formState: { errors, isValid },
+    watch,
+    setValue,
+  } = useForm({
+    resolver: zodResolver(schema),
+    mode: 'onChange',
+    defaultValues: {
+      tokenAmount: '',
+      selectedToken: 'ETH',
+      selectedMultiplier: '',
+    },
+  });
+
+  const selectedToken = watch('selectedToken');
+  const selectedMultiplier = watch('selectedMultiplier');
 
   const connectWalletHandler = () => {
     if (!walletId) {
@@ -55,9 +83,7 @@ const Form = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  const onSubmit = async (data) => {
     let connectedWalletId = walletId;
     if (!connectedWalletId) {
       connectWalletHandler();
@@ -84,15 +110,11 @@ const Form = () => {
 
     const formData = {
       wallet_id: connectedWalletId,
-      token_symbol: selectedToken,
-      amount: tokenAmount,
-      multiplier: selectedMultiplier,
+      token_symbol: data.selectedToken,
+      amount: data.tokenAmount,
+      multiplier: data.selectedMultiplier,
     };
-    await handleTransaction(connectedWalletId, formData, setTokenAmount, setLoading);
-  };
-
-  const handleCloseModal = () => {
-    setClosePositionOpen(false);
+    await handleTransaction(connectedWalletId, formData, () => setValue('tokenAmount', ''), setLoading);
   };
 
   const onClosePositionAction = () => {
@@ -118,7 +140,7 @@ const Form = () => {
           cancelLabel="Cancel"
           submitLabel="Close Active Position"
           submitAction={onClosePositionAction}
-          cancelAction={handleCloseModal}
+          cancelAction={() => setClosePositionOpen(false)}
         />
       )}
       <form
