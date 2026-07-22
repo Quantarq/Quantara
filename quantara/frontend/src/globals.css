@@ -271,6 +271,49 @@ li {
 
 @import 'tailwindcss';
 
+/*
+ * Accessibility baseline (#272 WCAG 2.2 AA).
+ * The focus-visible ring is bound to the brand sky color which has ≥3:1
+ * contrast against the dark base background. Components that already ship
+ * their own focus-visible utilities opt out with `focus-visible:outline-none`.
+ */
+@layer base {
+  :where(a, button, [role='button'], input, select, textarea, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  /* Skiplink for keyboard users. Hidden until focused. */
+  .skip-link {
+    position: absolute;
+    top: -100px;
+    left: 0;
+    padding: 0.75rem 1rem;
+    background: var(--color-brand);
+    color: var(--primary-color);
+    font-weight: 600;
+    z-index: 100000;
+    border-radius: 0 0 6px 0;
+  }
+  .skip-link:focus {
+    top: 0;
+  }
+
+  /* Visually hidden, but available to assistive tech. */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
 @theme {
   --color-primary: #fff;
   --color-dashboard-bg: rgba(11, 12, 16, 1);

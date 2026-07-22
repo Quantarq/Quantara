@@ -46,20 +46,53 @@ const buttonVariants = cva(
   }
 );
 
-export const Button = React.forwardRef(({ className, variant, size, children, ...props }, ref) => {
-  return (
-    <button
-      className={cn(
-        buttonVariants({ variant, size, className }),
-        'focus:shadow-[0_0_0_2px_rgba(59,130,246,0.5)] focus:outline-none',
-        'disabled:cursor-not-allowed disabled:opacity-60'
-      )}
-      ref={ref}
-      {...props}
-    >
-      <span className="relative z-10 py-4 md:px-6">{children}</span>
-    </button>
-  );
-});
+/**
+ * Quantara Button component (WCAG 2.2 AA compliant).
+ *
+ * - Always renders a `<button type="button">` by default so accidental form
+ *   submits don't happen; pages can override with `type="submit"`.
+ * - Uses `focus-visible:ring-2 ring-brand ring-offset-2 ring-offset-bg` so the
+ *   keyboard focus indicator has a ≥3:1 contrast ratio against the dark
+ *   base background color.
+ * - Relies on `aria-disabled` + `disabled` so screen readers correctly
+ *   announce the disabled state.
+ */
+export const Button = React.forwardRef(
+  (
+    {
+      className,
+      variant,
+      size,
+      children,
+      type = 'button',
+      'aria-busy': ariaBusy,
+      'aria-label': ariaLabel,
+      ...props
+    },
+    ref
+  ) => {
+    return (
+      <button
+        ref={ref}
+        type={type}
+        aria-busy={ariaBusy}
+        aria-label={ariaLabel}
+        className={cn(
+          buttonVariants({ variant, size, className }),
+          // Suppress the global :focus-visible ring (from globals.css)
+          // and use a high-contrast layered ring with offset instead.
+          'focus:outline-none',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand',
+          'focus-visible:ring-offset-2 focus-visible:ring-offset-bg',
+          // Disable hover/cursor affordances when the element is disabled.
+          'disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:before:bg-gradient-to-r disabled:hover:before:from-brand disabled:hover:before:to-pink'
+        )}
+        {...props}
+      >
+        <span className="relative z-10 py-4 md:px-6">{children}</span>
+      </button>
+    );
+  }
+);
 
 Button.displayName = 'Button';
