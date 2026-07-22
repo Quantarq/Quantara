@@ -41,6 +41,7 @@ structlog = ">=24.1.0"
 black = "24.8.0"
 isort = "5.13.2"
 pre-commit = "4.0.1"
+fakeredis = "^2.26.1"
 
 [build-system]
 requires = ["poetry-core"]

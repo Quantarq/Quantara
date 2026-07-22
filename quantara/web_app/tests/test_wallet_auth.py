@@ -1,27 +1,26 @@
 """
-Tests for wallet signature authentication (Issue #41).
+Tests for wallet signature authentication (Issue #41, #192).
 
 Covers:
 - Nonce generation: uniqueness, storage, binding to wallet_id.
 - Nonce consumption: valid path, replay prevention, wrong wallet, unknown nonce.
-- Nonce expiry: expired nonces are pruned by _clean_expired_nonces.
 - Signature verification: valid key, wrong key, tampered message, bad hex, bad public key.
 - verify_wallet_signature dependency: 401 on bad nonce, 401 on bad sig, wallet_id on success.
 - GET /api/auth/nonce endpoint: returns nonce + expires_in.
 """
 
-import time
-
 import pytest
+import fakeredis.aioredis
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
+from unittest.mock import patch
 
 from web_app.api.wallet_auth import (
     NONCE_TTL,
-    _clean_expired_nonces,
+    NONCE_KEY_PREFIX,
     _consume_nonce,
     _generate_nonce,
-    _nonce_store,
+    _nonce_key,
     _verify_stellar_signature,
     router,
     verify_wallet_signature,
@@ -33,97 +32,74 @@ from web_app.api.wallet_auth import (
 # ---------------------------------------------------------------------------
 
 @pytest.fixture(autouse=True)
-def _clear_nonce_store():
-    """Ensure an empty nonce store before and after every test."""
-    _nonce_store.clear()
-    yield
-    _nonce_store.clear()
+async def _mock_redis():
+    """Mock Redis with fakeredis for all tests."""
+    fake_redis = fakeredis.aioredis.FakeRedis()
+    with patch("web_app.api.wallet_auth._redis") as mock_redis:
+        mock_redis.return_value = fake_redis
+        # Clear all nonce keys before and after each test
+        async def clear_keys():
+            keys = await fake_redis.keys(f"{NONCE_KEY_PREFIX}*")
+            if keys:
+                await fake_redis.delete(*keys)
+        await clear_keys()
+        yield fake_redis
+        await clear_keys()
 
 
 # ---------------------------------------------------------------------------
 # Nonce generation
 # ---------------------------------------------------------------------------
 
+@pytest.mark.asyncio
 class TestGenerateNonce:
-    def test_returns_64_char_hex_string(self):
-        nonce = _generate_nonce("GABCDEF")
+    async def test_returns_64_char_hex_string(self):
+        nonce = await _generate_nonce("GABCDEF")
         assert isinstance(nonce, str)
         assert len(nonce) == 64
 
-    def test_each_call_produces_unique_nonce(self):
-        n1 = _generate_nonce("GABCDEF")
-        n2 = _generate_nonce("GABCDEF")
+    async def test_each_call_produces_unique_nonce(self):
+        n1 = await _generate_nonce("GABCDEF")
+        n2 = await _generate_nonce("GABCDEF")
         assert n1 != n2
 
-    def test_nonce_stored_with_correct_wallet_id(self):
+    async def test_nonce_stored_with_correct_wallet_id(self, _mock_redis):
         wallet_id = "GABCDEF123"
-        nonce = _generate_nonce(wallet_id)
-        assert nonce in _nonce_store
-        stored_wallet, _ = _nonce_store[nonce]
+        nonce = await _generate_nonce(wallet_id)
+        stored_wallet = await _mock_redis.get(_nonce_key(nonce))
         assert stored_wallet == wallet_id
-
-    def test_nonce_stored_with_recent_timestamp(self):
-        before = time.monotonic()
-        nonce = _generate_nonce("GTEST")
-        after = time.monotonic()
-        _, ts = _nonce_store[nonce]
-        assert before <= ts <= after
 
 
 # ---------------------------------------------------------------------------
 # Nonce consumption
 # ---------------------------------------------------------------------------
 
+@pytest.mark.asyncio
 class TestConsumeNonce:
-    def test_valid_nonce_and_wallet_returns_true(self):
+    async def test_valid_nonce_and_wallet_returns_true(self):
         wallet_id = "GABCDEF"
-        nonce = _generate_nonce(wallet_id)
-        assert _consume_nonce(nonce, wallet_id) is True
+        nonce = await _generate_nonce(wallet_id)
+        assert await _consume_nonce(nonce, wallet_id) is True
 
-    def test_nonce_removed_after_consumption(self):
+    async def test_nonce_removed_after_consumption(self, _mock_redis):
         wallet_id = "GABCDEF"
-        nonce = _generate_nonce(wallet_id)
-        _consume_nonce(nonce, wallet_id)
-        assert nonce not in _nonce_store
+        nonce = await _generate_nonce(wallet_id)
+        await _consume_nonce(nonce, wallet_id)
+        stored_wallet = await _mock_redis.get(_nonce_key(nonce))
+        assert stored_wallet is None
 
-    def test_replay_attack_fails(self):
+    async def test_replay_attack_fails(self):
         wallet_id = "GABCDEF"
-        nonce = _generate_nonce(wallet_id)
-        assert _consume_nonce(nonce, wallet_id) is True
-        assert _consume_nonce(nonce, wallet_id) is False
+        nonce = await _generate_nonce(wallet_id)
+        assert await _consume_nonce(nonce, wallet_id) is True
+        assert await _consume_nonce(nonce, wallet_id) is False
 
-    def test_wrong_wallet_id_returns_false(self):
-        nonce = _generate_nonce("GOWNER")
-        assert _consume_nonce(nonce, "GATTACKER") is False
+    async def test_wrong_wallet_id_returns_false(self):
+        nonce = await _generate_nonce("GOWNER")
+        assert await _consume_nonce(nonce, "GATTACKER") is False
 
-    def test_unknown_nonce_returns_false(self):
-        assert _consume_nonce("deadbeef" * 8, "GABCDEF") is False
-
-
-# ---------------------------------------------------------------------------
-# Nonce expiry
-# ---------------------------------------------------------------------------
-
-class TestCleanExpiredNonces:
-    def test_removes_expired_nonce(self):
-        wallet_id = "GEXPIRED"
-        nonce = _generate_nonce(wallet_id)
-        _nonce_store[nonce] = (wallet_id, time.monotonic() - NONCE_TTL - 1)
-        _clean_expired_nonces()
-        assert nonce not in _nonce_store
-
-    def test_retains_fresh_nonce(self):
-        wallet_id = "GFRESH"
-        nonce = _generate_nonce(wallet_id)
-        _clean_expired_nonces()
-        assert nonce in _nonce_store
-
-    def test_generate_nonce_prunes_expired_entries(self):
-        wallet_id = "GSTALE"
-        stale_nonce = _generate_nonce(wallet_id)
-        _nonce_store[stale_nonce] = (wallet_id, time.monotonic() - NONCE_TTL - 1)
-        _generate_nonce("GNEW")
-        assert stale_nonce not in _nonce_store
+    async def test_unknown_nonce_returns_false(self):
+        assert await _consume_nonce("deadbeef" * 8, "GABCDEF") is False
 
 
 # ---------------------------------------------------------------------------
@@ -181,7 +157,7 @@ async def test_dependency_raises_401_on_invalid_nonce():
 async def test_dependency_raises_401_on_bad_signature():
     from stellar_sdk import Keypair
     kp = Keypair.random()
-    nonce = _generate_nonce(kp.public_key)
+    nonce = await _generate_nonce(kp.public_key)
     with pytest.raises(HTTPException) as exc_info:
         await verify_wallet_signature(
             x_wallet_id=kp.public_key,
@@ -195,7 +171,7 @@ async def test_dependency_raises_401_on_bad_signature():
 async def test_dependency_returns_wallet_id_on_valid_signature():
     from stellar_sdk import Keypair
     kp = Keypair.random()
-    nonce = _generate_nonce(kp.public_key)
+    nonce = await _generate_nonce(kp.public_key)
     sig_hex = kp.sign(nonce.encode()).hex()
     result = await verify_wallet_signature(
         x_wallet_id=kp.public_key,
@@ -209,7 +185,8 @@ async def test_dependency_returns_wallet_id_on_valid_signature():
 # GET /api/auth/nonce endpoint
 # ---------------------------------------------------------------------------
 
-def test_get_nonce_endpoint_returns_nonce_and_ttl():
+@pytest.mark.asyncio
+async def test_get_nonce_endpoint_returns_nonce_and_ttl(_mock_redis):
     mini_app = FastAPI()
     mini_app.include_router(router)
     test_client = TestClient(mini_app)
@@ -234,7 +211,8 @@ def test_get_nonce_endpoint_missing_wallet_id_returns_422():
     assert response.status_code == 422
 
 
-def test_get_nonce_endpoint_stores_nonce_bound_to_wallet():
+@pytest.mark.asyncio
+async def test_get_nonce_endpoint_stores_nonce_bound_to_wallet(_mock_redis):
     mini_app = FastAPI()
     mini_app.include_router(router)
     test_client = TestClient(mini_app)
@@ -243,6 +221,5 @@ def test_get_nonce_endpoint_stores_nonce_bound_to_wallet():
     response = test_client.get("/api/auth/nonce", params={"wallet_id": wallet_id})
     nonce = response.json()["nonce"]
 
-    assert nonce in _nonce_store
-    stored_wallet, _ = _nonce_store[nonce]
+    stored_wallet = await _mock_redis.get(_nonce_key(nonce))
     assert stored_wallet == wallet_id

@@ -1,45 +1,60 @@
-"""Wallet authentication: Ed25519 challenge-response signature verification."""
-import secrets
-import time
-from typing import Dict, Tuple
+"""Wallet authentication: Ed25519 challenge-response signature verification.
 
+Nonces are stored in Redis (shared across uvicorn workers and surviving a
+deploy) rather than in per-process memory.  Redis TTL handles expiry, so no
+manual pruning is required.  The nonce itself is never logged -- it is a seed
+for replay attacks if leaked.
+"""
+import secrets
+
+import redis.asyncio as redis
 from fastapi import APIRouter, Header, HTTPException, Query
 
 from stellar_sdk import Keypair
 
+from web_app.contract_tools.cache import get_redis_pool
+
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
-_nonce_store: Dict[str, Tuple[str, float]] = {}
 NONCE_TTL: int = 300  # seconds
+NONCE_KEY_PREFIX: str = "quantara:nonce:"
 
 
-def _clean_expired_nonces() -> None:
-    """Remove nonces past their TTL."""
-    cutoff = time.monotonic() - NONCE_TTL
-    expired = [n for n, (_, ts) in _nonce_store.items() if ts < cutoff]
-    for n in expired:
-        _nonce_store.pop(n, None)
+async def _redis() -> redis.Redis:
+    """Return an async Redis client backed by the shared connection pool."""
+    return redis.Redis(connection_pool=await get_redis_pool())
 
 
-def _generate_nonce(wallet_id: str) -> str:
-    """Generate a cryptographically secure nonce bound to wallet_id."""
-    _clean_expired_nonces()
-    nonce = secrets.token_hex(32)
-    _nonce_store[nonce] = (wallet_id, time.monotonic())
-    return nonce
+def _nonce_key(nonce: str) -> str:
+    return f"{NONCE_KEY_PREFIX}{nonce}"
 
 
-def _consume_nonce(nonce: str, wallet_id: str) -> bool:
+async def _generate_nonce(wallet_id: str) -> str:
+    """Generate a cryptographically secure nonce bound to wallet_id.
+
+    Issued with SET ... EX NONCE_TTL NX so no two workers can ever return the
+    same nonce; on the astronomically-unlikely collision we retry.
+    """
+    client = await _redis()
+    while True:
+        nonce = secrets.token_hex(32)
+        if await client.set(_nonce_key(nonce), wallet_id, ex=NONCE_TTL, nx=True):
+            return nonce
+
+
+async def _consume_nonce(nonce: str, wallet_id: str) -> bool:
     """
     Validate and consume a nonce atomically.
     Returns True only when the nonce exists, has not expired, and belongs to wallet_id.
-    The nonce is always removed to prevent replay even on a wallet mismatch.
+
+    GETDEL reads and deletes in a single atomic step, so two concurrent
+    consumers of the same nonce get exactly one value and one miss -- and the
+    nonce is always removed to prevent replay even on a wallet mismatch.
     """
-    _clean_expired_nonces()
-    entry = _nonce_store.pop(nonce, None)
-    if entry is None:
+    client = await _redis()
+    stored_wallet_id = await client.getdel(_nonce_key(nonce))
+    if stored_wallet_id is None:
         return False
-    stored_wallet_id, _ = entry
     return stored_wallet_id == wallet_id
 
 
@@ -60,7 +75,7 @@ async def get_nonce(
 ) -> dict:
     """Issue a one-time nonce for wallet_id.  Sign the nonce with your Stellar private key
     and pass it as X-Signature on the next authenticated request."""
-    nonce = _generate_nonce(wallet_id)
+    nonce = await _generate_nonce(wallet_id)
     return {"nonce": nonce, "expires_in": NONCE_TTL}
 
 
@@ -70,7 +85,7 @@ async def verify_wallet_signature(
     x_signature: str = Header(..., description="Hex-encoded Ed25519 signature of the nonce"),
 ) -> str:
     """FastAPI dependency -- verifies a Stellar wallet signature and returns the wallet_id."""
-    if not _consume_nonce(x_nonce, x_wallet_id):
+    if not await _consume_nonce(x_nonce, x_wallet_id):
         raise HTTPException(
             status_code=401,
             detail="Invalid or expired nonce. Request a fresh nonce from /api/auth/nonce.",
