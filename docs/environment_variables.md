@@ -36,6 +36,8 @@ will fail to start in production if any required variable is missing.
 | `RATE_LIMIT_WRITE`        | Limit for mutation endpoints — create/close position, auth (default `5/minute`)  |
 | `RATE_LIMIT_USER_DATA`    | Limit for user-specific data endpoints — dashboard, positions (default `30/minute`) |
 | `RATE_LIMIT_READ`         | Limit for read-only endpoints — multipliers, leaderboard (default `100/minute`)  |
+| `SENTRY_TRACES_SAMPLE_RATE` | Fraction of transactions sent to Sentry (default `0.1`). Applied as the base rate for `traces_sampler`. |
+| `SENTRY_PROFILES_SAMPLE_RATE` | Fraction of profiled transactions (default `0.1`). Replaces the old `_experiments` continuous profiling flag. |
 
 ## Rate limiting
 
