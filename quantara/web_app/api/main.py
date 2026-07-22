@@ -64,17 +64,24 @@ def get_cors_origins() -> list[str]:
     return [origin for origin in origins if origin] or DEFAULT_CORS_ORIGINS
 
 def custom_traces_sampler(sampling_context):
+    """Scale the base SENTRY_TRACES_SAMPLE_RATE by route importance.
+
+    Returns a sample rate in [0, 1]. Critical auth/bug-report paths keep the
+    full configured rate; health is heavily downsampled; mutations are half;
+    everything else is 5% of the configured rate. Never exceeds the env cap.
+    """
+    base = float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.1"))
     asgi_scope = sampling_context.get("asgi_scope", {})
     path = asgi_scope.get("path", "")
     method = asgi_scope.get("method", "")
 
     if path in ("/api/save-bug-report", "/api/auth/connect"):
-        return 1.0
+        return base
     if path == "/health":
-        return 0.005
+        return min(base, 0.005)
     if method in ("POST", "PUT", "PATCH", "DELETE"):
-        return 0.5
-    return 0.05
+        return min(base, base * 0.5)
+    return min(base, base * 0.05)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -96,12 +103,18 @@ async def lifespan(app: FastAPI):
     # Initialize Sentry SDK if in production
     if os.getenv("ENV_VERSION") == "PROD":
         import sentry_sdk
+
+        traces_sample_rate = float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.1"))
+        profiles_sample_rate = float(os.getenv("SENTRY_PROFILES_SAMPLE_RATE", "0.1"))
+        logger.info(
+            "sentry_init",
+            traces_sample_rate=traces_sample_rate,
+            profiles_sample_rate=profiles_sample_rate,
+        )
         sentry_sdk.init(
             dsn=os.getenv("SENTRY_DSN"),
             traces_sampler=custom_traces_sampler,
-            _experiments={
-                "continuous_profiling_auto_start": True,
-            },
+            profiles_sample_rate=profiles_sample_rate,
         )
     yield
 
