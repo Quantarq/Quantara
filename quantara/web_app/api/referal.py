@@ -13,7 +13,7 @@ Errors:
 - 404: If the user with the provided wallet ID does not exist.
 """
 
-import random
+import secrets
 import string
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Request
@@ -30,6 +30,8 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+_ALPHABET = string.ascii_letters + string.digits
+
 
 class ReferralResponse(BaseModel):
     """ 
@@ -40,9 +42,12 @@ class ReferralResponse(BaseModel):
     referral_code: str
 
 
-def generate_random_string(length=16):
+def generate_random_string(length: int = 16) -> str:
     """
-    Generate a random string of letters and digits with the given length.
+    Generate a cryptographically secure random alphanumeric string.
+
+    Uses the ``secrets`` module (CSPRNG) instead of ``random`` so referral
+    codes cannot be predicted from prior outputs (see issue #196).
 
     Args:
         length (int): Length of the string (default is 16).
@@ -51,7 +56,7 @@ def generate_random_string(length=16):
         str: Randomly generated string.
     """
 
-    return "".join(random.choices(string.ascii_letters + string.digits, k=length))
+    return "".join(secrets.choice(_ALPHABET) for _ in range(length))
 
 
 @router.get("/create_referal_link")
