@@ -16,7 +16,7 @@
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
-use soroban_sdk::{testutils::Address as _, Address, Env};
+use soroban_sdk::{testutils::Address as _, Address, Env, IntoVal};
 use vault::VaultContract;
 
 fuzz_target!(|data: &[u8]| {
@@ -35,7 +35,7 @@ fuzz_target!(|data: &[u8]| {
     let result = env.try_invoke_contract::<(), _>(
         &contract_id,
         &soroban_sdk::symbol_short!("deposit"),
-        soroban_sdk::vec![&env, user.to_val(), amount.into()],
+        soroban_sdk::vec![&env, user.to_val(), amount.into_val(&env)],
     );
 
     if amount > 0 {

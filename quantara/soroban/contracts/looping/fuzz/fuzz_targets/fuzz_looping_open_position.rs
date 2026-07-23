@@ -12,7 +12,7 @@
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
-use soroban_sdk::{testutils::Address as _, Address, Env, Symbol};
+use soroban_sdk::{testutils::Address as _, Address, Env, IntoVal, Symbol};
 use looping::LoopingContract;
 
 fuzz_target!(|data: &[u8]| {
@@ -33,8 +33,8 @@ fuzz_target!(|data: &[u8]| {
         soroban_sdk::vec![
             &env,
             user.to_val(),
-            collateral.into(),
-            leverage.into(),
+            collateral.into_val(&env),
+            leverage.into_val(&env),
         ],
     );
 

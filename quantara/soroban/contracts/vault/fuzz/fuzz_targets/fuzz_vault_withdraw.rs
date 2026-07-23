@@ -14,7 +14,7 @@
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
-use soroban_sdk::{testutils::Address as _, Address, Env};
+use soroban_sdk::{testutils::Address as _, Address, Env, IntoVal};
 use vault::VaultContract;
 
 fuzz_target!(|data: &[u8]| {
@@ -34,7 +34,7 @@ fuzz_target!(|data: &[u8]| {
         let _: () = env.invoke_contract(
             &contract_id,
             &soroban_sdk::symbol_short!("deposit"),
-            soroban_sdk::vec![&env, user.to_val(), initial_deposit.into()],
+            soroban_sdk::vec![&env, user.to_val(), initial_deposit.into_val(&env)],
         );
     }
 
@@ -42,7 +42,7 @@ fuzz_target!(|data: &[u8]| {
     let _ = env.try_invoke_contract::<(), _>(
         &contract_id,
         &soroban_sdk::symbol_short!("withdraw"),
-        soroban_sdk::vec![&env, user.to_val(), withdraw_amount.into()],
+        soroban_sdk::vec![&env, user.to_val(), withdraw_amount.into_val(&env)],
     );
 
     // Balance must never be negative.
