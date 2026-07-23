@@ -6,6 +6,7 @@ import logging
 from typing import TypeVar
 
 from sqlalchemy import update
+from sqlalchemy.exc import SQLAlchemyError
 
 from web_app.db.models import Base, TelegramUser
 
@@ -107,3 +108,18 @@ class TelegramUserDBConnector(DBConnector):
             )
         )
         return True
+
+    def get_notification_recipients(self) -> list[str]:
+        """Return all Telegram IDs that opted in to notifications."""
+        with self.Session() as session:
+            try:
+                rows = (
+                    session.query(TelegramUser.telegram_id)
+                    .filter(TelegramUser.is_allowed_notification.is_(True))
+                    .distinct()
+                    .all()
+                )
+                return [telegram_id for (telegram_id,) in rows]
+            except SQLAlchemyError as exc:
+                logger.error("Failed to load Telegram notification recipients: %s", exc)
+                return []
