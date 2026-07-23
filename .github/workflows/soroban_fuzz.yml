@@ -57,12 +57,20 @@ jobs:
       - name: Install cargo-fuzz
         run: cargo install cargo-fuzz
 
-      - name: Pin rand_core to 0.6.4
+      - name: Pin ed25519-dalek and rand_core to 0.6 family
         # soroban-env-host 22.1.3's testutils.rs passes `ChaCha20Rng` into
-        # `ed25519_dalek::SigningKey::generate`, which requires CryptoRng from
-        # the rand_core 0.6 family. Newer rand_core majors (0.7+) break the
-        # trait bound. Force the dep tree to rand_core 0.6.4 before building.
-        run: cargo update -p rand_core --precise 0.6.4
+        # `ed25519_dalek::SigningKey::generate`, which requires CryptoRng
+        # from the rand_core 0.6 family. ed25519-dalek 3.x bumped to
+        # rand_core 0.10, breaking the trait bound. Pin ed25519-dalek to
+        # 2.1.1 (last 2.x release) and rand_core to 0.6.4; fall through
+        # with `|| true` for compatibility — cargo refuses to demote a
+        # rand_core 0.10 instance to 0.6.4 directly, but the ed25519-dalek
+        # pin upstream of it is the real lever.
+        run: |
+          cargo update -p ed25519-dalek@3.0.0 --precise 2.1.1 || true
+          cargo update -p ed25519-dalek --precise 2.1.1 || true
+          cargo update -p rand_core@0.10.1 --precise 0.6.4 || true
+          cargo update -p rand_core@0.9.5  --precise 0.6.4 || true
 
       - name: Run fuzz target for ${{ env.FUZZ_TIME }}s
         run: |
@@ -110,12 +118,20 @@ jobs:
       - name: Install cargo-fuzz
         run: cargo install cargo-fuzz
 
-      - name: Pin rand_core to 0.6.4
+      - name: Pin ed25519-dalek and rand_core to 0.6 family
         # soroban-env-host 22.1.3's testutils.rs passes `ChaCha20Rng` into
-        # `ed25519_dalek::SigningKey::generate`, which requires CryptoRng from
-        # the rand_core 0.6 family. Newer rand_core majors (0.7+) break the
-        # trait bound. Force the dep tree to rand_core 0.6.4 before building.
-        run: cargo update -p rand_core --precise 0.6.4
+        # `ed25519_dalek::SigningKey::generate`, which requires CryptoRng
+        # from the rand_core 0.6 family. ed25519-dalek 3.x bumped to
+        # rand_core 0.10, breaking the trait bound. Pin ed25519-dalek to
+        # 2.1.1 (last 2.x release) and rand_core to 0.6.4; fall through
+        # with `|| true` for compatibility — cargo refuses to demote a
+        # rand_core 0.10 instance to 0.6.4 directly, but the ed25519-dalek
+        # pin upstream of it is the real lever.
+        run: |
+          cargo update -p ed25519-dalek@3.0.0 --precise 2.1.1 || true
+          cargo update -p ed25519-dalek --precise 2.1.1 || true
+          cargo update -p rand_core@0.10.1 --precise 0.6.4 || true
+          cargo update -p rand_core@0.9.5  --precise 0.6.4 || true
 
       - name: Run fuzz target for ${{ env.FUZZ_TIME }}s
         run: |
@@ -163,12 +179,20 @@ jobs:
       - name: Install cargo-fuzz
         run: cargo install cargo-fuzz
 
-      - name: Pin rand_core to 0.6.4
+      - name: Pin ed25519-dalek and rand_core to 0.6 family
         # soroban-env-host 22.1.3's testutils.rs passes `ChaCha20Rng` into
-        # `ed25519_dalek::SigningKey::generate`, which requires CryptoRng from
-        # the rand_core 0.6 family. Newer rand_core majors (0.7+) break the
-        # trait bound. Force the dep tree to rand_core 0.6.4 before building.
-        run: cargo update -p rand_core --precise 0.6.4
+        # `ed25519_dalek::SigningKey::generate`, which requires CryptoRng
+        # from the rand_core 0.6 family. ed25519-dalek 3.x bumped to
+        # rand_core 0.10, breaking the trait bound. Pin ed25519-dalek to
+        # 2.1.1 (last 2.x release) and rand_core to 0.6.4; fall through
+        # with `|| true` for compatibility — cargo refuses to demote a
+        # rand_core 0.10 instance to 0.6.4 directly, but the ed25519-dalek
+        # pin upstream of it is the real lever.
+        run: |
+          cargo update -p ed25519-dalek@3.0.0 --precise 2.1.1 || true
+          cargo update -p ed25519-dalek --precise 2.1.1 || true
+          cargo update -p rand_core@0.10.1 --precise 0.6.4 || true
+          cargo update -p rand_core@0.9.5  --precise 0.6.4 || true
 
       - name: Run fuzz target for ${{ env.FUZZ_TIME }}s
         run: |
