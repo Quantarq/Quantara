@@ -53,7 +53,13 @@ def check_telegram_authorization(
         secret_key, data_check_string.encode(), hashlib.sha256
     ).hexdigest()
 
-    if hash_value != check_hash:
+    # Constant-time compare so a remote timing oracle cannot recover the
+    # expected hash byte-by-byte (see issue #203). Unequal-length inputs
+    # make compare_digest raise; treat that as a failed verification.
+    try:
+        if not hmac.compare_digest(hash_value, check_hash):
+            return False
+    except (TypeError, ValueError):
         return False
 
     if expiration_seconds and (int(time.time()) - int(auth_data.get("auth_date", 0))) > expiration_seconds:

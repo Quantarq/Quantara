@@ -146,6 +146,22 @@ class TestCheckTelegramAuthorization:
         )
         assert ok is False
 
+    def test_uses_constant_time_compare(self):
+        """Hash comparison must use hmac.compare_digest (timing-safe)."""
+        import hmac as hmac_mod
+        from web_app.telegram.utils import check_telegram_authorization
+
+        data = self._build_auth(self.BOT_TOKEN)
+        with patch.object(
+            hmac_mod, "compare_digest", wraps=hmac_mod.compare_digest
+        ) as mock_cmp:
+            assert check_telegram_authorization(self.BOT_TOKEN, data) is True
+            assert mock_cmp.called
+            # Both sides must be str hex digests of equal length.
+            left, right = mock_cmp.call_args[0]
+            assert isinstance(left, str) and isinstance(right, str)
+            assert len(left) == len(right) == 64
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 2. notifications.send_health_ratio_notification
