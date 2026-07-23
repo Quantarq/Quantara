@@ -38,7 +38,7 @@ from web_app.api.pausable import protocol_pause_middleware
 from web_app.api.pausable import router as pausable_router
 from web_app.api.walletconnect import router as walletconnect_router
 from web_app.config_validator import assert_valid_config
-from web_app.api.middleware import MaxBodySizeMiddleware, SecurityHeadersMiddleware
+from web_app.api.middleware import AccessLogMiddleware, MaxBodySizeMiddleware, SecurityHeadersMiddleware
 from web_app.db.database import init_db
 from web_app.db.database import init_db, get_database
 from web_app.utils.logger import configure_logging, get_logger
@@ -159,6 +159,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 _session_secret = os.getenv("SESSION_SECRET_KEY", os.urandom(32).hex())
 
 # Add session middleware with a persistent secret key
+app.add_middleware(AccessLogMiddleware)
 app.add_middleware(SessionMiddleware, secret_key=_session_secret)
 # CORS middleware for React frontend
 app.add_middleware(
