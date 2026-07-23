@@ -65,9 +65,14 @@ mod tests {
         #[test]
         fn test_safe_add(a in any::<i128>(), b in any::<i128>()) {
             let env = Env::default();
-            let result = std::panic::catch_unwind(|| {
+            // `Env` is not `UnwindSafe` because it carries a `Host` whose
+            // internals contain `UnsafeCell` / `RefCell` (interior
+            // mutability).  Wrap it in `AssertUnwindSafe` to tell the
+            // compiler that catching the panic and discarding `env` is
+            // safe — we don't observe any internal state afterwards.
+            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 a.safe_add(&env, b)
-            });
+            }));
 
             match a.checked_add(b) {
                 Some(expected) => {
@@ -82,9 +87,9 @@ mod tests {
         #[test]
         fn test_safe_sub(a in any::<i128>(), b in any::<i128>()) {
             let env = Env::default();
-            let result = std::panic::catch_unwind(|| {
+            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 a.safe_sub(&env, b)
-            });
+            }));
 
             match a.checked_sub(b) {
                 Some(expected) => {
@@ -99,9 +104,9 @@ mod tests {
         #[test]
         fn test_safe_mul(a in any::<i128>(), b in any::<i128>()) {
             let env = Env::default();
-            let result = std::panic::catch_unwind(|| {
+            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 a.safe_mul(&env, b)
-            });
+            }));
 
             match a.checked_mul(b) {
                 Some(expected) => {
@@ -116,9 +121,9 @@ mod tests {
         #[test]
         fn test_safe_div(a in any::<i128>(), b in any::<i128>()) {
             let env = Env::default();
-            let result = std::panic::catch_unwind(|| {
+            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 a.safe_div(&env, b)
-            });
+            }));
 
             if b == 0 {
                 assert!(result.is_err());
