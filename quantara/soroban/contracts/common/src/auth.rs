@@ -44,10 +44,9 @@ use soroban_sdk::{Address, Env, IntoVal, Symbol, Val, Vec};
 /// * `env`       – The Soroban environment.
 /// * `caller`    – The principal that must authorise this operation.
 /// * `operation` – A short `Symbol` naming the entry-point (used as the
-///                 sub-contract-call function name in the auth context).
+///   sub-contract-call function name in the auth context).
 /// * `args`      – A tuple (or any `IntoVal<Env, Vec<Val>>`) of the
-///                 arguments being authorised.  Pass `&()` when there are
-///                 no arguments.
+///   arguments being authorised.  Pass `&()` when there are no arguments.
 ///
 /// # Panics
 ///

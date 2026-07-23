@@ -45,10 +45,6 @@ multiple-versions = "warn"
 wildcards = "deny"
 highlight = "all"
 
-# Workspace-internal path dependencies are exempt from the wildcard ban.
-[[bans.allow]]
-name = "common"
-
 # ── Sources ───────────────────────────────────────────────────────────────────
 [sources]
 unknown-registry = "deny"
