@@ -185,7 +185,9 @@ impl LiquidationContract {
 
         let mut updated = auctions;
         updated.set(auction_id, auction);
-        env.storage().persistent().set(&symbol_short!("auctions"), &updated);
+        env.storage()
+            .persistent()
+            .set(&symbol_short!("auctions"), &updated);
 
         end_ledger
     }
@@ -275,7 +277,9 @@ impl LiquidationContract {
         // Mark as settled.
         auction.is_settled = true;
         auctions.set(auction_id, auction);
-        env.storage().persistent().set(&symbol_short!("auctions"), &auctions);
+        env.storage()
+            .persistent()
+            .set(&symbol_short!("auctions"), &auctions);
 
         BidResult {
             collateral_transferred,
@@ -314,7 +318,9 @@ impl LiquidationContract {
 
         auction.is_settled = true;
         auctions.set(auction_id, auction.clone());
-        env.storage().persistent().set(&symbol_short!("auctions"), &auctions);
+        env.storage()
+            .persistent()
+            .set(&symbol_short!("auctions"), &auctions);
 
         Self::distribute_batch(&env, auction.collateral_amount, reserve_accounts)
     }
