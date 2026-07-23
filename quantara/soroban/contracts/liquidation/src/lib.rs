@@ -123,9 +123,7 @@ impl LiquidationContract {
             config.start_discount_bps <= 10_000,
             "discount cannot exceed 100% (10_000 bps)"
         );
-        env.storage()
-            .instance()
-            .set(&symbol_short!("cfg"), &config);
+        env.storage().instance().set(&symbol_short!("cfg"), &config);
     }
 
     // ------------------------------------------------------------------
@@ -187,9 +185,7 @@ impl LiquidationContract {
 
         let mut updated = auctions;
         updated.set(auction_id, auction);
-        env.storage()
-            .persistent()
-            .set(&symbol_short!("auctions"), &updated);
+        env.storage().persistent().set(&symbol_short!("auctions"), &updated);
 
         end_ledger
     }
@@ -270,7 +266,8 @@ impl LiquidationContract {
 
         // collateral_to_transfer = collateral_amount * (10_000 + discount_bps) / 10_000
         // The liquidator pays full debt but receives collateral + bonus.
-        let collateral_transferred = auction.collateral_amount
+        let collateral_transferred = auction
+            .collateral_amount
             .safe_mul(&env, 10_000_i128 + discount_bps as i128)
             / 10_000;
         let collateral_transferred = collateral_transferred.min(auction.collateral_amount);
@@ -278,9 +275,7 @@ impl LiquidationContract {
         // Mark as settled.
         auction.is_settled = true;
         auctions.set(auction_id, auction);
-        env.storage()
-            .persistent()
-            .set(&symbol_short!("auctions"), &auctions);
+        env.storage().persistent().set(&symbol_short!("auctions"), &auctions);
 
         BidResult {
             collateral_transferred,
@@ -319,9 +314,7 @@ impl LiquidationContract {
 
         auction.is_settled = true;
         auctions.set(auction_id, auction.clone());
-        env.storage()
-            .persistent()
-            .set(&symbol_short!("auctions"), &auctions);
+        env.storage().persistent().set(&symbol_short!("auctions"), &auctions);
 
         Self::distribute_batch(&env, auction.collateral_amount, reserve_accounts)
     }
