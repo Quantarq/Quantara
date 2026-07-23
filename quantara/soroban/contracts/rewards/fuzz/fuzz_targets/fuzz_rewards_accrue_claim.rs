@@ -13,7 +13,7 @@
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
-use soroban_sdk::{testutils::Address as _, Address, Env};
+use soroban_sdk::{testutils::Address as _, Address, Env, Symbol};
 use rewards::RewardsContract;
 
 fuzz_target!(|data: &[u8]| {
@@ -44,7 +44,7 @@ fuzz_target!(|data: &[u8]| {
     // Check pending equals sum.
     let pending: i128 = env.invoke_contract(
         &contract_id,
-        &soroban_sdk::symbol_short!("pending_re"),
+        &Symbol::new(&env, "pending_rewards"),
         soroban_sdk::vec![&env, user.to_val()],
     );
     assert!(pending >= 0, "pending_rewards negative: {pending}");
@@ -61,7 +61,7 @@ fuzz_target!(|data: &[u8]| {
 
     let after: i128 = env.invoke_contract(
         &contract_id,
-        &soroban_sdk::symbol_short!("pending_re"),
+        &Symbol::new(&env, "pending_rewards"),
         soroban_sdk::vec![&env, user.to_val()],
     );
     assert_eq!(after, 0, "pending after claim should be 0, got {after}");

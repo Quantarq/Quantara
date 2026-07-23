@@ -13,6 +13,24 @@ libfuzzer-sys = "0.4"
 # testutils provides Env::default(), mock_all_auths(), and Address::generate().
 soroban-sdk = { version = "22.0.0", features = ["testutils"] }
 vault = { path = ".." }
+# Pin rand_core to <= 0.6 so the whole dep tree unifies on the rand_core
+# 0.6 family. Without this, a transitive dep can resolve to rand_core 0.10,
+# while soroban-env-host's `testutils` (which uses ChaCha20Rng through
+# ed25519-dalek::rand_core) still expects the rand_core 0.6 `CryptoRng`
+# trait, breaking compilation.
+rand_core = "<0.7"
 
 # Prevent this from interfering with the workspace.
 [workspace]
+
+[[bin]]
+name = "fuzz_vault_deposit"
+path = "fuzz_targets/fuzz_vault_deposit.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_vault_withdraw"
+path = "fuzz_targets/fuzz_vault_withdraw.rs"
+test = false
+doc = false
