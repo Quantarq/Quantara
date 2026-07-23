@@ -38,8 +38,10 @@ fuzz_target!(|data: &[u8]| {
         );
     }
 
-    // Attempt withdrawal.
-    let _ = env.try_invoke_contract::<(), _>(
+    // Attempt withdrawal. try_invoke_contract returns
+    // `Result<Result<(), ContractError>, HostError>`; specify the host error
+    // type to enable type inference (otherwise rustc can't pick `E`).
+    let _ = env.try_invoke_contract::<(), soroban_sdk::Error>(
         &contract_id,
         &soroban_sdk::symbol_short!("withdraw"),
         soroban_sdk::vec![&env, user.to_val(), withdraw_amount.into_val(&env)],

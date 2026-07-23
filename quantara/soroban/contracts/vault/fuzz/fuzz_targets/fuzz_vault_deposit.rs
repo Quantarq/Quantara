@@ -32,7 +32,9 @@ fuzz_target!(|data: &[u8]| {
     let user = Address::generate(&env);
 
     // Invoke deposit directly via the registered contract.
-    let result = env.try_invoke_contract::<(), _>(
+    // try_invoke_contract returns `Result<Result<(), ContractError>, HostError>`;
+    // specify the host error type as soroban_sdk::Error so type inference can succeed.
+    let result = env.try_invoke_contract::<(), soroban_sdk::Error>(
         &contract_id,
         &soroban_sdk::symbol_short!("deposit"),
         soroban_sdk::vec![&env, user.to_val(), amount.into_val(&env)],

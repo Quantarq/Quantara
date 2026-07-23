@@ -27,7 +27,9 @@ fuzz_target!(|data: &[u8]| {
     let contract_id = env.register(LoopingContract, ());
     let user = Address::generate(&env);
 
-    let result = env.try_invoke_contract::<u64, _>(
+    // try_invoke_contract returns `Result<Result<u64, ContractError>, HostError>`;
+    // explicitly specify the host error type so type inference succeeds.
+    let result = env.try_invoke_contract::<u64, soroban_sdk::Error>(
         &contract_id,
         &Symbol::new(&env, "open_position"),
         soroban_sdk::vec![
@@ -39,7 +41,10 @@ fuzz_target!(|data: &[u8]| {
     );
 
     if collateral > 0 && (100..=500).contains(&leverage) {
-        let position_id = result.expect("open_position with valid args returned error");
+        // Unwrap the outer (host) Err first, then the inner (contract) Err.
+        let position_id = result
+            .expect("open_position returned a host error")
+            .expect("open_position with valid args returned a contract error");
         assert!(position_id >= 1, "position_id must be >= 1, got {position_id}");
     }
     // Invalid inputs may error; no further assertion needed.
