@@ -23,6 +23,8 @@ from sqlalchemy.orm import Session
 import redis.asyncio as redis
 
 from web_app.api.rate_limiter import limiter
+from web_app.api.errors import APIError, api_error_handler
+from web_app.api.openapi import build_custom_openapi
 from web_app.api.dashboard import router as dashboard_router
 from web_app.api.position import router as position_router
 from web_app.api.telegram import router as telegram_router
@@ -36,7 +38,7 @@ from web_app.api.pausable import protocol_pause_middleware
 from web_app.api.pausable import router as pausable_router
 from web_app.api.walletconnect import router as walletconnect_router
 from web_app.config_validator import assert_valid_config
-from web_app.api.middleware import MaxBodySizeMiddleware, SecurityHeadersMiddleware
+from web_app.api.middleware import AccessLogMiddleware, MaxBodySizeMiddleware, SecurityHeadersMiddleware
 from web_app.db.database import init_db
 from web_app.db.database import init_db, get_database
 from web_app.utils.logger import configure_logging, get_logger
@@ -121,6 +123,10 @@ app = FastAPI(
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_exception_handler(APIError, api_error_handler)
+
+# Enrich the OpenAPI schema with the standardised error envelope and examples.
+app.openapi = build_custom_openapi(app)
 
 
 @app.exception_handler(Exception)
@@ -153,6 +159,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 _session_secret = os.getenv("SESSION_SECRET_KEY", os.urandom(32).hex())
 
 # Add session middleware with a persistent secret key
+app.add_middleware(AccessLogMiddleware)
 app.add_middleware(SessionMiddleware, secret_key=_session_secret)
 # CORS middleware for React frontend
 app.add_middleware(

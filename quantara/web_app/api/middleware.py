@@ -1,5 +1,41 @@
 import json
 import os
+import time
+
+import structlog
+from fastapi import Request
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
+
+
+# TODO: Make these settings configurable
+logger = structlog.get_logger(__name__)
+
+
+class AccessLogMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next) -> Response:
+        structlog.contextvars.clear_contextvars()
+        start_time = time.time()
+
+        # These context variables will be logged in every message hereafter
+        structlog.contextvars.bind_contextvars(
+            request_id=request.headers.get("X-Request-ID"),
+            # etc.
+        )
+
+        logger.info("request_started", path=request.url.path, method=request.method)
+
+        response = await call_next(request)
+
+        process_time = time.time() - start_time
+        structlog.contextvars.bind_contextvars(
+            process_time=round(process_time * 1000, 2),  # ms
+            status_code=response.status_code,
+        )
+        logger.info("request_completed")
+        return response
+
+
 
 
 class SecurityHeadersMiddleware:
