@@ -1,3 +1,11 @@
+// Opt back into `std` for the test target only — the crate is `#![no_std]`
+// at the binary level (Soroban contracts), but the inline proptest suite
+// below uses `std::panic::catch_unwind` to recover from `panic_with_error!`.
+// Compilation of `cargo clippy --all-targets` (and `cargo test`) will only
+// enable `cfg(test)`, so the wasm release build remains no-std.
+#[cfg(test)]
+extern crate std;
+
 use soroban_sdk::panic_with_error;
 use soroban_sdk::{contracterror, Env};
 

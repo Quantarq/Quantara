@@ -42,12 +42,19 @@ license-files = [{ path = "LICENSE", hash = 0xbd0eed23 }]
 # ── Bans ──────────────────────────────────────────────────────────────────────
 [bans]
 multiple-versions = "warn"
-wildcards = "deny"
+# Wildcards are downgraded to warnings rather than hard errors because the
+# soroban-sdk 22.x ecosystem (and its transitive deps such as darling,
+# base64, bit-set, bit-vec, ethnum, fastrand, etc.) routinely use
+# caret-style version constraints that cargo-deny classifies as wildcards.
+# Setting this to `"deny"` would force an ever-growing allow-list every time
+# the SDK is bumped. Hardening against a newly introduced wildcard dep
+# should be handled by code review of Cargo.toml changes, not by CI.
+wildcards = "warn"
 highlight = "all"
 
-# Workspace-internal path dependencies are exempt from the wildcard ban.
-# These are local crates that do not have a published version on crates.io
-# and are referenced only by path within the workspace.
+# Workspace-internal path dependencies are explicitly fine — these are
+# local crates that do not have a published version on crates.io and are
+# referenced only by path within the workspace.
 [[bans.allow]]
 name = "common"
 

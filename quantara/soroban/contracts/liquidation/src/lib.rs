@@ -37,9 +37,12 @@ use common::math::SafeMathI128;
 // ---------------------------------------------------------------------------
 // Storage keys
 // ---------------------------------------------------------------------------
-
-const AUCTION_KEY: &str = "auctions";
-const CONFIG_KEY: &str = "cfg";
+//
+// Stored under the Soroban SDK's `symbol_short!` keys — must be ≤ 9 chars
+// and passed as a string literal at compile time.
+//
+//   AUCTION_KEY = "auctions"  (≤ 9 chars)
+//   CONFIG_KEY  = "cfg"       (≤ 9 chars)
 
 // ---------------------------------------------------------------------------
 // Data types
@@ -107,7 +110,7 @@ impl LiquidationContract {
     /// be started.
     pub fn initialize(env: Env, admin: Address, config: AuctionConfig) {
         assert!(
-            !env.storage().instance().has(&symbol_short!(CONFIG_KEY)),
+            !env.storage().instance().has(&symbol_short!("cfg")),
             "already initialised"
         );
         assert_caller_auth(&env, &admin, symbol_short!("init"), &());
@@ -122,7 +125,7 @@ impl LiquidationContract {
         );
         env.storage()
             .instance()
-            .set(&symbol_short!(CONFIG_KEY), &config);
+            .set(&symbol_short!("cfg"), &config);
     }
 
     // ------------------------------------------------------------------
@@ -161,7 +164,7 @@ impl LiquidationContract {
         let auctions: Map<u64, Auction> = env
             .storage()
             .persistent()
-            .get(&symbol_short!(AUCTION_KEY))
+            .get(&symbol_short!("auctions"))
             .unwrap_or(Map::new(&env));
 
         assert!(
@@ -171,7 +174,7 @@ impl LiquidationContract {
 
         let start_ledger = env.ledger().sequence();
         let end_ledger =
-            start_ledger.safe_add(&env, config.duration_ledgers as i128) as u32;
+            (start_ledger as i128).safe_add(&env, config.duration_ledgers as i128) as u32;
 
         let auction = Auction {
             debtor,
@@ -186,7 +189,7 @@ impl LiquidationContract {
         updated.set(auction_id, auction);
         env.storage()
             .persistent()
-            .set(&symbol_short!(AUCTION_KEY), &updated);
+            .set(&symbol_short!("auctions"), &updated);
 
         end_ledger
     }
@@ -225,8 +228,9 @@ impl LiquidationContract {
             return config.min_discount_bps;
         }
 
-        let discount_range =
-            config.start_discount_bps.saturating_sub(config.min_discount_bps) as u64;
+        let discount_range = config
+            .start_discount_bps
+            .saturating_sub(config.min_discount_bps) as u64;
 
         let reduction = discount_range.saturating_mul(elapsed) / duration;
 
@@ -251,7 +255,7 @@ impl LiquidationContract {
         let mut auctions: Map<u64, Auction> = env
             .storage()
             .persistent()
-            .get(&symbol_short!(AUCTION_KEY))
+            .get(&symbol_short!("auctions"))
             .unwrap_or(Map::new(&env));
 
         let mut auction = auctions.get(auction_id).expect("auction not found");
@@ -267,7 +271,7 @@ impl LiquidationContract {
         // collateral_to_transfer = collateral_amount * (10_000 + discount_bps) / 10_000
         // The liquidator pays full debt but receives collateral + bonus.
         let collateral_transferred = (auction.collateral_amount as i128)
-            .safe_mul(&env, (10_000_i128 + discount_bps as i128))
+            .safe_mul(&env, 10_000_i128 + discount_bps as i128)
             / 10_000;
         let collateral_transferred = collateral_transferred.min(auction.collateral_amount);
 
@@ -276,7 +280,7 @@ impl LiquidationContract {
         auctions.set(auction_id, auction);
         env.storage()
             .persistent()
-            .set(&symbol_short!(AUCTION_KEY), &auctions);
+            .set(&symbol_short!("auctions"), &auctions);
 
         BidResult {
             collateral_transferred,
@@ -302,7 +306,7 @@ impl LiquidationContract {
         let mut auctions: Map<u64, Auction> = env
             .storage()
             .persistent()
-            .get(&symbol_short!(AUCTION_KEY))
+            .get(&symbol_short!("auctions"))
             .unwrap_or(Map::new(&env));
 
         let mut auction = auctions.get(auction_id).expect("auction not found");
@@ -317,7 +321,7 @@ impl LiquidationContract {
         auctions.set(auction_id, auction.clone());
         env.storage()
             .persistent()
-            .set(&symbol_short!(AUCTION_KEY), &auctions);
+            .set(&symbol_short!("auctions"), &auctions);
 
         Self::distribute_batch(&env, auction.collateral_amount, reserve_accounts)
     }
@@ -359,7 +363,7 @@ impl LiquidationContract {
     fn load_config(env: &Env) -> AuctionConfig {
         env.storage()
             .instance()
-            .get(&symbol_short!(CONFIG_KEY))
+            .get(&symbol_short!("cfg"))
             .expect("contract not initialised — call initialize() first")
     }
 
@@ -367,7 +371,7 @@ impl LiquidationContract {
         let auctions: Map<u64, Auction> = env
             .storage()
             .persistent()
-            .get(&symbol_short!(AUCTION_KEY))
+            .get(&symbol_short!("auctions"))
             .unwrap_or(Map::new(env));
         auctions.get(auction_id)
     }
