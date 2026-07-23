@@ -16,7 +16,7 @@
     "@vitejs/plugin-react": "^5.2.0",
     "axios": "^1.18.1",
     "dotenv": "^17.4.2",
-    "i18next": "^23.0.0",
+    "i18next": "^26.3.6",
     "i18next-browser-languagedetector": "^7.0.0",
     "i18next-fs-backend": "^2.1.0",
     "lucide-react": "^1.21.0",
