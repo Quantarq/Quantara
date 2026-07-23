@@ -66,7 +66,13 @@ jobs:
         # with `|| true` for compatibility — cargo refuses to demote a
         # rand_core 0.10 instance to 0.6.4 directly, but the ed25519-dalek
         # pin upstream of it is the real lever.
+        # The fuzz crate is an isolated workspace ([workspace] in
+        # fuzz/Cargo.toml), so it has its OWN fuzz/Cargo.lock. Without
+        # `cd fuzz`, `cargo update` would mutate the parent contract
+        # workspace's lockfile, which `cargo fuzz run` ignores — hence
+        # the silent failure of the previous (no-cd) variant.
         run: |
+          cd fuzz
           cargo update -p ed25519-dalek@3.0.0 --precise 2.1.1 || true
           cargo update -p ed25519-dalek --precise 2.1.1 || true
           cargo update -p rand_core@0.10.1 --precise 0.6.4 || true
@@ -127,7 +133,13 @@ jobs:
         # with `|| true` for compatibility — cargo refuses to demote a
         # rand_core 0.10 instance to 0.6.4 directly, but the ed25519-dalek
         # pin upstream of it is the real lever.
+        # The fuzz crate is an isolated workspace ([workspace] in
+        # fuzz/Cargo.toml), so it has its OWN fuzz/Cargo.lock. Without
+        # `cd fuzz`, `cargo update` would mutate the parent contract
+        # workspace's lockfile, which `cargo fuzz run` ignores — hence
+        # the silent failure of the previous (no-cd) variant.
         run: |
+          cd fuzz
           cargo update -p ed25519-dalek@3.0.0 --precise 2.1.1 || true
           cargo update -p ed25519-dalek --precise 2.1.1 || true
           cargo update -p rand_core@0.10.1 --precise 0.6.4 || true
@@ -188,7 +200,13 @@ jobs:
         # with `|| true` for compatibility — cargo refuses to demote a
         # rand_core 0.10 instance to 0.6.4 directly, but the ed25519-dalek
         # pin upstream of it is the real lever.
+        # The fuzz crate is an isolated workspace ([workspace] in
+        # fuzz/Cargo.toml), so it has its OWN fuzz/Cargo.lock. Without
+        # `cd fuzz`, `cargo update` would mutate the parent contract
+        # workspace's lockfile, which `cargo fuzz run` ignores — hence
+        # the silent failure of the previous (no-cd) variant.
         run: |
+          cd fuzz
           cargo update -p ed25519-dalek@3.0.0 --precise 2.1.1 || true
           cargo update -p ed25519-dalek --precise 2.1.1 || true
           cargo update -p rand_core@0.10.1 --precise 0.6.4 || true
