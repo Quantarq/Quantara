@@ -1,11 +1,3 @@
-// Opt back into `std` for the test target only — the crate is `#![no_std]`
-// at the binary level (Soroban contracts), but the inline proptest suite
-// below uses `std::panic::catch_unwind` to recover from `panic_with_error!`.
-// Compilation of `cargo clippy --all-targets` (and `cargo test`) will only
-// enable `cfg(test)`, so the wasm release build remains no-std.
-#[cfg(test)]
-extern crate std;
-
 use soroban_sdk::panic_with_error;
 use soroban_sdk::{contracterror, Env};
 
@@ -55,9 +47,12 @@ impl SafeMathI128 for i128 {
 
 #[cfg(test)]
 mod tests {
+    extern crate std;
+
     use super::*;
     use proptest::prelude::*;
     use soroban_sdk::Env;
+    use std::panic::AssertUnwindSafe;
 
     proptest! {
         #![proptest_config(ProptestConfig::with_cases(1_000_000))]
@@ -65,12 +60,7 @@ mod tests {
         #[test]
         fn test_safe_add(a in any::<i128>(), b in any::<i128>()) {
             let env = Env::default();
-            // `Env` is not `UnwindSafe` because it carries a `Host` whose
-            // internals contain `UnsafeCell` / `RefCell` (interior
-            // mutability).  Wrap it in `AssertUnwindSafe` to tell the
-            // compiler that catching the panic and discarding `env` is
-            // safe — we don't observe any internal state afterwards.
-            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let result = std::panic::catch_unwind(AssertUnwindSafe(|| {
                 a.safe_add(&env, b)
             }));
 
@@ -87,7 +77,7 @@ mod tests {
         #[test]
         fn test_safe_sub(a in any::<i128>(), b in any::<i128>()) {
             let env = Env::default();
-            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let result = std::panic::catch_unwind(AssertUnwindSafe(|| {
                 a.safe_sub(&env, b)
             }));
 
@@ -104,7 +94,7 @@ mod tests {
         #[test]
         fn test_safe_mul(a in any::<i128>(), b in any::<i128>()) {
             let env = Env::default();
-            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let result = std::panic::catch_unwind(AssertUnwindSafe(|| {
                 a.safe_mul(&env, b)
             }));
 
@@ -121,7 +111,7 @@ mod tests {
         #[test]
         fn test_safe_div(a in any::<i128>(), b in any::<i128>()) {
             let env = Env::default();
-            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let result = std::panic::catch_unwind(AssertUnwindSafe(|| {
                 a.safe_div(&env, b)
             }));
 
