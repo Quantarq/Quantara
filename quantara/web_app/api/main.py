@@ -14,6 +14,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Response, Depends
 from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -174,6 +175,7 @@ app.add_middleware(SlowAPIMiddleware)
 app.add_middleware(MaxBodySizeMiddleware, max_body_size=1024*1024)
 app.add_middleware(PrometheusMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(GZipMiddleware, minimum_size=1024)
 
 
 @app.middleware("http")
