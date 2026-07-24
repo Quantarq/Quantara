@@ -12,7 +12,7 @@ from aiogram.types import Update
 from aiogram.utils.deep_linking import create_start_link
 from aiogram.utils.web_app import check_webapp_signature
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, status
 
 from web_app.api.serializers.telegram import TelegramUserAuth, TelegramUserCreate
 from web_app.db.crud import DBConnector, TelegramUserDBConnector, UserDBConnector
@@ -51,11 +51,11 @@ async def generate_telegram_link(request: Request, wallet_id: str):
         dict: Contains the generated subscription link
     """
     if not wallet_id:
-        raise HTTPException(status_code=400, detail="Wallet ID is required")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wallet ID is required")
 
     user = user_db.get_user_by_wallet_id(wallet_id)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     subscription_link = await create_start_link(bot, user.id, encode=True)
     return {"subscription_link": subscription_link}
@@ -154,7 +154,7 @@ async def get_wallet_id(request: Request, telegram_auth: TelegramUserAuth, teleg
         is_valid = check_telegram_authorization(TELEGRAM_TOKEN, telegram_auth.raw)
 
     if not is_valid:
-        raise HTTPException(400, "Telegram auth data is invalid.")
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Telegram auth data is invalid.")
 
     wallet_id = telegram_user_db_connector.get_wallet_id_by_telegram_id(telegram_id)
     return {"wallet_id": wallet_id}
