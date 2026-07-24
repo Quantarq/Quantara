@@ -19,9 +19,10 @@ def test_core_audit_models_have_updated_at_columns():
 
 
 def test_migration_adds_missing_updated_at_columns():
+    assert 'for table_name in ("user", "position", "airdrop"):' in MIGRATION
     for table_name in ("user", "position", "airdrop"):
         assert f'op.add_column(\n            table_name,' in MIGRATION
-        assert f'for table_name in ("user", "position", "airdrop"):' in MIGRATION
+        assert table_name in MIGRATION
     assert 'op.drop_column(table_name, "updated_at")' in MIGRATION
 
 
