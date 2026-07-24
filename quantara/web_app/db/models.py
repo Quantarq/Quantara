@@ -30,6 +30,7 @@ from web_app.db.database import Base
 
 SUPPORTED_POSITION_TOKENS = ("XLM", "USDC", "ETH", "WETH")
 
+
 class Status(PyEnum):
     """
     Enum for the position status.
