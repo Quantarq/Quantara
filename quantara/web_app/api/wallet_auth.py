@@ -3,7 +3,7 @@ import secrets
 import time
 from typing import Dict, Tuple
 
-from fastapi import APIRouter, Header, HTTPException, Query
+from fastapi import APIRouter, Header, HTTPException, Query, status
 
 from stellar_sdk import Keypair
 
@@ -72,12 +72,12 @@ async def verify_wallet_signature(
     """FastAPI dependency -- verifies a Stellar wallet signature and returns the wallet_id."""
     if not _consume_nonce(x_nonce, x_wallet_id):
         raise HTTPException(
-            status_code=401,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired nonce. Request a fresh nonce from /api/auth/nonce.",
         )
     if not _verify_stellar_signature(x_wallet_id, x_nonce, x_signature):
         raise HTTPException(
-            status_code=401,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Signature verification failed. Ensure the nonce was signed with the correct key.",
         )
     return x_wallet_id
