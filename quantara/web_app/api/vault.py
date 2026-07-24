@@ -4,7 +4,7 @@ Module for handling vault deposit operations in the QUANTARA API.
 
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from web_app.api.wallet_auth import verify_wallet_signature
 from web_app.db.crud import DepositDBConnector, UserDBConnector
@@ -41,7 +41,7 @@ async def deposit_to_vault(
         user_db = UserDBConnector()
         user = user_db.get_user_by_wallet_id(body.wallet_id)
         if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
         vault = deposit_connector.create_vault(
             user=user, symbol=body.symbol, amount=body.amount
@@ -55,7 +55,7 @@ async def deposit_to_vault(
         )
     except (ValueError, TypeError) as e:
         logger.error("vault_deposit_invalid_input", error=str(e))
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.get("/balance", response_model=VaultBalanceResponse)
@@ -72,7 +72,7 @@ async def get_user_vault_balance(
     balance = deposit_connector.get_vault_balance(wallet_id=wallet_id, symbol=symbol)
     if balance is None:
         raise HTTPException(
-            status_code=404, detail="Vault not found or user does not exist"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Vault not found or user does not exist"
         )
     return VaultBalanceResponse(wallet_id=wallet_id, symbol=symbol, amount=balance)
 
@@ -101,5 +101,5 @@ async def add_vault_balance(
         )
     except (ValueError, TypeError) as e:
         raise HTTPException(
-            status_code=400, detail=f"Failed to update vault balance: {str(e)}"
+            status_code=status.HTTP_400_BAD_REQUEST, detail=f"Failed to update vault balance: {str(e)}"
         )
