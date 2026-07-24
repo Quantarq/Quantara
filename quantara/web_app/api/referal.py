@@ -16,7 +16,7 @@ Errors:
 import random
 import string
 
-from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Request, status
 from sqlalchemy.orm import Session
 
 from web_app.db.database import get_database
@@ -75,12 +75,12 @@ async def create_referal_link(
     """
     
     if not wallet_id:
-        raise HTTPException(status_code=400, detail="Wallet ID cannot be empty")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wallet ID cannot be empty")
 
     user = UserDBConnector.get_user_by_wallet_id(db, wallet_id)
     if not user:
         raise HTTPException(
-            status_code=404, detail="User with the provided wallet_id does not exist"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User with the provided wallet_id does not exist"
         )
 
     referral_code = generate_random_string()
