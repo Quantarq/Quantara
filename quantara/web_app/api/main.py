@@ -20,6 +20,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+import aiohttp
 import redis.asyncio as redis
 
 from web_app.api.rate_limiter import limiter
@@ -189,35 +190,80 @@ async def request_id_middleware(request: Request, call_next):
 app.middleware("http")(protocol_pause_middleware)
 
 
-@app.get("/health", tags=["Health"], summary="Health check endpoint")
-async def health_check(response: Response, db: Session = Depends(get_database)):
-    """Returns 200 OK when the service is running and dependencies are healthy."""
-    health_status = {"status": "healthy", "database": "up", "redis": "up"}
-    is_healthy = True
-
-    # Check Database
+async def _check_database(db: Session) -> str:
     try:
-        # Use asyncio.to_thread for synchronous SQLAlchemy call to prevent blocking the event loop
         await asyncio.wait_for(
             asyncio.to_thread(db.execute, text("SELECT 1")), timeout=2.0
         )
+        return "up"
     except Exception as e:
-        logger.error("health_check_db_failed", error=str(e))
-        health_status["database"] = "down"
-        is_healthy = False
+        logger.error("readyz_db_failed", error=str(e))
+        return "down"
 
-    # Check Redis
+
+async def _check_redis() -> str:
     redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+    client = redis.from_url(redis_url)
     try:
-        r = redis.from_url(redis_url)
-        await asyncio.wait_for(r.ping(), timeout=2.0)
-        await r.close()
+        await asyncio.wait_for(client.ping(), timeout=2.0)
+        return "up"
     except Exception as e:
-        logger.error("health_check_redis_failed", error=str(e))
-        health_status["redis"] = "down"
-        is_healthy = False
+        logger.error("readyz_redis_failed", error=str(e))
+        return "down"
+    finally:
+        await client.close()
 
-    if not is_healthy:
+
+async def _check_soroban_rpc() -> str:
+    rpc_url = os.getenv("STELLAR_SOROBAN_RPC_URL")
+    if not rpc_url:
+        logger.error("readyz_soroban_rpc_missing")
+        return "down"
+
+    payload = {"jsonrpc": "2.0", "id": 1, "method": "getHealth"}
+    timeout = aiohttp.ClientTimeout(total=2.0)
+    try:
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.post(rpc_url, json=payload) as response:
+                if response.status >= 400:
+                    logger.error(
+                        "readyz_soroban_rpc_http_failed",
+                        status_code=response.status,
+                    )
+                    return "down"
+                body = await response.json()
+                if body.get("error"):
+                    logger.error("readyz_soroban_rpc_error", error=body["error"])
+                    return "down"
+                return "up"
+    except Exception as e:
+        logger.error("readyz_soroban_rpc_failed", error=str(e))
+        return "down"
+
+
+@app.get("/livez", tags=["Health"], summary="Liveness check endpoint")
+async def livez() -> dict[str, str]:
+    """Return 200 when the process can accept HTTP requests."""
+    return {"status": "alive"}
+
+
+@app.get("/health", tags=["Health"], summary="Compatibility health check endpoint")
+async def health_check() -> dict[str, str]:
+    """Backward-compatible liveness endpoint for existing curl checks."""
+    return await livez()
+
+
+@app.get("/readyz", tags=["Health"], summary="Readiness check endpoint")
+async def readyz(response: Response, db: Session = Depends(get_database)) -> dict[str, str]:
+    """Return 200 only when database, Redis, and Soroban RPC probes pass."""
+    health_status = {
+        "status": "ready",
+        "database": await _check_database(db),
+        "redis": await _check_redis(),
+        "soroban_rpc": await _check_soroban_rpc(),
+    }
+
+    if any(value != "up" for key, value in health_status.items() if key != "status"):
         health_status["status"] = "degraded"
         response.status_code = 503
 
