@@ -38,6 +38,9 @@ from dataclasses import dataclass
 from typing import List, Dict, Optional, Tuple
 from decimal import Decimal
 import httpx
+from web_app.utils.logger import get_logger
+
+logger = get_logger(__name__)
 from pydantic import BaseModel
 
 
@@ -135,7 +138,7 @@ class EkuboFlashLoan:
                 return self._find_best_route(quote_data, amount, min_profit_bps)
 
         except (httpx.RequestError, ValueError) as e:
-            print(f"Error getting quote: {e}")
+            logger.error("ekubo_quote_error", error=str(e))
             return None
 
     def _find_best_route(

@@ -4,6 +4,10 @@ This module handles API requests.
 
 import aiohttp
 
+from web_app.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 class APIRequest:
     """
@@ -88,4 +92,4 @@ async def main():
     response = await api.fetch(
         "/overview/0x020281104e6cb5884dabcdf3be376cf4ff7b680741a7bb20e5e07c26cd4870af"
     )
-    print(response)
+    logger.info("api_request_example_response", response=response)

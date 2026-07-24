@@ -11,6 +11,9 @@ from decimal import Decimal
 
 from web_app.contract_tools.blockchain_call import StellarClient
 from web_app.contract_tools.constants import TokenParams
+from web_app.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class HealthRatioMixin:
@@ -104,11 +107,10 @@ class HealthRatioMixin:
 
 
 if __name__ == "__main__":
-    print(
-        asyncio.run(
-            HealthRatioMixin.get_health_ratio_and_tvl(
-                "GA7QYNF7SOWQ3GLR2ZGMH2Z5Y2X2H5Y2X2H5Y2X2H5Y2X2H5Y2X2H5Y2",
-                StellarClient()
-            )
+    result = asyncio.run(
+        HealthRatioMixin.get_health_ratio_and_tvl(
+            "GA7QYNF7SOWQ3GLR2ZGMH2Z5Y2X2H5Y2X2H5Y2X2H5Y2X2H5Y2X2H5Y2",
+            StellarClient()
         )
     )
+    logger.info("health_ratio_example_result", result=result)

@@ -309,4 +309,4 @@ if __name__ == "__main__":
         "X2H5Y2X2H5Y2X2H5Y2X2H5Y2X2H5Y2"
     )
     res = asyncio.run(StellarClient().fetch_portfolio(dummy_address))
-    print(res)
+    logger.info("portfolio_example_response", response=res)

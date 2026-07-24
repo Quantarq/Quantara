@@ -39,7 +39,7 @@ def create_users(session: SessionLocal) -> list[User]:
     users = []
     for _ in range(10):
         wallet_id = fake.unique.uuid4()
-        print("wallet_id:", wallet_id)
+        logger.info("seed_user_wallet", wallet_id=wallet_id)
         user = User(
             wallet_id=wallet_id,
             contract_address=fake.address(),
