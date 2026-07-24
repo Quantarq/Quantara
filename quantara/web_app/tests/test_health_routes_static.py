@@ -12,7 +12,7 @@ COMPOSE_SOURCE = (ROOT.parent / "devops" / "docker-compose.quantara.yaml").read_
 def test_liveness_and_compatibility_routes_are_separate_from_readiness():
     assert '@app.get("/livez"' in MAIN_SOURCE
     assert '@app.get("/health"' in MAIN_SOURCE
-    assert 'return await livez()' in MAIN_SOURCE
+    assert 'return {"status": "healthy", "database": "up", "redis": "up"}' in MAIN_SOURCE
     assert '@app.get("/readyz"' in MAIN_SOURCE
     assert 'response.status_code = 503' in MAIN_SOURCE
 
