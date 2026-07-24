@@ -109,32 +109,37 @@ class StellarClient:
 
     async def _get_account_data(self, holder_address: str) -> dict | None:
         """
-        Fetch full account data from Horizon.
+        Fetch full account data from Horizon, cached briefly per account.
         """
         if not holder_address:
             return None
-        url = f"{self.horizon_url.rstrip('/')}/accounts/{holder_address}"
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url) as response:
-                    if response.status == 404:
-                        logger.info(
-                            "Account %s not found on Stellar network",
-                            holder_address,
-                        )
-                        return None
-                    if response.status != 200:
-                        logger.warning(
-                            "Horizon returned %d for %s", response.status, url
-                        )
-                        return None
-                    return await response.json()
-        except aiohttp.ClientError as exc:
-            logger.error("Network error fetching account %s: %s", holder_address, exc)
-            return None
-        except (ValueError, KeyError, TypeError) as exc:
-            logger.error("Data error fetching account %s: %s", holder_address, exc)
-            return None
+
+        async def fetch_account() -> dict | None:
+            url = f"{self.horizon_url.rstrip('/')}/accounts/{holder_address}"
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(url) as response:
+                        if response.status == 404:
+                            logger.info(
+                                "Account %s not found on Stellar network",
+                                holder_address,
+                            )
+                            return None
+                        if response.status != 200:
+                            logger.warning(
+                                "Horizon returned %d for %s", response.status, url
+                            )
+                            return None
+                        return await response.json()
+            except aiohttp.ClientError as exc:
+                logger.error("Network error fetching account %s: %s", holder_address, exc)
+                return None
+            except (ValueError, KeyError, TypeError) as exc:
+                logger.error("Data error fetching account %s: %s", holder_address, exc)
+                return None
+
+        cache_key = f"horizon:account:{self.horizon_url.rstrip('/')}:{holder_address}"
+        return await get_cached_or_fetch(cache_key, ttl=5, fetch_fn=fetch_account)
 
     async def get_token_balances(
         self, holder_address: str
