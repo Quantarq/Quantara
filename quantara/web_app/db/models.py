@@ -14,6 +14,7 @@ from sqlalchemy import (
     NUMERIC,
     Boolean,
     Column,
+    CheckConstraint,
     DateTime,
     Enum,
     Float,
@@ -26,6 +27,8 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 
 from web_app.db.database import Base
+
+SUPPORTED_POSITION_TOKENS = ("XLM", "USDC", "ETH", "WETH")
 
 
 class Status(PyEnum):
@@ -103,6 +106,12 @@ class Position(Base):
     is_liquidated = Column(Boolean, default=False, index=True)
     datetime_liquidation = Column(DateTime, nullable=True)
 
+    __table_args__ = (
+        CheckConstraint(
+            "token_symbol IN ('XLM', 'USDC', 'ETH', 'WETH')",
+            name="ck_position_token_symbol_supported",
+        ),
+    )
 
 class AirDrop(Base):
     """
