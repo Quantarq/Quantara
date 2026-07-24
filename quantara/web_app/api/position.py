@@ -25,7 +25,8 @@ from web_app.contract_tools.mixins import DashboardMixin, DepositMixin, Position
 from web_app.db.crud import PositionDBConnector, TransactionDBConnector
 from web_app.api.dependencies import get_stellar_client
 from web_app.contract_tools.blockchain_call import StellarClient
-from web_app.db.models import Status, TransactionStatus
+from web_app.contract_tools.cache import delete_cache_pattern, get_cached_or_fetch
+from web_app.db.models import Status, TransactionStatus, User
 from web_app.api.rate_limiter import limiter, WRITE_LIMIT, USER_DATA_LIMIT, READ_LIMIT
 from web_app.utils.logger import get_logger
 
@@ -35,7 +36,29 @@ position_db_connector = PositionDBConnector()
 transaction_db_connector = TransactionDBConnector()
 
 PAGINATION_STEP = 10
+USER_POSITIONS_CACHE_TTL = 60
 
+
+def _user_positions_cache_key(wallet_id: str, start: int, limit: int) -> str:
+    return f"user_positions:{wallet_id}:{start}:{limit}"
+
+
+async def _invalidate_user_positions_cache(wallet_id: str | None) -> None:
+    if wallet_id:
+        await delete_cache_pattern(f"user_positions:{wallet_id}:*")
+
+
+def _get_wallet_id_for_position(position_id: UUID) -> str | None:
+    position = position_db_connector.get_position_by_id(position_id)
+    return _get_wallet_id_for_position_object(position)
+
+
+def _get_wallet_id_for_position_object(position: object | None) -> str | None:
+    user_id = getattr(position, "user_id", None)
+    if not isinstance(user_id, UUID):
+        return None
+    user = position_db_connector.get_object(User, user_id)
+    return getattr(user, "wallet_id", None) if user else None
 
 @router.get(
     "/api/get-multipliers",
@@ -93,6 +116,7 @@ async def create_position_with_transaction_data(
         form_data.amount,
         form_data.multiplier,
     )
+    await _invalidate_user_positions_cache(form_data.wallet_id)
     borrowing_token = "USDC"
     if form_data.token_symbol == "USDC":
         borrowing_token = "XLM"
@@ -170,10 +194,12 @@ async def close_position(request: Request, position_id: UUID, transaction_hash: 
     if not transaction_hash:
         raise HTTPException(status_code=400, detail="Transaction hash is required")
 
+    wallet_id = _get_wallet_id_for_position(position_id)
     position_status = position_db_connector.close_position(str(position_id))
     position_db_connector.save_transaction(
         position_id=position_id, status="closed", transaction_hash=transaction_hash
     )
+    await _invalidate_user_positions_cache(wallet_id)
     return position_status
 
 
@@ -225,6 +251,9 @@ async def open_position(request: Request, position_id: str, transaction_hash: st
 
     try:
         position_db_connector.write_to_db(outbox_event)
+        await _invalidate_user_positions_cache(
+            _get_wallet_id_for_position_object(position)
+        )
     except Exception as e:
         logger.error("failed_to_write_outbox_event", error=str(e))
         raise HTTPException(status_code=500, detail="Failed to queue position opening")
@@ -347,6 +376,9 @@ async def add_extra_deposit(
     transaction_db_connector.create_transaction(
         position_id, data.transaction_hash, status=TransactionStatus.EXTRA_DEPOSIT.value
     )
+    await _invalidate_user_positions_cache(
+        _get_wallet_id_for_position_object(position)
+    )
     return {"detail": "Successfully added extra deposit"}
 
 
@@ -375,14 +407,24 @@ async def get_user_positions(
     if not wallet_id:
         raise HTTPException(status_code=400, detail="Wallet ID is required")
 
-    positions = position_db_connector.get_all_positions_by_wallet_id(
-        wallet_id, start=start, limit=limit
-    )
-    total_positions = position_db_connector.get_count_positions_by_wallet_id(wallet_id)
+    cache_key = _user_positions_cache_key(wallet_id, start, limit)
 
-    return UserPositionHistoryResponse(
-        positions=positions,
-        total_count=total_positions,
+    async def fetch_user_positions() -> dict:
+        positions = position_db_connector.get_all_positions_by_wallet_id(
+            wallet_id, start=start, limit=limit
+        )
+        total_positions = position_db_connector.get_count_positions_by_wallet_id(
+            wallet_id
+        )
+        return UserPositionHistoryResponse(
+            positions=positions,
+            total_count=total_positions,
+        ).model_dump(mode="json")
+
+    return await get_cached_or_fetch(
+        cache_key,
+        ttl=USER_POSITIONS_CACHE_TTL,
+        fetch_fn=fetch_user_positions,
     )
 
 
