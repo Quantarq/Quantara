@@ -55,7 +55,7 @@ def _get_wallet_id_for_position(position_id: UUID) -> str | None:
 
 def _get_wallet_id_for_position_object(position: object | None) -> str | None:
     user_id = getattr(position, "user_id", None)
-    if not user_id:
+    if not isinstance(user_id, UUID):
         return None
     user = position_db_connector.get_object(User, user_id)
     return getattr(user, "wallet_id", None) if user else None
