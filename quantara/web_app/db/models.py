@@ -56,6 +56,9 @@ class User(Base):
     is_contract_deployed = Column(Boolean, default=False)
     wallet_id = Column(String, nullable=False, unique=True, index=True)
     contract_address = Column(String)
+    updated_at = Column(
+        DateTime, nullable=False, default=func.now(), onupdate=func.now()
+    )
 
 class Referal(Base):
     """
@@ -88,6 +91,9 @@ class Position(Base):
     multiplier = Column(NUMERIC, nullable=False)
 
     created_at = Column(DateTime, nullable=False, default=func.now())
+    updated_at = Column(
+        DateTime, nullable=False, default=func.now(), onupdate=func.now()
+    )
     closed_at = Column(DateTime, nullable=True)
 
     status = Column(
@@ -116,6 +122,9 @@ class AirDrop(Base):
         UUID(as_uuid=True), ForeignKey("user.id"), index=True, nullable=False
     )
     created_at = Column(DateTime, nullable=False, default=func.now())
+    updated_at = Column(
+        DateTime, nullable=False, default=func.now(), onupdate=func.now()
+    )
     amount = Column(DECIMAL, nullable=True)
     is_claimed = Column(Boolean, default=False, index=True)
     claimed_at = Column(DateTime, nullable=True)
