@@ -1,7 +1,8 @@
 from pathlib import Path
 
 
-CACHE_SOURCE = Path("quantara/web_app/contract_tools/cache.py").read_text()
+WEB_APP = Path(__file__).resolve().parents[1]
+CACHE_SOURCE = (WEB_APP / "contract_tools/cache.py").read_text()
 
 
 def test_cache_miss_uses_setnx_refresh_claim():
