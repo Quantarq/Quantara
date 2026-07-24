@@ -58,7 +58,7 @@ def _get_wallet_id_for_position_object(position: object | None) -> str | None:
     if not user_id:
         return None
     user = position_db_connector.get_object(User, user_id)
-    return user.wallet_id if user else None
+    return getattr(user, "wallet_id", None) if user else None
 
 @router.get(
     "/api/get-multipliers",
