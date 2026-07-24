@@ -1,8 +1,9 @@
 from pathlib import Path
 
 
-MODELS = Path("quantara/web_app/db/models.py").read_text()
-MIGRATION = Path("quantara/web_app/alembic/versions/229_updated_at_triggers.py").read_text()
+WEB_APP = Path(__file__).resolve().parents[1]
+MODELS = (WEB_APP / "db/models.py").read_text()
+MIGRATION = (WEB_APP / "alembic/versions/229_updated_at_triggers.py").read_text()
 
 
 def _class_body(class_name: str) -> str:
