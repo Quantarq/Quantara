@@ -29,7 +29,7 @@ from datetime import datetime, timezone
 from typing import Literal, Optional
 
 import redis.asyncio as redis
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel, Field, field_validator
 
 # Note: `from __future__ import annotations` is intentionally NOT used here.
@@ -212,7 +212,7 @@ def _signing_key(sub_sid: str) -> str:
 async def _validate_session(sid: str) -> dict:
     raw = await _redis().get(_session_key(sid))
     if raw is None:
-        raise HTTPException(status_code=404, detail="Pairing session not found or expired")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pairing session not found or expired")
     return json.loads(raw)
 
 
@@ -264,7 +264,7 @@ async def poll_session(session_id: str, request: Request):
     if raw is None:
         raw = await _redis().get(_signing_key(session_id))
     if raw is None:
-        raise HTTPException(status_code=404, detail="Session not found or expired")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found or expired")
     data = json.loads(raw)
     return PollResponse(
         session_id=session_id,
@@ -325,7 +325,7 @@ async def submit_signed_envelope(
         # Wallet hit the pairing endpoint instead of the signing one.
         raw = await _redis().get(_session_key(session_id))
         if raw is None:
-            raise HTTPException(status_code=404, detail="Unknown session")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unknown session")
         data = json.loads(raw)
         if payload.public_key:
             data["public_key"] = payload.public_key
