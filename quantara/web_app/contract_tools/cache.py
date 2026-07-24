@@ -52,3 +52,21 @@ async def get_cached_or_fetch(
         return value
     finally:
         await client.close()
+
+
+async def delete_cache_pattern(pattern: str) -> None:
+    """Delete cached entries matching a Redis SCAN pattern."""
+    pool = await get_redis_pool()
+    client = redis.Redis(connection_pool=pool)
+    try:
+        cursor = 0
+        while True:
+            cursor, keys = await client.scan(cursor=cursor, match=pattern, count=100)
+            if keys:
+                await client.delete(*keys)
+            if cursor == 0:
+                break
+    except Exception as exc:
+        logger.warning("Cache invalidation failed for %s: %s", pattern, exc)
+    finally:
+        await client.close()
