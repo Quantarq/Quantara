@@ -24,7 +24,7 @@ def test_position_lifecycle_invalidates_user_positions_cache():
     assert "wallet_id = _get_wallet_id_for_position(position_id)" in POSITION_SOURCE
     assert "await _invalidate_user_positions_cache(wallet_id)" in POSITION_SOURCE
     assert "def _get_wallet_id_for_position_object(position: object | None)" in POSITION_SOURCE
-    assert "getattr(position, \\"user_id\\", None)" in POSITION_SOURCE
+    assert 'getattr(position, "user_id", None)' in POSITION_SOURCE
     assert "_get_wallet_id_for_position_object(position)" in POSITION_SOURCE
 
 
