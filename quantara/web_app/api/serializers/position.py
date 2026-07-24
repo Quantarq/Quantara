@@ -29,6 +29,7 @@ class PositionFormData(BaseModel):
             allowed = ", ".join(SUPPORTED_POSITION_TOKENS)
             raise ValueError(f"Token symbol must be one of: {allowed}")
         return token
+
     @field_validator("multiplier", mode="before")
     def validate_multiplier(cls, value: str) -> float:
         """
@@ -114,6 +115,7 @@ class AddPositionDepositData(BaseModel):
             allowed = ", ".join(SUPPORTED_POSITION_TOKENS)
             raise ValueError(f"Token symbol must be one of: {allowed}")
         return token
+
 
 class UserExtraDeposit(BaseModel):
     """
