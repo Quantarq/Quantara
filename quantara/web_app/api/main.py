@@ -51,6 +51,15 @@ CORS_ALLOW_METHODS = ["GET", "POST"]
 CORS_ALLOW_HEADERS = ["Content-Type", "Authorization", "X-Wallet-Id", "X-Nonce", "X-Signature"]
 
 
+def get_session_secret() -> str:
+    """Return a configured session secret, allowing random fallback only in dev."""
+    secret = os.getenv("SESSION_SECRET_KEY")
+    if secret:
+        return secret
+    if os.getenv("ENV_VERSION") == "PROD":
+        raise RuntimeError("SESSION_SECRET_KEY must be set in production.")
+    return os.urandom(32).hex()
+
 def get_cors_origins() -> list[str]:
     """
     Return the allowed CORS origins from the environment.
@@ -89,11 +98,6 @@ async def lifespan(app: FastAPI):
 
     # Validate required environment variables at startup.
     assert_valid_config()
-
-    # Enforce minimum length for session secret at startup
-    secret = os.getenv("SESSION_SECRET_KEY")
-    if secret and len(secret) < 32:
-        raise ValueError("SESSION_SECRET_KEY must be at least 32 characters long.")
 
     # Initialize Sentry SDK if in production
     if os.getenv("ENV_VERSION") == "PROD":
@@ -156,7 +160,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 # Fetch at import time for middleware registration, but do not raise exceptions here.
 # Strict validation and missing value errors are handled by assert_valid_config() and lifespan().
-_session_secret = os.getenv("SESSION_SECRET_KEY", os.urandom(32).hex())
+_session_secret = get_session_secret()
 
 # Add session middleware with a persistent secret key
 app.add_middleware(AccessLogMiddleware)

@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from typing import List, Optional
 
 logger = logging.getLogger(__name__)
+SESSION_SECRET_MIN_LENGTH = 32
 
 
 @dataclass
@@ -114,6 +115,18 @@ def validate_required_env_vars(
                         ),
                     )
                 )
+
+        session_secret = os.getenv("SESSION_SECRET_KEY")
+        if session_secret and len(session_secret) < SESSION_SECRET_MIN_LENGTH:
+            result.errors.append(
+                ConfigValidationError(
+                    variable="SESSION_SECRET_KEY",
+                    message=(
+                        "SESSION_SECRET_KEY must be at least "
+                        f"{SESSION_SECRET_MIN_LENGTH} characters long."
+                    ),
+                )
+            )
 
         # In production, Sentry DSN is also required for error tracking.
         sentry_dsn = os.getenv("SENTRY_DSN")
