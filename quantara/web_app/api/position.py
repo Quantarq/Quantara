@@ -5,7 +5,7 @@ This module handles position-related API endpoints for the Stellar-based Quantar
 from decimal import Decimal, InvalidOperation
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Query, Depends, Request
+from fastapi import APIRouter, HTTPException, Query, Depends, Request, status
 
 from web_app.api.serializers.position import (
     AddPositionDepositData,
@@ -132,16 +132,16 @@ async def get_repay_data(
     :return: Dict containing the repay transaction data
     """
     if not wallet_id:
-        raise HTTPException(status_code=404, detail="Wallet not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Wallet not found")
 
     contract_address, position_id, token_symbol = position_db_connector.get_repay_data(
         wallet_id
     )
     is_opened_position = await PositionMixin.is_opened_position(contract_address, client)
     if not is_opened_position:
-        raise HTTPException(status_code=400, detail="Position was closed")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Position was closed")
     if not position_id:
-        raise HTTPException(status_code=404, detail="Position not found or closed")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Position not found or closed")
 
     repay_data = await DepositMixin.get_repay_data(token_symbol, client)
     repay_data["contract_address"] = contract_address
@@ -166,9 +166,9 @@ async def close_position(request: Request, position_id: UUID, transaction_hash: 
     :return: Position status string
     """
     if position_id is None or str(position_id) == "undefined":
-        raise HTTPException(status_code=404, detail="Position not Found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Position not Found")
     if not transaction_hash:
-        raise HTTPException(status_code=400, detail="Transaction hash is required")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Transaction hash is required")
 
     position_status = position_db_connector.close_position(str(position_id))
     position_db_connector.save_transaction(
@@ -194,9 +194,9 @@ async def open_position(request: Request, position_id: str, transaction_hash: st
     :return: Position status string
     """
     if not position_id:
-        raise HTTPException(status_code=404, detail="Position not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Position not found")
     if not transaction_hash:
-        raise HTTPException(status_code=400, detail="Transaction hash is required")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Transaction hash is required")
 
     from uuid import UUID
     import json
@@ -205,11 +205,11 @@ async def open_position(request: Request, position_id: str, transaction_hash: st
     try:
         pos_uuid = UUID(position_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid position ID format")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid position ID format")
 
     position = position_db_connector.get_object(Position, pos_uuid)
     if not position:
-        raise HTTPException(status_code=404, detail="Position not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Position not found")
 
     payload = json.dumps({
         "position_id": str(pos_uuid),
@@ -255,9 +255,9 @@ async def get_withdraw_data(
         wallet_id
     )
     if not await PositionMixin.is_opened_position(contract_address, client):
-        raise HTTPException(status_code=400, detail="Position was closed")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Position was closed")
     if not position_id:
-        raise HTTPException(status_code=404, detail="Position not found or closed")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Position not found or closed")
 
     repay_data = await DepositMixin.get_repay_data(token_symbol, client)
     extra_tokens = position_db_connector.get_extra_deposits_data(position_id).keys()
@@ -292,13 +292,13 @@ async def get_add_deposit_data(request: Request, position_id: UUID, amount: str,
     :return: Dict containing deposit data with token address and amount
     """
     if not amount:
-        raise HTTPException(status_code=400, detail="Amount is required")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Amount is required")
     if not token_symbol:
-        raise HTTPException(status_code=400, detail="Token symbol is required")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Token symbol is required")
 
     position = position_db_connector.get_position_by_id(position_id)
     if not position:
-        raise HTTPException(status_code=404, detail="Position not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Position not found")
 
     try:
         token_address = TokenParams.get_token_address(token_symbol)
@@ -306,7 +306,7 @@ async def get_add_deposit_data(request: Request, position_id: UUID, amount: str,
             Decimal(amount) * 10 ** TokenParams.get_token_decimals(token_address)
         )
     except InvalidOperation:
-        raise HTTPException(status_code=400, detail="Amount is not a number")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Amount is not a number")
 
     return {
         "deposit_data": {"token_address": token_address, "token_amount": token_amount}
@@ -331,15 +331,15 @@ async def add_extra_deposit(
     :return: Dict containing detail
     """
     if not data.amount:
-        raise HTTPException(status_code=400, detail="Amount is required")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Amount is required")
     if not data.transaction_hash:
-        raise HTTPException(status_code=400, detail="Transaction hash is required")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Transaction hash is required")
 
     position = position_db_connector.get_position_by_id(position_id)
     if not position:
-        raise HTTPException(status_code=404, detail="Position not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Position not found")
     if position.status != Status.OPENED.value:
-        raise HTTPException(status_code=400, detail="Can only add deposits to open positions")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Can only add deposits to open positions")
 
     position_db_connector.add_extra_deposit_to_position(
         position, data.token_symbol, data.amount
@@ -373,7 +373,7 @@ async def get_user_positions(
     :return: UserPositionHistoryResponse with positions and total count
     """
     if not wallet_id:
-        raise HTTPException(status_code=400, detail="Wallet ID is required")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wallet ID is required")
 
     positions = position_db_connector.get_all_positions_by_wallet_id(
         wallet_id, start=start, limit=limit
