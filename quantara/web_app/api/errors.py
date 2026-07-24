@@ -14,7 +14,7 @@ Usage
 Raise :class:`APIError` instead of FastAPI's bare ``HTTPException``:
 
     from web_app.api.errors import APIError
-    raise APIError(status_code=404, code="position_not_found",
+    raise APIError(status_code=status.HTTP_404_NOT_FOUND, code="position_not_found",
                    detail="No position with that ID exists.")
 
 The ``request_id`` is injected automatically from the structlog context set by
@@ -26,7 +26,7 @@ from __future__ import annotations
 from typing import Any
 
 import structlog
-from fastapi import HTTPException, Request
+from fastapi import HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 

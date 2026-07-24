@@ -6,7 +6,7 @@ import logging
 from decimal import Decimal
 
 import sentry_sdk
-from fastapi import APIRouter, HTTPException, Depends, Request
+from fastapi import APIRouter, HTTPException, Depends, Request, status
 
 from web_app.api.serializers.transaction import UpdateUserContractRequest
 from web_app.api.serializers.user import (
@@ -65,7 +65,7 @@ async def has_user_opened_position(
         return {"has_opened_position": has_position or is_position_opened}
     except ValueError as e:
         raise HTTPException(
-            status_code=404, detail=f"Invalid wallet ID format: {str(e)}"
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Invalid wallet ID format: {str(e)}"
         )
 
 
@@ -88,9 +88,9 @@ async def get_user_contract(request: Request, wallet_id: str) -> str:
     """
     user = user_db.get_user_by_wallet_id(wallet_id)
     if user is None:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     elif not user.is_contract_deployed:
-        raise HTTPException(status_code=404, detail="Contract not deployed")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contract not deployed")
     else:
         return user.contract_address
 
@@ -182,7 +182,7 @@ async def subscribe_to_notification(
     user = user_db.get_user_by_wallet_id(data.wallet_id)
     # Check if the user exists; if not, raise a 404 error
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     telegram_id = data.telegram_id
     # Is not provided, attempt to retrieve it from the database
@@ -197,7 +197,7 @@ async def subscribe_to_notification(
 
     # If no Telegram ID is available, raise
     raise HTTPException(
-        status_code=400, detail="Failed to subscribe user to notifications"
+        status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to subscribe user to notifications"
     )
 
 
@@ -310,7 +310,7 @@ async def save_bug_report(request: Request, report: BugReportRequest) -> BugRepo
     try:
         if report.wallet_id.strip() == "" or report.bug_description.strip() == "":
             raise HTTPException(
-                status_code=422, detail="Wallet ID and bug description cannot be empty"
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Wallet ID and bug description cannot be empty"
             )
 
         sentry_sdk.set_user(
