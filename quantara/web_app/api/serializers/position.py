@@ -8,6 +8,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, field_validator
 
+from web_app.db.models import SUPPORTED_POSITION_TOKENS
+
 
 class PositionFormData(BaseModel):
     """
@@ -19,6 +21,14 @@ class PositionFormData(BaseModel):
     amount: str
     multiplier: float
 
+    @field_validator("token_symbol")
+    def validate_token_symbol(cls, value: str) -> str:
+        """Ensure writes use a supported position token."""
+        token = value.upper()
+        if token not in SUPPORTED_POSITION_TOKENS:
+            allowed = ", ".join(SUPPORTED_POSITION_TOKENS)
+            raise ValueError(f"Token symbol must be one of: {allowed}")
+        return token
     @field_validator("multiplier", mode="before")
     def validate_multiplier(cls, value: str) -> float:
         """
@@ -96,6 +106,14 @@ class AddPositionDepositData(BaseModel):
     token_symbol: str
     transaction_hash: Optional[str] = None
 
+    @field_validator("token_symbol")
+    def validate_deposit_token_symbol(cls, value: str) -> str:
+        """Ensure extra deposits use a supported token symbol."""
+        token = value.upper()
+        if token not in SUPPORTED_POSITION_TOKENS:
+            allowed = ", ".join(SUPPORTED_POSITION_TOKENS)
+            raise ValueError(f"Token symbol must be one of: {allowed}")
+        return token
 
 class UserExtraDeposit(BaseModel):
     """
