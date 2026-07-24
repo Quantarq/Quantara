@@ -50,9 +50,14 @@ async def _invalidate_user_positions_cache(wallet_id: str | None) -> None:
 
 def _get_wallet_id_for_position(position_id: UUID) -> str | None:
     position = position_db_connector.get_position_by_id(position_id)
-    if not position:
+    return _get_wallet_id_for_position_object(position)
+
+
+def _get_wallet_id_for_position_object(position: object | None) -> str | None:
+    user_id = getattr(position, "user_id", None)
+    if not user_id:
         return None
-    user = position_db_connector.get_object(User, position.user_id)
+    user = position_db_connector.get_object(User, user_id)
     return user.wallet_id if user else None
 
 @router.get(
@@ -246,8 +251,9 @@ async def open_position(request: Request, position_id: str, transaction_hash: st
 
     try:
         position_db_connector.write_to_db(outbox_event)
-        user = position_db_connector.get_object(User, position.user_id)
-        await _invalidate_user_positions_cache(user.wallet_id if user else None)
+        await _invalidate_user_positions_cache(
+            _get_wallet_id_for_position_object(position)
+        )
     except Exception as e:
         logger.error("failed_to_write_outbox_event", error=str(e))
         raise HTTPException(status_code=500, detail="Failed to queue position opening")
@@ -370,8 +376,9 @@ async def add_extra_deposit(
     transaction_db_connector.create_transaction(
         position_id, data.transaction_hash, status=TransactionStatus.EXTRA_DEPOSIT.value
     )
-    user = position_db_connector.get_object(User, position.user_id)
-    await _invalidate_user_positions_cache(user.wallet_id if user else None)
+    await _invalidate_user_positions_cache(
+        _get_wallet_id_for_position_object(position)
+    )
     return {"detail": "Successfully added extra deposit"}
 
 
