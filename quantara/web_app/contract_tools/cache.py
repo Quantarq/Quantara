@@ -4,6 +4,7 @@ import logging
 import os
 from typing import Awaitable, Callable, Optional
 
+import redis as redis_sync
 import redis.asyncio as redis
 
 logger = logging.getLogger(__name__)
@@ -52,3 +53,21 @@ async def get_cached_or_fetch(
         return value
     finally:
         await client.close()
+
+
+def delete_cache_pattern_sync(pattern: str) -> None:
+    """Best-effort synchronous cache invalidation for DB lifecycle hooks."""
+    client = redis_sync.Redis.from_url(_REDIS_URL, decode_responses=True)
+    try:
+        keys = list(client.scan_iter(match=pattern))
+        if keys:
+            client.delete(*keys)
+    except Exception as exc:
+        logger.warning("Cache invalidation failed for %s: %s", pattern, exc)
+    finally:
+        client.close()
+
+
+def invalidate_leaderboard_cache() -> None:
+    """Clear cached leaderboard aggregates after position lifecycle changes."""
+    delete_cache_pattern_sync("leaderboard:*")
