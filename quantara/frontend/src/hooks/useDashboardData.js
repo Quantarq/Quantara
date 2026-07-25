@@ -6,6 +6,7 @@ import XlmIcon from '@/assets/icons/xlm.svg?react';
 import UsdIcon from '@/assets/icons/usd_coin.svg?react';
 import CollateralIcon from '@/assets/icons/collateral_dynamic.svg?react';
 import BorrowIcon from '@/assets/icons/borrow_dynamic.svg?react';
+import { logger } from '@/utils/logger';
 
 /**
  * Fetch dashboard data from the backend for a given wallet.
@@ -78,7 +79,7 @@ const useDashboardData = () => {
         position_id,
       };
     },
-    onError: (error) => console.error('Error fetching dashboard data:', error),
+    onError: (error) => logger.error('Error fetching dashboard data:', error),
   });
 
   return {
