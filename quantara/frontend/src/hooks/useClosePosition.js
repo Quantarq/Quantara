@@ -3,6 +3,7 @@ import { axiosInstance } from '../utils/axios';
 import { closePosition } from '../services/transaction';
 import { useWalletStore } from '../stores/useWalletStore';
 import { notify } from '../components/layout/notifier/Notifier';
+import { logger } from '@/utils/logger';
 
 /**
  * Hook for closing a user's leveraged position.
@@ -18,7 +19,7 @@ export const useClosePosition = () => {
   return useMutation({
     mutationFn: async () => {
       if (!walletId) {
-        console.error('closePositionEvent: walletId is undefined');
+        logger.error('closePositionEvent: walletId is undefined');
         return;
       }
       const response = await axiosInstance.get('/api/get-repay-data', {
@@ -27,7 +28,7 @@ export const useClosePosition = () => {
         },
       });
       const transactionResult = await closePosition(response.data);
-      console.log('TransactionResult', transactionResult);
+      logger.log('TransactionResult', transactionResult);
       await axiosInstance.get('/api/close-position', {
         params: {
           position_id: response.data.position_id,
@@ -36,7 +37,7 @@ export const useClosePosition = () => {
       });
     },
     onError: (error) => {
-      console.error('Error during closePositionEvent', error);
+      logger.error('Error during closePositionEvent', error);
       notify(`Error during closePositionEvent: ${error.message}`, 'error');
     },
   });
