@@ -29,6 +29,7 @@
 
 import * as Sentry from '@sentry/react';
 import { onLCP, onCLS, onINP, onFCP, onTTFB } from 'web-vitals';
+import { logger } from '@/utils/logger';
 
 // StrKey public / secret seed: 56 chars, ed25519 base32 (A-Z, 2-7).
 // The character after the prefix ('G' or 'S') is captured by length rather
@@ -102,7 +103,7 @@ const scrubEvent = (event) => {
   } catch (err) {
     // Never let the scrubber break event submission.
     // eslint-disable-next-line no-console
-    console.debug('sentry_scrub_failed', err);
+    logger.debug('sentry_scrub_failed', err);
   }
   return event;
 };
@@ -169,7 +170,7 @@ const instrumentWebVitals = ({ sink }) => {
   const report = (metric) => {
     if (sink === console) {
       // eslint-disable-next-line no-console
-      console.debug(
+      logger.debug(
         `[web-vitals] ${metric.name}`,
         metric.value,
         metric.rating,
