@@ -30,8 +30,9 @@ async def test_open_position_queues_outbox_event(client: TestClient) -> None:
     with patch("web_app.api.position.PositionDBConnector.get_object", return_value=mock_position) as mock_get, \
          patch("web_app.api.position.PositionDBConnector.write_to_db", side_effect=mock_write) as mock_write_db:
         
-        response = client.get(
-            f"/api/open-position?position_id={position_id}&transaction_hash={transaction_hash}"
+        response = client.post(
+            f"/api/open-position?position_id={position_id}&transaction_hash={transaction_hash}",
+            headers={"Idempotency-Key": f"open:{position_id}:{transaction_hash}"},
         )
         assert response.status_code == 200
         assert response.json() == "pending"
