@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { axiosInstance } from '../utils/axios';
 import { formatDate } from '../utils/formatDate';
 import { useWalletStore } from '../stores/useWalletStore';
+import { logger } from '@/utils/logger';
 
 /**
  * Fetch paginated position history from the backend.
@@ -46,7 +47,7 @@ const usePositionHistoryTable = (currentPage, positionsOnPage) => {
     queryFn: () => fetchPositionHistoryTable(walletId, (currentPage - 1) * positionsOnPage, positionsOnPage),
     enabled: !!walletId,
     onError: (err) => {
-      console.error('Error during fetching position history:', err);
+      logger.error('Error during fetching position history:', err);
     },
     select: (response) => ({
       ...response,
