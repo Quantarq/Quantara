@@ -57,6 +57,7 @@ def assert_rate_limiter_backend_available(redis_url: str | None = None) -> None:
     finally:
         client.close()
 
+
 def get_wallet_key(request: Request) -> str:
     wallet_id = request.query_params.get("wallet_id") or request.path_params.get(
         "wallet_id"
