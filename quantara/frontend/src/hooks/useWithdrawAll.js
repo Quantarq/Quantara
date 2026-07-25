@@ -21,8 +21,11 @@ const useWithdrawAll = () => {
         withdraw_data.repay_data.contract_address
       );
 
-      await axiosInstance.get('/api/close-position', {
+      await axiosInstance.post('/api/close-position', null, {
         params: { transaction_hash: transaction_hash, position_id: withdraw_data.repay_data.position_id },
+        headers: {
+          'Idempotency-Key': `close:${withdraw_data.repay_data.position_id}:${transaction_hash}`,
+        },
       });
     },
     onSuccess: () => {
