@@ -22,7 +22,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 import redis.asyncio as redis
 
-from web_app.api.rate_limiter import limiter
+from web_app.api.rate_limiter import assert_rate_limiter_backend_available, limiter
 from web_app.api.errors import APIError, api_error_handler
 from web_app.api.openapi import build_custom_openapi
 from web_app.api.dashboard import router as dashboard_router
@@ -89,6 +89,7 @@ async def lifespan(app: FastAPI):
 
     # Validate required environment variables at startup.
     assert_valid_config()
+    assert_rate_limiter_backend_available()
 
     # Enforce minimum length for session secret at startup
     secret = os.getenv("SESSION_SECRET_KEY")
