@@ -17,6 +17,22 @@ class APIRequest:
 
     def __init__(self, base_url: str):
         self.base_url = base_url
+        self._session: aiohttp.ClientSession | None = None
+
+    async def _get_session(self) -> aiohttp.ClientSession:
+        if self._session is None or self._session.closed:
+            self._session = aiohttp.ClientSession(headers=self.DEFAULT_HEADER)
+        return self._session
+
+    async def close(self) -> None:
+        if self._session is not None and not self._session.closed:
+            await self._session.close()
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        await self.close()
 
     async def fetch(self, endpoint: str, params: dict = None, headers: dict = None):
         """
@@ -33,13 +49,13 @@ class APIRequest:
         if headers:
             request_headers.update(headers)
 
-        async with aiohttp.ClientSession() as session:
-            url = f"{self.base_url}{endpoint}"
-            async with session.get(
-                url, params=params, headers=request_headers
-            ) as response:
-                response.raise_for_status()
-                return await response.json()
+        session = await self._get_session()
+        url = f"{self.base_url}{endpoint}"
+        async with session.get(
+            url, params=params, headers=request_headers
+        ) as response:
+            response.raise_for_status()
+            return await response.json()
 
     async def post(self, endpoint: str, data: dict = None, headers: dict = None) -> dict:
         """
@@ -51,11 +67,11 @@ class APIRequest:
         :return: The response from the API as JSON.
         :raises aiohttp.ClientError: On network or HTTP errors.
         """
-        async with aiohttp.ClientSession() as session:
-            url = f"{self.base_url}{endpoint}"
-            async with session.post(url, json=data, headers=headers) as response:
-                response.raise_for_status()  # Raise an exception for bad status codes
-                return await response.json()
+        session = await self._get_session()
+        url = f"{self.base_url}{endpoint}"
+        async with session.post(url, json=data, headers=headers) as response:
+            response.raise_for_status()  # Raise an exception for bad status codes
+            return await response.json()
 
     async def fetch_text(
         self, endpoint: str, params: dict = None, headers: dict = None
@@ -69,11 +85,11 @@ class APIRequest:
         :return: The response from the API as text.
         :raises aiohttp.ClientError: On network or HTTP errors.
         """
-        async with aiohttp.ClientSession() as session:
-            url = f"{self.base_url}{endpoint}"
-            async with session.get(url, params=params, headers=headers) as response:
-                response.raise_for_status()  # Raise an exception for bad status codes
-                return await response.text()
+        session = await self._get_session()
+        url = f"{self.base_url}{endpoint}"
+        async with session.get(url, params=params, headers=headers) as response:
+            response.raise_for_status()  # Raise an exception for bad status codes
+            return await response.text()
 
 
 # Example usage:
