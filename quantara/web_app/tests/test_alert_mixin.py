@@ -6,6 +6,10 @@ import pytest
 
 from web_app.contract_tools.mixins.alert import AlertMixin
 
+USER_CONNECTOR = "web_app.contract_tools.mixins.alert.UserDBConnector"
+STELLAR_CLIENT = "web_app.contract_tools.mixins.alert.get_stellar_client"
+HEALTH_RATIO = "web_app.contract_tools.mixins.alert.HealthRatioMixin.get_health_ratio_and_tvl"
+
 
 @pytest.mark.asyncio
 async def test_alert_sweep_continues_after_user_failure():
@@ -18,7 +22,17 @@ async def test_alert_sweep_continues_after_user_failure():
             return "1.0", "100"
         return "1.5", "100"
 
-    with ExitStack() as stack:`n        connector = stack.enter_context(patch("web_app.contract_tools.mixins.alert.UserDBConnector"))`n        stack.enter_context(patch("web_app.contract_tools.mixins.alert.get_stellar_client", return_value=MagicMock()))`n        stack.enter_context(patch("web_app.contract_tools.mixins.alert.HealthRatioMixin.get_health_ratio_and_tvl", side_effect=fake_health_ratio))`n        send_notification = stack.enter_context(patch.object(AlertMixin, "send_notification", new_callable=AsyncMock))`n        connector.return_value.get_users_for_notifications.return_value = users`n`n        await AlertMixin.check_users_health_ratio_level()`n
+    with ExitStack() as stack:
+        connector = stack.enter_context(patch(USER_CONNECTOR))
+        stack.enter_context(patch(STELLAR_CLIENT, return_value=MagicMock()))
+        stack.enter_context(patch(HEALTH_RATIO, side_effect=fake_health_ratio))
+        send_notification = stack.enter_context(
+            patch.object(AlertMixin, "send_notification", new_callable=AsyncMock)
+        )
+        connector.return_value.get_users_for_notifications.return_value = users
+
+        await AlertMixin.check_users_health_ratio_level()
+
     send_notification.assert_awaited_once_with(1003, "1.0")
 
 
@@ -38,7 +52,20 @@ async def test_alert_sweep_runs_health_checks_concurrently():
         await release.wait()
         return "1.5", "100"
 
-    with ExitStack() as stack:`n        stack.enter_context(patch("web_app.contract_tools.mixins.alert.ALERT_BATCH_CONCURRENCY", len(users)))`n        connector = stack.enter_context(patch("web_app.contract_tools.mixins.alert.UserDBConnector"))`n        stack.enter_context(patch("web_app.contract_tools.mixins.alert.get_stellar_client", return_value=MagicMock()))`n        stack.enter_context(patch("web_app.contract_tools.mixins.alert.HealthRatioMixin.get_health_ratio_and_tvl", side_effect=fake_health_ratio))`n        stack.enter_context(patch.object(AlertMixin, "send_notification", new_callable=AsyncMock))`n        connector.return_value.get_users_for_notifications.return_value = users`n`n        await asyncio.wait_for(AlertMixin.check_users_health_ratio_level(), timeout=1)`n
+    with ExitStack() as stack:
+        stack.enter_context(
+            patch("web_app.contract_tools.mixins.alert.ALERT_BATCH_CONCURRENCY", len(users))
+        )
+        connector = stack.enter_context(patch(USER_CONNECTOR))
+        stack.enter_context(patch(STELLAR_CLIENT, return_value=MagicMock()))
+        stack.enter_context(patch(HEALTH_RATIO, side_effect=fake_health_ratio))
+        stack.enter_context(
+            patch.object(AlertMixin, "send_notification", new_callable=AsyncMock)
+        )
+        connector.return_value.get_users_for_notifications.return_value = users
+
+        await asyncio.wait_for(AlertMixin.check_users_health_ratio_level(), timeout=1)
+
     assert peak_started == len(users)
 
 
@@ -51,11 +78,16 @@ async def test_single_user_timeout_does_not_stop_successes():
             await asyncio.sleep(1)
         return "1.5", "100"
 
-    with patch("web_app.contract_tools.mixins.alert.ALERT_USER_TIMEOUT_SECONDS", 0.01), \
-         patch("web_app.contract_tools.mixins.alert.UserDBConnector") as connector, \
-         patch("web_app.contract_tools.mixins.alert.get_stellar_client", return_value=MagicMock()), \
-         patch("web_app.contract_tools.mixins.alert.HealthRatioMixin.get_health_ratio_and_tvl", side_effect=fake_health_ratio), \
-         patch.object(AlertMixin, "send_notification", new_callable=AsyncMock):
+    with ExitStack() as stack:
+        stack.enter_context(
+            patch("web_app.contract_tools.mixins.alert.ALERT_USER_TIMEOUT_SECONDS", 0.01)
+        )
+        connector = stack.enter_context(patch(USER_CONNECTOR))
+        stack.enter_context(patch(STELLAR_CLIENT, return_value=MagicMock()))
+        stack.enter_context(patch(HEALTH_RATIO, side_effect=fake_health_ratio))
+        stack.enter_context(
+            patch.object(AlertMixin, "send_notification", new_callable=AsyncMock)
+        )
         connector.return_value.get_users_for_notifications.return_value = users
 
         await AlertMixin.check_users_health_ratio_level()
