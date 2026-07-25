@@ -25,6 +25,7 @@ from web_app.contract_tools.mixins import DashboardMixin, DepositMixin, Position
 from web_app.db.crud import PositionDBConnector, TransactionDBConnector
 from web_app.api.dependencies import get_stellar_client
 from web_app.contract_tools.blockchain_call import StellarClient
+from web_app.contract_tools.cache import delete_cache_key
 from web_app.db.models import Status, TransactionStatus
 from web_app.api.rate_limiter import limiter, WRITE_LIMIT, USER_DATA_LIMIT, READ_LIMIT
 from web_app.utils.logger import get_logger
@@ -35,6 +36,7 @@ position_db_connector = PositionDBConnector()
 transaction_db_connector = TransactionDBConnector()
 
 PAGINATION_STEP = 10
+GET_STATS_CACHE_KEY = "stats:get_stats:v1"
 
 
 @router.get(
@@ -171,6 +173,7 @@ async def close_position(request: Request, position_id: UUID, transaction_hash: 
         raise HTTPException(status_code=400, detail="Transaction hash is required")
 
     position_status = position_db_connector.close_position(str(position_id))
+    await delete_cache_key(GET_STATS_CACHE_KEY)
     position_db_connector.save_transaction(
         position_id=position_id, status="closed", transaction_hash=transaction_hash
     )
