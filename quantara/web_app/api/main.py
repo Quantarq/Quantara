@@ -37,6 +37,7 @@ from web_app.api.metrics import router as metrics_router, PrometheusMiddleware
 from web_app.api.pausable import protocol_pause_middleware
 from web_app.api.pausable import router as pausable_router
 from web_app.api.walletconnect import router as walletconnect_router
+from web_app.api.sentry_hooks import before_send
 from web_app.config_validator import assert_valid_config
 from web_app.api.middleware import AccessLogMiddleware, MaxBodySizeMiddleware, SecurityHeadersMiddleware
 from web_app.db.database import init_db
@@ -101,6 +102,7 @@ async def lifespan(app: FastAPI):
         sentry_sdk.init(
             dsn=os.getenv("SENTRY_DSN"),
             traces_sampler=custom_traces_sampler,
+            before_send=before_send,
             _experiments={
                 "continuous_profiling_auto_start": True,
             },
