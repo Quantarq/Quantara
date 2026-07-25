@@ -9,7 +9,7 @@ from decimal import Decimal
 from typing import TypeVar
 from uuid import UUID
 
-from sqlalchemy import Numeric, cast, func, text
+from sqlalchemy import Column, Numeric, String, cast, func, values
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -363,34 +363,31 @@ class PositionDBConnector(UserDBConnector):
         if not token_prices:
             return Decimal("0")
 
-        values_sql = ", ".join(
-            f"(:token_{index}, :price_{index})"
-            for index in range(len(token_prices))
-        )
-        params = {"opened_status": Status.OPENED.value}
-        for index, (token, price) in enumerate(token_prices.items()):
-            params[f"token_{index}"] = token
-            params[f"price_{index}"] = price
-
-        query = text(
-            f"""
-            WITH token_prices(token_symbol, usdc_price) AS (
-                VALUES {values_sql}
-            )
-            SELECT COALESCE(
-                SUM(CAST(p.amount AS NUMERIC) * token_prices.usdc_price),
-                0
-            ) AS total_opened_amount_usdc
-            FROM "position" p
-            JOIN token_prices
-              ON token_prices.token_symbol = p.token_symbol
-            WHERE p.status = :opened_status
-            """
-        )
+        token_price_values = values(
+            Column("token_symbol", String),
+            Column("usdc_price", Numeric),
+            name="token_prices",
+        ).data(list(token_prices.items()))
 
         with self.Session() as db:
             try:
-                total_amount = db.execute(query, params).scalar()
+                total_amount = (
+                    db.query(
+                        func.coalesce(
+                            func.sum(
+                                cast(Position.amount, Numeric)
+                                * token_price_values.c.usdc_price
+                            ),
+                            0,
+                        )
+                    )
+                    .join(
+                        token_price_values,
+                        token_price_values.c.token_symbol == Position.token_symbol,
+                    )
+                    .filter(Position.status == Status.OPENED.value)
+                    .scalar()
+                )
                 return Decimal(str(total_amount or 0))
             except SQLAlchemyError as e:
                 logger.error("db_calc_open_amount_usdc_failed", error=str(e))
