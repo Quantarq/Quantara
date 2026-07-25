@@ -149,7 +149,7 @@ async def get_repay_data(
     return repay_data
 
 
-@router.get(
+@router.post(
     "/api/close-position",
     tags=["Position Operations"],
     response_model=str,
@@ -177,7 +177,7 @@ async def close_position(request: Request, position_id: UUID, transaction_hash: 
     return position_status
 
 
-@router.get(
+@router.post(
     "/api/open-position",
     tags=["Position Operations"],
     response_model=str,
