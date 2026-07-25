@@ -29,6 +29,7 @@ import Leaderboard from '@/pages/leaderboard/Leaderboard';
 import AddressBookPage from '@/pages/address-book/AddressBookPage';
 import NotFound from '@/pages/not-found/NotFound';
 import { initTelemetry } from '@/services/telemetry';
+import { logger } from '@/utils/logger';
 
 function App() {
   const { setWalletId, removeWalletId } = useWalletStore();
@@ -84,7 +85,7 @@ function App() {
           window.Telegram.WebApp.ready();
         })
         .catch((error) => {
-          console.error('Error getting Telegram user wallet ID:', error);
+          logger.error('Error getting Telegram user wallet ID:', error);
           notify('Error loading wallet', 'error');
           window.Telegram.WebApp.ready();
         });
