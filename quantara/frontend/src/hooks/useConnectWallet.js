@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import { notify } from '../components/layout/notifier/Notifier';
 import { connectWallet } from '../services/wallet';
 import { startWalletConnectTransaction } from '../services/telemetry';
+import { logger } from '@/utils/logger';
 
 /**
  * Hook for connecting to the Freighter Stellar wallet.
@@ -34,7 +35,7 @@ export const useConnectWallet = (setWalletId) => {
       setWalletId(publicKey);
     },
     onError: (error) => {
-      console.error('Wallet connection failed:', error);
+      logger.error('Wallet connection failed:', error);
       notify(error.message || 'Failed to connect wallet. Please try again.', 'error');
     },
   });
