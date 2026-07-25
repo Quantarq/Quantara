@@ -67,7 +67,6 @@ class StellarClient:
 
     async def __aexit__(self, exc_type, exc, tb):
         await self.close()
-
     # ------------------------------------------------------------------ #
     #  Balance queries via Horizon REST API (async with aiohttp)
     # ------------------------------------------------------------------ #
@@ -93,11 +92,11 @@ class StellarClient:
             session = await self._get_session()
             async with session.get(url) as response:
                 if response.status == 404:
-                        logger.info("horizon_account_not_found", account=holder_address)
-                        return "0"
-                    if response.status != 200:
-                        logger.warning("horizon_unexpected_status", status=response.status, url=url)
-                        return "0"
+                    logger.info("horizon_account_not_found", account=holder_address)
+                    return "0"
+                if response.status != 200:
+                    logger.warning("horizon_unexpected_status", status=response.status, url=url)
+                    return "0"
                 account = await response.json()
         except aiohttp.ClientError as exc:
             logger.error("horizon_network_error", account=holder_address, error=str(exc))
@@ -134,17 +133,17 @@ class StellarClient:
             session = await self._get_session()
             async with session.get(url) as response:
                 if response.status == 404:
-                        logger.info(
-                            "Account %s not found on Stellar network",
-                            holder_address,
-                        )
-                        return None
-                    if response.status != 200:
-                        logger.warning(
-                            "Horizon returned %d for %s", response.status, url
-                        )
-                        return None
-                    return await response.json()
+                    logger.info(
+                        "Account %s not found on Stellar network",
+                        holder_address,
+                    )
+                    return None
+                if response.status != 200:
+                    logger.warning(
+                        "Horizon returned %d for %s", response.status, url
+                    )
+                    return None
+                return await response.json()
         except aiohttp.ClientError as exc:
             logger.error("Network error fetching account %s: %s", holder_address, exc)
             return None
@@ -263,11 +262,11 @@ class StellarClient:
             session = await self._get_session()
             async with session.post(rpc_url, json=payload) as response:
                 if response.status == 200:
-                        data = await response.json()
-                        if "error" in data:
-                            logger.warning("rpc_contract_error", contract_id=contract_id, error=data["error"])
-                            return False
-                        return "result" in data
+                    data = await response.json()
+                    if "error" in data:
+                        logger.warning("rpc_contract_error", contract_id=contract_id, error=data["error"])
+                        return False
+                    return "result" in data
                 logger.warning("rpc_unexpected_status", status=response.status, contract_id=contract_id)
                 return False
         except aiohttp.ClientError as e:
