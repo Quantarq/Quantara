@@ -276,10 +276,13 @@ export const handleTransaction = async (connectedWalletId, formData, setTokenAmo
     );
 
     // Notify backend of position creation with real transaction hash
-    await axiosInstance.get(`/api/open-position`, {
+    await axiosInstance.post(`/api/open-position`, null, {
       params: {
         position_id: transactionData.position_id,
         transaction_hash,
+      },
+      headers: {
+        'Idempotency-Key': `open:${transactionData.position_id}:${transaction_hash}`,
       },
     });
 
