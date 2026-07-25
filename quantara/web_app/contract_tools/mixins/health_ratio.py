@@ -9,6 +9,7 @@ A value below 1.0 signals the position is at risk of liquidation.
 import asyncio
 from decimal import Decimal
 
+from web_app.contract_tools.amounts import to_stellar_units
 from web_app.contract_tools.blockchain_call import StellarClient
 from web_app.contract_tools.constants import TokenParams
 
@@ -86,7 +87,11 @@ class HealthRatioMixin:
         )
 
         borrowed_price = prices.get(borrowed_token, Decimal("0"))
-        debt_usdc = debt_raw * borrowed_price / Decimal(10 ** int(TokenParams.get_token_decimals(borrowed_token)))
+        debt_amount = to_stellar_units(
+            debt_raw,
+            int(TokenParams.get_token_decimals(borrowed_token)),
+        )
+        debt_usdc = debt_amount * borrowed_price
 
         if debt_usdc == 0:
             return "-1", "0"
