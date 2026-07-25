@@ -3,7 +3,6 @@ This module handles user-related API endpoints.
 """
 
 import logging
-from decimal import Decimal
 
 import sentry_sdk
 from fastapi import APIRouter, HTTPException, Depends, Request
@@ -20,6 +19,7 @@ from web_app.api.serializers.user import (
 )
 from web_app.api.dependencies import get_stellar_client, verify_wallet_signature
 from web_app.contract_tools.blockchain_call import StellarClient
+from web_app.contract_tools.cache import get_cached_or_fetch
 from web_app.contract_tools.mixins import DashboardMixin, PositionMixin
 from web_app.db.crud import (
     PositionDBConnector,
@@ -36,6 +36,8 @@ telegram_db = TelegramUserDBConnector()
 
 user_db = UserDBConnector()
 position_db = PositionDBConnector()
+GET_STATS_CACHE_KEY = "stats:get_stats:v1"
+GET_STATS_CACHE_TTL_SECONDS = 10
 
 
 @router.get(
@@ -245,37 +247,23 @@ async def get_stats(request: Request) -> GetStatsResponse:
     - unique_users: Total count of unique users.
     """
     try:
-        # Fetch open positions amounts by token
-        token_amounts = position_db.get_total_amounts_for_open_positions()
+        async def fetch_stats() -> dict:
+            current_prices = await DashboardMixin.get_current_prices()
+            total_opened_amount = position_db.get_total_opened_amount_usdc(
+                current_prices
+            )
+            unique_users = user_db.get_unique_users_count()
+            return {
+                "total_opened_amount": str(total_opened_amount),
+                "unique_users": unique_users,
+            }
 
-        # Fetch current prices
-        current_prices = await DashboardMixin.get_current_prices()
-
-        # Convert all token amounts to USDC
-        total_opened_amount = Decimal("0")
-        for token, amount in token_amounts.items():
-            # Skip if no price available for the token
-            if token not in current_prices:
-                logger.warning("no_price_data", token=token)
-                continue
-
-            # If the token is USDC, use it directly
-            if token == "USDC":
-                total_opened_amount += amount
-                continue
-
-            # Convert other tokens to USDC
-            # Price is typically in USDC per token
-            usdc_price = current_prices.get(token)
-            if usdc_price is None:
-                continue
-            usdc_equivalent = amount * Decimal(str(usdc_price))
-            total_opened_amount += usdc_equivalent
-
-        unique_users = user_db.get_unique_users_count()
-        return GetStatsResponse(
-            total_opened_amount=total_opened_amount, unique_users=unique_users
+        stats = await get_cached_or_fetch(
+            GET_STATS_CACHE_KEY,
+            ttl=GET_STATS_CACHE_TTL_SECONDS,
+            fetch_fn=fetch_stats,
         )
+        return GetStatsResponse(**stats)
 
     except Exception as e:
         logger.error("get_stats_error", exc_info=True)
