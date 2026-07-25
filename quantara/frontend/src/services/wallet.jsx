@@ -19,6 +19,7 @@ import {
 import { StrKey } from '@stellar/stellar-sdk';
 
 import { XLM_ASSET, USDC_ASSET } from '../utils/constants';
+import { logger } from '@/utils/logger';
 
 /**
  * Check if Freighter is installed in the browser.
@@ -42,7 +43,7 @@ export const isFreighterInstalled = () => {
  */
 export const connectWallet = async () => {
   try {
-    console.log('Connecting to Freighter wallet...');
+    logger.log('Connecting to Freighter wallet...');
 
     if (!isFreighterInstalled()) {
       throw new Error(
@@ -56,10 +57,10 @@ export const connectWallet = async () => {
       throw new Error('Invalid Stellar public key received from wallet');
     }
 
-    console.log('Wallet connected successfully. Public key:', publicKey);
+    logger.log('Wallet connected successfully. Public key:', publicKey);
     return publicKey;
   } catch (error) {
-    console.error('Error connecting wallet:', error.message);
+    logger.error('Error connecting wallet:', error.message);
     throw error;
   }
 };
@@ -111,7 +112,7 @@ export const signStellarTransaction = async (xdr, options = { network: 'TESTNET'
     const signedXDR = await signTransaction(xdr, options);
     return signedXDR;
   } catch (error) {
-    console.error('Error signing transaction:', error);
+    logger.error('Error signing transaction:', error);
     throw error;
   }
 };
@@ -171,7 +172,7 @@ export async function getTokenBalances(publicKey) {
 
     return balances;
   } catch (error) {
-    console.error('Error fetching token balances:', error);
+    logger.error('Error fetching token balances:', error);
     // Return zeros if account doesn't exist on network yet
     return { XLM: '0.0000', USDC: '0.0000' };
   }
@@ -204,7 +205,7 @@ export const getBalances = async (walletId, setBalances) => {
 
     setBalances(updatedBalances);
   } catch (error) {
-    console.error('Error fetching user balances:', error);
+    logger.error('Error fetching user balances:', error);
   }
 };
 
@@ -233,7 +234,7 @@ export const disconnectWallet = async () => {
     // 1. Alert the backend to delete the secure httpOnly cookie
     await axios.post('/api/auth/logout');
   } catch (error) {
-    console.error('Failed to cleanly terminate wallet session on backend:', error);
+    logger.error('Failed to cleanly terminate wallet session on backend:', error);
   } finally {
     // 2. Clear state elements out of application memory regardless of network success
     useWalletStore.getState().clearWallet();
