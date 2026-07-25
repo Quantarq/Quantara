@@ -28,10 +28,13 @@ export const useClosePosition = () => {
       });
       const transactionResult = await closePosition(response.data);
       console.log('TransactionResult', transactionResult);
-      await axiosInstance.get('/api/close-position', {
+      await axiosInstance.post('/api/close-position', null, {
         params: {
           position_id: response.data.position_id,
           transaction_hash: transactionResult.transaction_hash,
+        },
+        headers: {
+          'Idempotency-Key': `close:${response.data.position_id}:${transactionResult.transaction_hash}`,
         },
       });
     },
