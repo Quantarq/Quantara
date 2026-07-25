@@ -1,4 +1,5 @@
 import { axiosInstance } from '../utils/axios';
+import { logger } from '@/utils/logger';
 
 /**
  * Save or update a Telegram user's information in the backend.
@@ -19,7 +20,7 @@ export const saveTelegramUser = async (telegramUser, walletId) => {
     });
     return response.data;
   } catch (error) {
-    console.error('Error saving Telegram user:', error);
+    logger.error('Error saving Telegram user:', error);
     throw error;
   }
 };
@@ -39,7 +40,7 @@ export const getTelegramUserWalletId = async (telegram_id) => {
     });
     return response.data.wallet_id;
   } catch (error) {
-    console.error('Error getting wallet ID for Telegram user:', error);
+    logger.error('Error getting wallet ID for Telegram user:', error);
     throw error;
   }
 };
@@ -61,7 +62,7 @@ export const subscribeToNotification = async (telegram_id, wallet_id) => {
 
     return response.data;
   } catch (error) {
-    console.error('Error subscribing to notifications:', error);
+    logger.error('Error subscribing to notifications:', error);
     throw error;
   }
 };
@@ -80,7 +81,7 @@ export const generateTelegramLink = async (wallet_id) => {
     });
     return response.data;
   } catch (error) {
-    console.error('Error generating Telegram link:', error);
+    logger.error('Error generating Telegram link:', error);
     throw error;
   }
 };
