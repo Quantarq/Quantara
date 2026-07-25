@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { axiosInstance } from '../utils/axios';
+import { logger } from '@/utils/logger';
 
 /** Token configuration for health factor calculation */
 const TOKEN_CONFIG = {
@@ -68,7 +69,7 @@ export const useHealthFactor = (selectedToken, tokenAmount, selectedMultiplier) 
 
       return Number(healthFactorValue.toFixed(6));
     } catch (error) {
-      console.error('Error calculating health factor:', error);
+      logger.error('Error calculating health factor:', error);
       return 0;
     }
   };
