@@ -2,7 +2,7 @@
 This module handles position-related API endpoints for the Stellar-based Quantara protocol.
 """
 
-from decimal import Decimal, InvalidOperation
+from decimal import InvalidOperation
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Query, Depends, Request
@@ -22,6 +22,7 @@ from web_app.api.serializers.transaction import (
 from web_app.api.wallet_auth import verify_wallet_signature
 from web_app.contract_tools.constants import TokenMultipliers, TokenParams
 from web_app.contract_tools.mixins import DashboardMixin, DepositMixin, PositionMixin
+from web_app.contract_tools.amounts import from_stellar_units
 from web_app.db.crud import PositionDBConnector, TransactionDBConnector
 from web_app.api.dependencies import get_stellar_client
 from web_app.contract_tools.blockchain_call import StellarClient
@@ -302,8 +303,9 @@ async def get_add_deposit_data(request: Request, position_id: UUID, amount: str,
 
     try:
         token_address = TokenParams.get_token_address(token_symbol)
-        token_amount = int(
-            Decimal(amount) * 10 ** TokenParams.get_token_decimals(token_address)
+        token_amount = from_stellar_units(
+            amount,
+            TokenParams.get_token_decimals(token_address),
         )
     except InvalidOperation:
         raise HTTPException(status_code=400, detail="Amount is not a number")
