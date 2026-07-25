@@ -10,8 +10,10 @@ from web_app.contract_tools.cache import get_cached_or_fetch
 router = APIRouter()
 leaderboard_db_connector = LeaderboardDBConnector()
 LEADERBOARD_CACHE_TTL_SECONDS = 30
-USER_LEADERBOARD_CACHE_KEY = "leaderboard:user:top_positions"
-POSITION_TOKEN_STATISTICS_CACHE_KEY = "leaderboard:position_tokens:statistics"
+USER_LEADERBOARD_CACHE_NAME = ":".join(("leaderboard", "user", "top_positions"))
+POSITION_TOKEN_STATISTICS_CACHE_NAME = ":".join(
+    ("leaderboard", "position_tokens", "statistics")
+)
 
 @router.get(
     "/api/get-user-leaderboard",
@@ -29,7 +31,7 @@ async def get_user_leaderboard(request: Request) -> list[UserLeaderboardItem]:
         return leaderboard_db_connector.get_top_users_by_positions()
 
     return await get_cached_or_fetch(
-        USER_LEADERBOARD_CACHE_KEY,
+        USER_LEADERBOARD_CACHE_NAME,
         LEADERBOARD_CACHE_TTL_SECONDS,
         fetch_leaderboard,
     )
@@ -52,7 +54,7 @@ async def get_position_tokens_statistic(request: Request) -> list[TokenPositionS
         return leaderboard_db_connector.get_position_token_statistics()
 
     return await get_cached_or_fetch(
-        POSITION_TOKEN_STATISTICS_CACHE_KEY,
+        POSITION_TOKEN_STATISTICS_CACHE_NAME,
         LEADERBOARD_CACHE_TTL_SECONDS,
         fetch_token_statistics,
     )
