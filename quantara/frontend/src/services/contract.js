@@ -23,6 +23,7 @@ import { getSorobanServer, pollForTransaction } from './soroban';
 import { SOROBAN_WASM_HASH } from '../utils/constants';
 import { axiosInstance, getAuthHeaders } from '../utils/axios';
 import { notify, ToastWithLink } from '../components/layout/notifier/Notifier';
+import { logger } from '@/utils/logger';
 
 /**
  * Build a Stellar Expert block explorer URL for a Soroban contract.
@@ -53,7 +54,7 @@ export async function deployContract(walletId) {
     throw new Error('Please connect your Freighter wallet first');
   }
 
-  console.log('Deploying Soroban contract for wallet:', walletId);
+  logger.log('Deploying Soroban contract for wallet:', walletId);
 
   // ------------------------------------------------------------------ //
   //  1. Resolve the WASM hash (env var → backend fallback)
@@ -146,7 +147,7 @@ export async function deployContract(walletId) {
       throw new Error(`Invalid contract address returned: ${contractAddress}`);
     }
 
-    console.log('Soroban contract deployed at address:', contractAddress);
+    logger.log('Soroban contract deployed at address:', contractAddress);
 
     notify(
       ToastWithLink(
@@ -182,16 +183,16 @@ export async function deployContract(walletId) {
  */
 export async function checkAndDeployContract(walletId) {
   try {
-    console.log('Checking if contract is deployed for wallet ID:', walletId);
+    logger.log('Checking if contract is deployed for wallet ID:', walletId);
     const response = await axiosInstance.get(`/api/check-user?wallet_id=${walletId}`);
-    console.log('Backend response:', response.data);
+    logger.log('Backend response:', response.data);
 
     if (!response.data.is_contract_deployed) {
-      console.log('Contract not deployed. Deploying...');
+      logger.log('Contract not deployed. Deploying...');
       const result = await deployContract(walletId);
       const contractAddress = result.contractAddress;
 
-      console.log('Contract address:', contractAddress);
+      logger.log('Contract address:', contractAddress);
 
       // Update the backend with deployment info (requires wallet auth headers)
       const authHeaders = await getAuthHeaders(walletId);
@@ -199,12 +200,12 @@ export async function checkAndDeployContract(walletId) {
         wallet_id: walletId,
         contract_address: contractAddress,
       }, { headers: authHeaders });
-      console.log('Backend updated with deployment information.');
+      logger.log('Backend updated with deployment information.');
     } else {
-      console.log('Contract is already deployed for wallet ID:', walletId);
+      logger.log('Contract is already deployed for wallet ID:', walletId);
     }
   } catch (error) {
-    console.error('Error checking contract status:', error);
+    logger.error('Error checking contract status:', error);
     throw error;
   }
 }
