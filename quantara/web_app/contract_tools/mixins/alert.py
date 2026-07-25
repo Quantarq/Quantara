@@ -57,7 +57,9 @@ class AlertMixin:
         health_value = float(health_ratio_level)
         if health_value < ALERT_THRESHOLD:
             logger.info(
-                f"Health ratio level for user {contract_address} is {health_ratio_level}"
+                "Health ratio level for user %s is %s",
+                contract_address,
+                health_ratio_level,
             )
             await cls.send_notification(telegram_id, health_ratio_level)
 
@@ -88,7 +90,10 @@ class AlertMixin:
                 )
 
         results = await asyncio.gather(
-            *(check_with_limit(contract_address, telegram_id) for contract_address, telegram_id in users_data),
+            *(
+                check_with_limit(contract_address, telegram_id)
+                for contract_address, telegram_id in users_data
+            ),
             return_exceptions=True,
         )
         successes = sum(result is True for result in results)
