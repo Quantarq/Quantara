@@ -1,5 +1,6 @@
 import asyncio
 from contextlib import ExitStack
+from unittest import TestCase
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -72,7 +73,7 @@ async def test_alert_sweep_runs_health_checks_concurrently():
 
         await asyncio.wait_for(AlertMixin.check_users_health_ratio_level(), timeout=1)
 
-    assert peak_started == len(users)
+    TestCase().assertEqual(peak_started, len(users))
 
 
 @pytest.mark.asyncio
