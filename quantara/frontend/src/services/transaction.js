@@ -13,6 +13,7 @@ import { axiosInstance, getAuthHeaders } from '../utils/axios';
 import { notify, ToastWithLink } from '../components/layout/notifier/Notifier';
 import { STELLAR_NETWORK } from '../utils/constants';
 import { startOpenPositionTransaction } from './telemetry';
+import { logger } from '@/utils/logger';
 
 /**
  * Build a Stellar Explorer URL for a transaction hash,
@@ -38,7 +39,7 @@ export async function sendTransaction(loopData, contractAddress) {
       throw new Error('Wallet is not connected');
     }
 
-    console.log('Sending loop_liquidity Soroban call:', {
+    logger.log('Sending loop_liquidity Soroban call:', {
       contractAddress,
       loopData,
     });
@@ -54,7 +55,7 @@ export async function sendTransaction(loopData, contractAddress) {
       ]
     );
 
-    console.log('loop_liquidity transaction complete:', transaction_hash);
+    logger.log('loop_liquidity transaction complete:', transaction_hash);
 
     notify(
       ToastWithLink(
@@ -67,7 +68,7 @@ export async function sendTransaction(loopData, contractAddress) {
 
     return { transaction_hash };
   } catch (error) {
-    console.error('Error sending loop_liquidity transaction:', error);
+    logger.error('Error sending loop_liquidity transaction:', error);
     throw error;
   }
 }
@@ -88,7 +89,7 @@ export async function closePosition(transactionData) {
       throw new Error('Wallet is not connected');
     }
 
-    console.log('Closing position:', transactionData);
+    logger.log('Closing position:', transactionData);
 
     const { transaction_hash } = await invokeSorobanContract(
       transactionData.contract_address,
@@ -100,7 +101,7 @@ export async function closePosition(transactionData) {
       ]
     );
 
-    console.log('close_position transaction:', transaction_hash);
+    logger.log('close_position transaction:', transaction_hash);
 
     notify(
       ToastWithLink(
@@ -113,7 +114,7 @@ export async function closePosition(transactionData) {
 
     return { transaction_hash };
   } catch (error) {
-    console.error('Error closing position:', error);
+    logger.error('Error closing position:', error);
     throw error;
   }
 }
@@ -136,7 +137,7 @@ export async function sendExtraDepositTransaction(depositData, userContractAddre
       throw new Error('Wallet is not connected');
     }
 
-    console.log('Sending extra_deposit:', { depositData, userContractAddress });
+    logger.log('Sending extra_deposit:', { depositData, userContractAddress });
 
     const { transaction_hash } = await invokeSorobanContract(
       userContractAddress,
@@ -147,7 +148,7 @@ export async function sendExtraDepositTransaction(depositData, userContractAddre
       ]
     );
 
-    console.log('extra_deposit transaction:', transaction_hash);
+    logger.log('extra_deposit transaction:', transaction_hash);
 
     notify(
       ToastWithLink(
@@ -160,7 +161,7 @@ export async function sendExtraDepositTransaction(depositData, userContractAddre
 
     return { transaction_hash };
   } catch (error) {
-    console.error('Error sending extra deposit transaction:', error);
+    logger.error('Error sending extra deposit transaction:', error);
     throw error;
   }
 }
@@ -184,7 +185,7 @@ export async function sendWithdrawAllTransaction(data, userContractAddress) {
       throw new Error('Wallet is not connected');
     }
 
-    console.log('Sending withdraw-all:', { data, userContractAddress });
+    logger.log('Sending withdraw-all:', { data, userContractAddress });
 
     // Step 1: Close the position
     const closeResult = await invokeSorobanContract(
@@ -197,7 +198,7 @@ export async function sendWithdrawAllTransaction(data, userContractAddress) {
       ]
     );
 
-    console.log('close_position done:', closeResult.transaction_hash);
+    logger.log('close_position done:', closeResult.transaction_hash);
 
     // Step 2: Withdraw each token
     const withdrawResults = [];
@@ -213,7 +214,7 @@ export async function sendWithdrawAllTransaction(data, userContractAddress) {
       withdrawResults.push(withdrawResult);
     }
 
-    console.log('Withdraw-all complete', {
+    logger.log('Withdraw-all complete', {
       closeHash: closeResult.transaction_hash,
       withdrawHashes: withdrawResults.map((r) => r.transaction_hash),
     });
@@ -231,7 +232,7 @@ export async function sendWithdrawAllTransaction(data, userContractAddress) {
       transaction_hash: closeResult.transaction_hash,
     };
   } catch (error) {
-    console.error('Error sending withdraw transaction', error);
+    logger.error('Error sending withdraw transaction', error);
     throw error;
   }
 }
@@ -267,7 +268,7 @@ export const handleTransaction = async (connectedWalletId, formData, setTokenAmo
     const response = await axiosInstance.post(`/api/create-position`, formData, { headers: authHeaders });
     const transactionData = response.data;
 
-    console.log('Position data received:', transactionData);
+    logger.log('Position data received:', transactionData);
 
     // Invoke Soroban loop_liquidity contract
     const { transaction_hash } = await sendTransaction(
@@ -286,7 +287,7 @@ export const handleTransaction = async (connectedWalletId, formData, setTokenAmo
     setTokenAmount('');
   } catch (err) {
     transaction.setStatus('internal_error');
-    console.error('Failed to create position:', err);
+    logger.error('Failed to create position:', err);
     notify(`Error: ${err.message || 'Failed to create position'}`, 'error');
   } finally {
     transaction.setStatus('ok');
