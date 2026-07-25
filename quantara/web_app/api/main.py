@@ -38,7 +38,7 @@ from web_app.api.pausable import protocol_pause_middleware
 from web_app.api.pausable import router as pausable_router
 from web_app.api.walletconnect import router as walletconnect_router
 from web_app.config_validator import assert_valid_config
-from web_app.api.middleware import AccessLogMiddleware, MaxBodySizeMiddleware, SecurityHeadersMiddleware
+from web_app.api.middleware import AccessLogMiddleware, IdempotencyKeyMiddleware, MaxBodySizeMiddleware, SecurityHeadersMiddleware
 from web_app.db.database import init_db
 from web_app.db.database import init_db, get_database
 from web_app.utils.logger import configure_logging, get_logger
@@ -48,7 +48,7 @@ configure_logging()
 logger = get_logger(__name__)
 DEFAULT_CORS_ORIGINS = ["http://localhost:3000"]
 CORS_ALLOW_METHODS = ["GET", "POST"]
-CORS_ALLOW_HEADERS = ["Content-Type", "Authorization", "X-Wallet-Id", "X-Nonce", "X-Signature"]
+CORS_ALLOW_HEADERS = ["Content-Type", "Authorization", "X-Wallet-Id", "X-Nonce", "X-Signature", "Idempotency-Key"]
 
 
 def get_cors_origins() -> list[str]:
@@ -171,6 +171,7 @@ app.add_middleware(
 # Rate limiting middleware -- must be added after CORS/session so it wraps the
 # full middleware stack and can reject requests before they reach routers.
 app.add_middleware(SlowAPIMiddleware)
+app.add_middleware(IdempotencyKeyMiddleware)
 app.add_middleware(MaxBodySizeMiddleware, max_body_size=1024*1024)
 app.add_middleware(PrometheusMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
