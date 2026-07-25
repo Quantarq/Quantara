@@ -22,6 +22,8 @@ import asyncio
 import functools
 import os
 
+import redis
+
 from fastapi import Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -29,7 +31,31 @@ from slowapi.util import get_remote_address
 WRITE_LIMIT: str = os.getenv("RATE_LIMIT_WRITE", "5/minute")
 USER_DATA_LIMIT: str = os.getenv("RATE_LIMIT_USER_DATA", "30/minute")
 READ_LIMIT: str = os.getenv("RATE_LIMIT_READ", "100/minute")
+RATE_LIMIT_STORAGE_URI: str = os.getenv("REDIS_URL", "redis://localhost:6379")
 
+
+def is_production_env(env: str | None = None) -> bool:
+    return (env or os.getenv("ENV_VERSION", "DEV")).upper() == "PROD"
+
+
+def allow_in_memory_fallback(env: str | None = None) -> bool:
+    return not is_production_env(env)
+
+
+def assert_rate_limiter_backend_available(redis_url: str | None = None) -> None:
+    """Fail startup in production when Redis is unavailable for rate limiting."""
+    if not is_production_env():
+        return
+
+    client = redis.Redis.from_url(
+        redis_url or RATE_LIMIT_STORAGE_URI,
+        socket_connect_timeout=2,
+        socket_timeout=2,
+    )
+    try:
+        client.ping()
+    finally:
+        client.close()
 
 def get_wallet_key(request: Request) -> str:
     wallet_id = request.query_params.get("wallet_id") or request.path_params.get(
@@ -73,4 +99,7 @@ class LazyLimiter(Limiter):
         return decorator
 
 
-limiter = LazyLimiter()
+limiter = LazyLimiter(
+    storage_uri=RATE_LIMIT_STORAGE_URI,
+    in_memory_fallback_enabled=allow_in_memory_fallback(),
+)
