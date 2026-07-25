@@ -52,3 +52,15 @@ async def get_cached_or_fetch(
         return value
     finally:
         await client.close()
+
+
+async def delete_cache_key(key: str) -> None:
+    """Best-effort deletion for lifecycle invalidation."""
+    pool = await get_redis_pool()
+    client = redis.Redis(connection_pool=pool)
+    try:
+        await client.delete(key)
+    except Exception as exc:
+        logger.warning("Cache delete failed for %s: %s", key, exc)
+    finally:
+        await client.close()
