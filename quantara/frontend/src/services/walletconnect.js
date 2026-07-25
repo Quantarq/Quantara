@@ -25,6 +25,7 @@ import QRCode from 'qrcode';
 
 import { axiosInstance } from '../utils/axios';
 import { STELLAR_NETWORK } from '../utils/constants';
+import { logger } from '@/utils/logger';
 
 const POLL_INTERVAL_MS = 2000;
 const POLL_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes — matches Redis TTL.
@@ -101,7 +102,7 @@ export const connectWallet = async ({ qrContainer, signal } = {}) => {
       }).catch((err) => {
         if (qrContainer) qrContainer.textContent = wcUri;
         // eslint-disable-next-line no-console
-        console.warn('WalletConnect QR render failed', err);
+        logger.warn('WalletConnect QR render failed', err);
       });
     }
 
@@ -134,7 +135,7 @@ export const connectWallet = async ({ qrContainer, signal } = {}) => {
         }
         if (err?.message?.includes('rejected') || err?.message?.includes('expired')) throw err;
         // eslint-disable-next-line no-console
-        console.debug('WalletConnect poll retry', err?.message);
+        logger.debug('WalletConnect poll retry', err?.message);
       }
     }
 
@@ -219,7 +220,7 @@ export const disconnectWallet = async () => {
       await axiosInstance.delete(`/api/walletconnect/session/${session.session_id}`);
     } catch (err) {
       // eslint-disable-next-line no-console
-      console.warn('WalletConnect disconnect failed (best-effort)', err?.message);
+      logger.warn('WalletConnect disconnect failed (best-effort)', err?.message);
     }
   }
   sessionCache.session = null;
