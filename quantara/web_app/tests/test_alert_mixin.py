@@ -8,7 +8,10 @@ from web_app.contract_tools.mixins.alert import AlertMixin
 
 USER_CONNECTOR = "web_app.contract_tools.mixins.alert.UserDBConnector"
 STELLAR_CLIENT = "web_app.contract_tools.mixins.alert.get_stellar_client"
-HEALTH_RATIO = "web_app.contract_tools.mixins.alert.HealthRatioMixin.get_health_ratio_and_tvl"
+HEALTH_RATIO = (
+    "web_app.contract_tools.mixins.alert."
+    "HealthRatioMixin.get_health_ratio_and_tvl"
+)
 
 
 @pytest.mark.asyncio
@@ -54,7 +57,10 @@ async def test_alert_sweep_runs_health_checks_concurrently():
 
     with ExitStack() as stack:
         stack.enter_context(
-            patch("web_app.contract_tools.mixins.alert.ALERT_BATCH_CONCURRENCY", len(users))
+            patch(
+                "web_app.contract_tools.mixins.alert.ALERT_BATCH_CONCURRENCY",
+                len(users),
+            )
         )
         connector = stack.enter_context(patch(USER_CONNECTOR))
         stack.enter_context(patch(STELLAR_CLIENT, return_value=MagicMock()))
@@ -80,7 +86,10 @@ async def test_single_user_timeout_does_not_stop_successes():
 
     with ExitStack() as stack:
         stack.enter_context(
-            patch("web_app.contract_tools.mixins.alert.ALERT_USER_TIMEOUT_SECONDS", 0.01)
+            patch(
+                "web_app.contract_tools.mixins.alert.ALERT_USER_TIMEOUT_SECONDS",
+                0.01,
+            )
         )
         connector = stack.enter_context(patch(USER_CONNECTOR))
         stack.enter_context(patch(STELLAR_CLIENT, return_value=MagicMock()))
