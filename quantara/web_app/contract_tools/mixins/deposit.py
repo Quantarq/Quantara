@@ -7,6 +7,7 @@ on Soroban contracts.
 
 from decimal import Decimal
 
+from web_app.contract_tools.amounts import from_stellar_units
 from web_app.contract_tools.constants import TokenParams
 from web_app.contract_tools.blockchain_call import StellarClient
 
@@ -38,7 +39,7 @@ class DepositMixin:
         """
         deposit_token_address = TokenParams.get_token_address(deposit_token)
         decimal = TokenParams.get_token_decimals(deposit_token_address)
-        amount = int(Decimal(amount) * 10 ** decimal)
+        amount = from_stellar_units(amount, decimal)
 
         loop_liquidity_data = await client.get_loop_liquidity_data(
             deposit_token_address,
