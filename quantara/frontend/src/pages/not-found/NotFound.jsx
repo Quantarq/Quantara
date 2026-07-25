@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import './NotFound.css';
+import { logger } from '@/utils/logger';
 
 /**
  * NotFound page displayed for undefined routes.
@@ -17,7 +18,7 @@ const NotFound = () => {
     // in production browser consoles.
     if (import.meta.env.DEV) {
       // eslint-disable-next-line no-console
-      console.warn(`NotFound: no route matches ${location.pathname}`);
+      logger.warn(`NotFound: no route matches ${location.pathname}`);
     }
   }, [location.pathname]);
 
