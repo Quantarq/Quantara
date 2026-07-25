@@ -13,6 +13,7 @@ from sqlalchemy import Numeric, cast, func
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import SQLAlchemyError
 
+from web_app.contract_tools.cache import invalidate_leaderboard_cache
 from web_app.db.models import Base, ExtraDeposit, Position, Status, Transaction, User
 
 from .user import UserDBConnector
@@ -281,6 +282,7 @@ class PositionDBConnector(UserDBConnector):
             position.status = Status.CLOSED.value
             position.closed_at = datetime.now()
             self.write_to_db(position)
+            invalidate_leaderboard_cache()
         return position.status
 
     def open_position(self, position_id: uuid.UUID, current_prices: dict) -> str | None:
@@ -296,6 +298,7 @@ class PositionDBConnector(UserDBConnector):
             self.write_to_db(position)
             self.create_empty_claim(position.user_id)
             self.save_current_price(position, current_prices)
+            invalidate_leaderboard_cache()
             return position.status
         else:
             logger.error("db_open_position_not_found", position_id=str(position_id))
@@ -407,6 +410,7 @@ class PositionDBConnector(UserDBConnector):
 
                 self.write_to_db(position)
                 logger.info("db_position_liquidated", position_id=str(position_id))
+                invalidate_leaderboard_cache()
                 return True
 
             except SQLAlchemyError as e:
