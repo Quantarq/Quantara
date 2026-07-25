@@ -51,6 +51,22 @@ class StellarClient:
 
         if not self.horizon_url:
             raise ValueError("STELLAR_HORIZON_URL environment variable is not set")
+        self._session: aiohttp.ClientSession | None = None
+
+    async def _get_session(self) -> aiohttp.ClientSession:
+        if self._session is None or self._session.closed:
+            self._session = aiohttp.ClientSession()
+        return self._session
+
+    async def close(self) -> None:
+        if self._session is not None and not self._session.closed:
+            await self._session.close()
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        await self.close()
 
     # ------------------------------------------------------------------ #
     #  Balance queries via Horizon REST API (async with aiohttp)
@@ -74,8 +90,8 @@ class StellarClient:
             return "0"
         url = f"{self.horizon_url.rstrip('/')}/accounts/{holder_address}"
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url) as response:
+            session = await self._get_session()
+            async with session.get(url) as response:
                     if response.status == 404:
                         logger.info("horizon_account_not_found", account=holder_address)
                         return "0"
@@ -115,8 +131,8 @@ class StellarClient:
             return None
         url = f"{self.horizon_url.rstrip('/')}/accounts/{holder_address}"
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url) as response:
+            session = await self._get_session()
+            async with session.get(url) as response:
                     if response.status == 404:
                         logger.info(
                             "Account %s not found on Stellar network",
@@ -244,8 +260,8 @@ class StellarClient:
                     "key": _SOROBAN_WASM_HASH_KEY,  # base64 "wasm_hash"
                 },
             }
-            async with aiohttp.ClientSession() as session:
-                async with session.post(rpc_url, json=payload) as response:
+            session = await self._get_session()
+            async with session.post(rpc_url, json=payload) as response:
                     if response.status == 200:
                         data = await response.json()
                         if "error" in data:
