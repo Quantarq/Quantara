@@ -17,6 +17,7 @@ import {
 } from '@stellar/stellar-sdk';
 import { getWalletPublicKey, signStellarTransaction, getNetworkPassphrase } from './wallet';
 import { STELLAR_SOROBAN_RPC_URL } from '../utils/constants';
+import { logger } from '@/utils/logger';
 
 /**
  * Get a connected SorobanRPC server instance.
@@ -103,7 +104,7 @@ export async function invokeSorobanContract(contractId, methodName, args = []) {
 
   if (!SorobanRpc.isSimulationSuccess(simulation)) {
     const errorMsg = simulation?.error || 'Unknown simulation error';
-    console.error('Soroban simulation failed:', errorMsg);
+    logger.error('Soroban simulation failed:', errorMsg);
     throw new Error(`Contract simulation failed: ${errorMsg}`);
   }
 
