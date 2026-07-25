@@ -12,12 +12,14 @@ from sqlalchemy.orm import Session
 from web_app.db.database import SessionLocal, init_db
 from web_app.db.models import OutboxEvent, Position, Status, Transaction, TransactionStatus
 from web_app.db.crud import PositionDBConnector, TransactionDBConnector
+from web_app.contract_tools.cache import delete_cache_key
 from web_app.contract_tools.mixins import DashboardMixin
 from web_app.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
+GET_STATS_CACHE_KEY = "stats:get_stats:v1"
 
 # Initialize the Celery application
 celery_app = Celery("outbox_relay", broker=REDIS_URL, backend=REDIS_URL)
@@ -85,6 +87,7 @@ def process_position_opened_task(self, event_id: str):
         # Update position status to OPENED if it's not already opened
         if position.status != Status.OPENED.value:
             position_db_connector.open_position(position_id, current_prices)
+            asyncio.run(delete_cache_key(GET_STATS_CACHE_KEY))
             logger.info("position_opened_successfully", position_id=position_id)
         else:
             logger.info("position_already_opened_skipping", position_id=position_id)
