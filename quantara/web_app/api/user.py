@@ -29,6 +29,7 @@ from web_app.db.crud import (
 
 from web_app.api.rate_limiter import limiter, WRITE_LIMIT, USER_DATA_LIMIT, READ_LIMIT
 from web_app.utils.logger import get_logger
+from web_app.utils.scrub import scrub_user_text_for_sentry
 
 logger = get_logger(__name__)
 router = APIRouter()  # Initialize the router
@@ -313,23 +314,26 @@ async def save_bug_report(request: Request, report: BugReportRequest) -> BugRepo
                 status_code=422, detail="Wallet ID and bug description cannot be empty"
             )
 
+        safe_wallet_id = scrub_user_text_for_sentry(report.wallet_id, max_length=128)
+        safe_description = scrub_user_text_for_sentry(report.bug_description)
+
         sentry_sdk.set_user(
-            {"wallet_id": report.wallet_id, "telegram_id": report.telegram_id}
+            {"wallet_id": safe_wallet_id, "telegram_id": report.telegram_id}
         )
 
         sentry_sdk.set_context(
             "bug_report",
             {
-                "wallet_id": report.wallet_id,
+                "wallet_id": safe_wallet_id,
                 "telegram_id": report.telegram_id,
-                "description": report.bug_description,
+                "description": safe_description,
             },
         )
 
         sentry_sdk.capture_message(
-            f"Bug Report from {report.wallet_id}",
+            f"Bug Report from {safe_wallet_id}",
             level="error",
-            extras={"description": report.bug_description},
+            extras={"description": safe_description},
         )
 
         return BugReportResponse(message="Bug report submitted successfully")
