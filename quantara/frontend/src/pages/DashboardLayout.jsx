@@ -8,6 +8,7 @@ import withdrawIcon from '@/assets/icons/withdraw.svg';
 import formIcon from '@/assets/icons/form-icon.svg';
 import addressBookIcon from '@/assets/icons/dashboard-icon.svg';
 import { useCheckMobile } from '@/hooks/useCheckMobile';
+import { logger } from '@/utils/logger';
 
 const dashboardItems = [
   {
@@ -50,7 +51,7 @@ const dashboardItems = [
 
 export default function DashboardLayout({ children, title = 'Position' }) {
   const isMobile = useCheckMobile();
-  console.log(formIcon)
+  logger.log(formIcon)
   return (
     <div className="flex min-h-screen w-screen md:justify-center lg:ml-[372px] lg:w-[calc(100vw-372px)]">
       <Sidebar items={dashboardItems} />
