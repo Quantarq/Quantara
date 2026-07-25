@@ -12,6 +12,59 @@ from starlette.responses import Response
 logger = structlog.get_logger(__name__)
 
 
+class IdempotencyKeyMiddleware:
+    """Cache POST responses when clients retry with the same Idempotency-Key."""
+
+    def __init__(self, app):
+        self.app = app
+        self._responses = {}
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http" or scope.get("method") != "POST":
+            await self.app(scope, receive, send)
+            return
+
+        idempotency_key = None
+        for name, value in scope.get("headers", []):
+            if name.lower() == b"idempotency-key":
+                idempotency_key = value.decode("utf-8")
+                break
+
+        if not idempotency_key:
+            await self.app(scope, receive, send)
+            return
+
+        cache_key = (
+            scope.get("method"),
+            scope.get("path"),
+            scope.get("query_string", b""),
+            idempotency_key,
+        )
+        cached_response = self._responses.get(cache_key)
+        if cached_response:
+            start_message, body_messages = cached_response
+            await send(dict(start_message))
+            for message in body_messages:
+                await send(dict(message))
+            return
+
+        captured_start = None
+        captured_body = []
+
+        async def capture_send(message):
+            nonlocal captured_start
+            if message["type"] == "http.response.start":
+                captured_start = dict(message)
+            elif message["type"] == "http.response.body":
+                captured_body.append(dict(message))
+            await send(message)
+
+        await self.app(scope, receive, capture_send)
+
+        if captured_start and 200 <= captured_start.get("status", 500) < 300:
+            self._responses[cache_key] = (captured_start, captured_body)
+
+
 class AccessLogMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next) -> Response:
         structlog.contextvars.clear_contextvars()
