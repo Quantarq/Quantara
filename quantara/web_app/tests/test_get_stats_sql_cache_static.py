@@ -22,10 +22,11 @@ class GetStatsSqlCacheStaticTests(unittest.TestCase):
         source = (CRUD_ROOT / "position.py").read_text()
 
         self.assertIn("def get_total_opened_amount_usdc", source)
-        self.assertIn("WITH token_prices(token_symbol, usdc_price) AS", source)
-        self.assertIn('FROM "position" p', source)
-        self.assertIn("SUM(CAST(p.amount AS NUMERIC) * token_prices.usdc_price)", source)
-        self.assertIn("WHERE p.status = :opened_status", source)
+        self.assertIn("values(", source)
+        self.assertIn('name="token_prices"', source)
+        self.assertIn("func.sum(", source)
+        self.assertIn("* token_price_values.c.usdc_price", source)
+        self.assertIn("Position.status == Status.OPENED.value", source)
         self.assertIn("Status.OPENED.value", source)
 
     def test_opened_and_closed_lifecycles_invalidate_stats_cache(self):
