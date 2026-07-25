@@ -38,8 +38,9 @@ async def test_open_position_success(client: TestClient) -> None:
     ) as mock_get, patch(
         "web_app.api.position.PositionDBConnector.write_to_db", return_value=None
     ) as mock_write:
-        response = client.get(
-            f"/api/open-position?position_id={position_id}&transaction_hash={transaction_hash}"
+        response = client.post(
+            f"/api/open-position?position_id={position_id}&transaction_hash={transaction_hash}",
+            headers={"Idempotency-Key": f"open:{position_id}:{transaction_hash}"},
         )
         assert response.is_success
         assert response.json() == "pending"
@@ -56,9 +57,56 @@ async def test_open_position_missing_position_data(
     Returns:
         None
     """
-    response = client.get("/api/open-position?position_id=&transaction_hash=")
+    response = client.post("/api/open-position?position_id=&transaction_hash=")
     assert response.status_code == 404
     assert response.json() == {"detail": "Position not found"}
+
+
+@pytest.mark.anyio
+async def test_open_position_get_not_allowed(client: TestClient) -> None:
+    """
+    Opening a position is a mutation and should not be reachable via GET.
+    """
+    position_id = str(uuid.uuid4())
+    response = client.get(
+        f"/api/open-position?position_id={position_id}&transaction_hash=valid_transaction_hash"
+    )
+    assert response.status_code == 405
+
+
+@pytest.mark.anyio
+async def test_open_position_idempotency_key_replays_cached_response(
+    client: TestClient,
+) -> None:
+    """
+    Replaying the same POST with the same Idempotency-Key should not double write.
+    """
+    position_id = str(uuid.uuid4())
+    transaction_hash = "valid_transaction_hash"
+    mock_position = Mock(spec=Position)
+    mock_position.id = uuid.UUID(position_id)
+    mock_position.status = "pending"
+    headers = {"Idempotency-Key": f"open:{position_id}:{transaction_hash}"}
+
+    with patch(
+        "web_app.api.position.PositionDBConnector.get_object", return_value=mock_position
+    ), patch(
+        "web_app.api.position.PositionDBConnector.write_to_db", return_value=None
+    ) as mock_write:
+        first_response = client.post(
+            f"/api/open-position?position_id={position_id}&transaction_hash={transaction_hash}",
+            headers=headers,
+        )
+        second_response = client.post(
+            f"/api/open-position?position_id={position_id}&transaction_hash={transaction_hash}",
+            headers=headers,
+        )
+
+        assert first_response.status_code == 200
+        assert second_response.status_code == 200
+        assert first_response.json() == "pending"
+        assert second_response.json() == "pending"
+        assert mock_write.call_count == 1
 
 
 @pytest.mark.anyio
@@ -77,8 +125,9 @@ async def test_close_position_success(client: TestClient) -> None:
     ) as mock_close_position:
         mock_close_position.return_value = "Position successfully closed"
 
-        response = client.get(
-            f"/api/close-position?position_id={position_id}&transaction_hash={transaction_hash}"
+        response = client.post(
+            f"/api/close-position?position_id={position_id}&transaction_hash={transaction_hash}",
+            headers={"Idempotency-Key": f"close:{position_id}:{transaction_hash}"},
         )
 
         assert response.status_code == 200
@@ -102,7 +151,7 @@ async def test_close_position_invalid_position_id(client: TestClient) -> None:
         mock_close_position.side_effect = HTTPException(
             status_code=404, detail="Position not Found"
         )
-        response = client.get(
+        response = client.post(
             f"/api/close-position?position_id={invalid_position_id}&transaction_hash=0xabc123"
         )
         assert response.status_code == 404
