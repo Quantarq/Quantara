@@ -5,9 +5,13 @@ from fastapi import APIRouter, Request
 from web_app.db.crud.leaderboard import LeaderboardDBConnector
 from web_app.api.serializers.leaderboard import UserLeaderboardItem, TokenPositionStatistic
 from web_app.api.rate_limiter import limiter, READ_LIMIT
+from web_app.contract_tools.cache import get_cached_or_fetch
 
 router = APIRouter()
 leaderboard_db_connector = LeaderboardDBConnector()
+LEADERBOARD_CACHE_TTL_SECONDS = 30
+USER_LEADERBOARD_CACHE_KEY = "leaderboard:user:top_positions"
+POSITION_TOKEN_STATISTICS_CACHE_KEY = "leaderboard:position_tokens:statistics"
 
 @router.get(
     "/api/get-user-leaderboard",
@@ -21,8 +25,14 @@ async def get_user_leaderboard(request: Request) -> list[UserLeaderboardItem]:
     """
     Get the top 10 users ordered by closed/opened positions.
     """
-    leaderboard_data = leaderboard_db_connector.get_top_users_by_positions()
-    return leaderboard_data
+    async def fetch_leaderboard():
+        return leaderboard_db_connector.get_top_users_by_positions()
+
+    return await get_cached_or_fetch(
+        USER_LEADERBOARD_CACHE_KEY,
+        LEADERBOARD_CACHE_TTL_SECONDS,
+        fetch_leaderboard,
+    )
 
 
 @router.get(
@@ -38,4 +48,11 @@ async def get_position_tokens_statistic(request: Request) -> list[TokenPositionS
     This endpoint retrieves statistics about positions grouped by token symbol.
     Returns counts of opened and closed positions for each token.
     """
-    return leaderboard_db_connector.get_position_token_statistics()
+    async def fetch_token_statistics():
+        return leaderboard_db_connector.get_position_token_statistics()
+
+    return await get_cached_or_fetch(
+        POSITION_TOKEN_STATISTICS_CACHE_KEY,
+        LEADERBOARD_CACHE_TTL_SECONDS,
+        fetch_token_statistics,
+    )
