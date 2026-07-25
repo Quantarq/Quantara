@@ -9,7 +9,7 @@ from decimal import Decimal
 from typing import TypeVar
 from uuid import UUID
 
-from sqlalchemy import Numeric, cast, func
+from sqlalchemy import Numeric, cast, func, text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -345,8 +345,56 @@ class PositionDBConnector(UserDBConnector):
                 return {token: Decimal(str(amount)) for token, amount in token_amounts}
 
             except SQLAlchemyError as e:
-                logger.error("db_calc_open_amounts_failed", error=str(e))
-                return {}
+                  logger.error("db_calc_open_amounts_failed", error=str(e))
+                  return {}
+
+    def get_total_opened_amount_usdc(self, current_prices: dict) -> Decimal:
+        """
+        Calculates the USDC value of opened positions in SQL.
+
+        :param current_prices: Dictionary of token symbol to USDC price
+        :return: Total opened position value in USDC
+        """
+        token_prices = {"USDC": Decimal("1")}
+        for token, price in current_prices.items():
+            if price is not None:
+                token_prices[token] = Decimal(str(price))
+
+        if not token_prices:
+            return Decimal("0")
+
+        values_sql = ", ".join(
+            f"(:token_{index}, :price_{index})"
+            for index in range(len(token_prices))
+        )
+        params = {"opened_status": Status.OPENED.value}
+        for index, (token, price) in enumerate(token_prices.items()):
+            params[f"token_{index}"] = token
+            params[f"price_{index}"] = price
+
+        query = text(
+            f"""
+            WITH token_prices(token_symbol, usdc_price) AS (
+                VALUES {values_sql}
+            )
+            SELECT COALESCE(
+                SUM(CAST(p.amount AS NUMERIC) * token_prices.usdc_price),
+                0
+            ) AS total_opened_amount_usdc
+            FROM "position" p
+            JOIN token_prices
+              ON token_prices.token_symbol = p.token_symbol
+            WHERE p.status = :opened_status
+            """
+        )
+
+        with self.Session() as db:
+            try:
+                total_amount = db.execute(query, params).scalar()
+                return Decimal(str(total_amount or 0))
+            except SQLAlchemyError as e:
+                logger.error("db_calc_open_amount_usdc_failed", error=str(e))
+                return Decimal("0")
 
     def save_current_price(self, position: Position, price_dict: dict) -> None:
         """
