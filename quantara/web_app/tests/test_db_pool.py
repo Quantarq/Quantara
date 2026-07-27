@@ -9,6 +9,13 @@ Both engine construction sites (``web_app.db.database.init_db`` and the
 The actual pool behaviour is exercised in the integration suite against a
 real PostgreSQL container. This file focuses narrowly on configuration by
 patching ``create_engine`` so no database is required.
+
+Note: ``_register_slow_query_listener`` is also patched in every test that
+mocks ``create_engine``.  The listener registration calls ``event.listen``
+on the engine object, which requires a real SQLAlchemy engine; using a
+MagicMock would raise ``InvalidRequestError``.  Since pool-configuration
+tests care only about the kwargs forwarded to ``create_engine``, we simply
+no-op the listener step here.
 """
 
 from unittest.mock import patch
@@ -41,7 +48,8 @@ def test_database_init_db_uses_env_pool_settings(monkeypatch):
 
     from web_app.db import database
 
-    with patch("web_app.db.database.create_engine") as create_engine:
+    with patch("web_app.db.database.create_engine") as create_engine, \
+         patch("web_app.db.database._register_slow_query_listener"):
         database.init_db()
         assert create_engine.call_count == 1
         kwargs = create_engine.call_args.kwargs
@@ -58,7 +66,8 @@ def test_database_init_db_falls_back_to_defaults(monkeypatch):
 
     from web_app.db import database
 
-    with patch("web_app.db.database.create_engine") as create_engine:
+    with patch("web_app.db.database.create_engine") as create_engine, \
+         patch("web_app.db.database._register_slow_query_listener"):
         database.init_db()
         kwargs = create_engine.call_args.kwargs
         assert kwargs["pool_size"] == DEFAULT_POOL_SIZE
@@ -85,7 +94,8 @@ def test_db_connector_routes_through_init_engine(monkeypatch):
 
     from web_app.db.crud.base import DBConnector
 
-    with patch("web_app.db.database.create_engine") as create_engine:
+    with patch("web_app.db.database.create_engine") as create_engine, \
+         patch("web_app.db.database._register_slow_query_listener"):
         DBConnector(db_url="postgresql://user:pwd@host:5432/dbname")
         assert create_engine.call_count == 1
         kwargs = create_engine.call_args.kwargs
@@ -102,7 +112,8 @@ def test_db_connector_falls_back_to_defaults(monkeypatch):
 
     from web_app.db.crud.base import DBConnector
 
-    with patch("web_app.db.database.create_engine") as create_engine:
+    with patch("web_app.db.database.create_engine") as create_engine, \
+         patch("web_app.db.database._register_slow_query_listener"):
         DBConnector(db_url="postgresql://user:pwd@host:5432/dbname")
         kwargs = create_engine.call_args.kwargs
         assert kwargs["pool_size"] == DEFAULT_POOL_SIZE

@@ -1,0 +1,41 @@
+@startuml Quantara Containers
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title Quantara - Container Diagram
+
+Person(user, "DeFi User", "Manages a leveraged position.")
+Person(operator, "Protocol Operator", "Operates and observes the platform.")
+
+System_Boundary(quantara, "Quantara") {
+  Container(spa, "Web Application", "React, Vite, Nginx", "Displays positions, connects Freighter, and initiates Stellar transactions.")
+  Container(api, "Backend API", "Python, FastAPI", "Provides wallet authentication, dashboards, positions, vaults, referrals, leaderboards, and Telegram endpoints.")
+  Container(bot, "Telegram Bot", "Python, aiogram", "Links Telegram identities and sends position-health notifications.")
+  Container(adapters, "Protocol Integration", "Python, Stellar SDK", "Provides Blend lending and Soroswap AMM adapters plus protocol-independent collateral calculations.")
+  ContainerDb(database, "Operational Database", "PostgreSQL", "Stores users, positions, transactions, deposits, vaults, referrals, airdrops, and Telegram settings.")
+  ContainerDb(cache, "Cache", "Redis", "Caches blockchain reads and expensive dashboard calculations with short TTLs.")
+}
+
+System_Ext(stellar, "Stellar Network", "Horizon and Soroban RPC.")
+System_Ext(blend, "Blend Protocol", "Lending smart contracts.")
+System_Ext(soroswap, "Soroswap", "AMM smart contracts.")
+System_Ext(telegram, "Telegram", "Mini Apps and Bot API.")
+System_Ext(observability, "Observability", "Prometheus and Sentry.")
+
+Rel(user, spa, "Uses", "HTTPS")
+Rel(user, bot, "Uses", "Telegram")
+Rel(operator, api, "Monitors", "Health and metrics endpoints")
+Rel(spa, api, "Reads application data and authenticates", "JSON / HTTPS")
+Rel(spa, stellar, "Signs and submits user transactions", "Freighter / Stellar SDK")
+Rel(api, database, "Reads and writes", "SQLAlchemy")
+Rel(api, cache, "Reads, writes, and checks health", "Redis protocol")
+Rel(api, adapters, "Requests positions, quotes, and protocol operations", "Python calls")
+Rel(api, bot, "Triggers notifications", "Python calls")
+Rel(bot, database, "Reads notification preferences", "SQLAlchemy")
+Rel(bot, telegram, "Receives commands and sends alerts", "Bot API")
+Rel(adapters, stellar, "Queries and submits", "Horizon / Soroban RPC")
+Rel(adapters, blend, "Executes lending operations", "Soroban RPC")
+Rel(adapters, soroswap, "Gets quotes and executes swaps", "Soroban RPC")
+Rel(api, observability, "Exports metrics and reports errors", "Prometheus / HTTPS")
+
+SHOW_LEGEND()
+@enduml

@@ -1,0 +1,14 @@
+[package]
+name = "liquidation"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+doctest = false
+
+[dependencies]
+soroban-sdk = { version = "22.0.0" }
+common = { path = "../common" }

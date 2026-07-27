@@ -17,40 +17,32 @@ from fastapi.testclient import TestClient
 from httpx import AsyncClient
 
 from web_app.api.main import app
-from web_app.db.models import TransactionStatus
+from web_app.db.models import Position, TransactionStatus
 from web_app.tests.conftest import dict_to_object
 
 
 @pytest.mark.anyio
 async def test_open_position_success(client: TestClient) -> None:
     """
-    Test for successfully opening a position using a valid position ID.
-    Args:
-        client (TestClient): The test client for the FastAPI application.
-    Returns:
-        None
+    Test for successfully opening a position by queuing an outbox event.
     """
     position_id = str(uuid.uuid4())
     transaction_hash = "valid_transaction_hash"
-    with (
-        patch(
-            "web_app.db.crud.PositionDBConnector.open_position"
-        ) as mock_open_position,
-        patch(
-            "web_app.db.crud.TransactionDBConnector.create_transaction"
-        ) as mock_create_transaction,
-    ):
-        mock_open_position.return_value = "Position successfully opened"
-        mock_create_transaction.return_value = {
-            "position_id": position_id,
-            "transaction_hash": transaction_hash,
-            "status": TransactionStatus.OPENED.value,
-        }
+    
+    mock_position = Mock(spec=Position)
+    mock_position.id = uuid.UUID(position_id)
+    mock_position.status = "pending"
+
+    with patch(
+        "web_app.api.position.PositionDBConnector.get_object", return_value=mock_position
+    ) as mock_get, patch(
+        "web_app.api.position.PositionDBConnector.write_to_db", return_value=None
+    ) as mock_write:
         response = client.get(
             f"/api/open-position?position_id={position_id}&transaction_hash={transaction_hash}"
         )
         assert response.is_success
-        assert response.json() == "Position successfully opened"
+        assert response.json() == "pending"
 
 
 @pytest.mark.anyio

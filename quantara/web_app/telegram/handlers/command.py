@@ -10,9 +10,10 @@ from aiogram.types import Message
 
 from web_app.db.models import User
 from ..markups import launch_main_web_app_kb
-from ..texts import WELCOME_MESSAGE, NOTIFICATION_ALLOWED_MESSAGE
+from ..texts import i18n
 from web_app.db.crud.telegram import TelegramUserDBConnector
 from web_app.db.crud import DBConnector
+from ..nonce_store import nonce_store
 
 # Create a router for handling commands
 cmd_router = Router()
@@ -24,21 +25,32 @@ db_connector = DBConnector()
 @cmd_router.message(CommandStart(deep_link=True, deep_link_encoded=True))
 async def notification_allowed(message: Message, command: CommandObject):
     """
-    Handle the /start command with user id parameter.
+    Handle the /start command with user id and nonce parameter.
 
     Args:
         message (Message): The incoming message containing the command.
-        command (CommandObject): The command object containing the user id.
+        command (CommandObject): The command object containing "user_id:nonce".
     """
-    user_id = command.args
-    user = db_connector.get_object(User, user_id)
-    telegram_db.update_telegram_user(
-        str(message.from_user.id), dict(wallet_id=user.wallet_id)
-    )
-    telegram_db.set_allow_notification(str(message.from_user.id), user.wallet_id)
+    raw_args = command.args or ""
+    parts = raw_args.split(":", 1)
 
+    if len(parts) != 2:
+        return await message.answer("Invalid link.")
+
+    user_id_str, nonce = parts
+    tg_user_id = str(message.from_user.id)
+
+    if not nonce_store.validate(nonce, user_id_str):
+        return await message.answer("Link expired or already used.")
+
+    user = db_connector.get_object(User, int(user_id_str))
+    telegram_db.update_telegram_user(tg_user_id, dict(wallet_id=user.wallet_id))
+    telegram_db.set_allow_notification(tg_user_id, user.wallet_id)
+
+    lang = getattr(message.from_user, "language_code", None) or "en"
     return await message.answer(
-        NOTIFICATION_ALLOWED_MESSAGE, reply_markup=launch_main_web_app_kb
+        i18n.get("NOTIFICATION_ALLOWED_MESSAGE", lang),
+        reply_markup=launch_main_web_app_kb,
     )
 
 
@@ -53,4 +65,5 @@ async def start_cmd(message: Message):
     Returns:
         None: Sends a welcome message with a button to launch the web app.
     """
-    return message.answer(WELCOME_MESSAGE, reply_markup=launch_main_web_app_kb)
+    lang = getattr(message.from_user, "language_code", None) or "en"
+    return message.answer(i18n.get("WELCOME_MESSAGE", lang), reply_markup=launch_main_web_app_kb)

@@ -198,15 +198,38 @@ async def open_position(request: Request, position_id: str, transaction_hash: st
     if not transaction_hash:
         raise HTTPException(status_code=400, detail="Transaction hash is required")
 
-    current_prices = await DashboardMixin.get_current_prices()
-    position_status = position_db_connector.open_position(position_id, current_prices)
+    from uuid import UUID
+    import json
+    from web_app.db.models import OutboxEvent, Position
 
-    if transaction_hash:
-        transaction_db_connector.create_transaction(
-            position_id, transaction_hash, status=TransactionStatus.OPENED.value
-        )
+    try:
+        pos_uuid = UUID(position_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid position ID format")
 
-    return position_status
+    position = position_db_connector.get_object(Position, pos_uuid)
+    if not position:
+        raise HTTPException(status_code=404, detail="Position not found")
+
+    payload = json.dumps({
+        "position_id": str(pos_uuid),
+        "transaction_hash": transaction_hash
+    })
+
+    outbox_event = OutboxEvent(
+        event_type="PositionOpened",
+        payload=payload,
+        status="pending",
+        retry_count=0
+    )
+
+    try:
+        position_db_connector.write_to_db(outbox_event)
+    except Exception as e:
+        logger.error("failed_to_write_outbox_event", error=str(e))
+        raise HTTPException(status_code=500, detail="Failed to queue position opening")
+
+    return "pending"
 
 
 @router.get(

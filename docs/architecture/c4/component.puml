@@ -1,0 +1,46 @@
+@startuml Quantara Backend Components
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title Quantara - Backend API Components
+
+Container(spa, "Web Application", "React", "Quantara browser client.")
+Container(bot, "Telegram Bot", "aiogram", "Telegram commands and notifications.")
+ContainerDb(database, "Operational Database", "PostgreSQL", "Persistent application state.")
+ContainerDb(cache, "Cache", "Redis", "Short-lived blockchain and aggregate data.")
+System_Ext(stellar, "Stellar Network", "Horizon and Soroban RPC.")
+System_Ext(blend, "Blend Protocol", "Lending smart contracts.")
+System_Ext(soroswap, "Soroswap", "AMM smart contracts.")
+
+Container_Boundary(api, "Backend API - Python / FastAPI") {
+  Component(middleware, "HTTP Middleware", "FastAPI / Starlette", "Applies sessions, CORS, rate limits, body limits, security headers, request IDs, and metrics.")
+  Component(routers, "API Routers", "FastAPI", "Exposes wallet auth, dashboard, position, vault, user, referral, leaderboard, Telegram, health, and metrics endpoints.")
+  Component(mixins, "Position Services", "Python mixins", "Coordinates deposits, position lifecycle, health ratios, dashboards, and alerts.")
+  Component(adapter_interfaces, "Protocol Adapter Interfaces", "Python ABCs and factories", "Defines stable lending and AMM operations and selects registered implementations.")
+  Component(blend_adapter, "Blend Lending Adapter", "Stellar SDK", "Implements deposits, borrowing, repayment, withdrawals, and reserve queries.")
+  Component(soroswap_adapter, "Soroswap AMM Adapter", "Stellar SDK", "Implements pool discovery, quotes, routing, and swaps.")
+  Component(collateral, "Collateral Manager", "Python", "Calculates leverage, health, liquidation thresholds, and position summaries.")
+  Component(blockchain, "Blockchain Client", "aiohttp / Stellar SDK", "Calls Horizon and Soroban RPC and normalizes blockchain responses.")
+  Component(cache_component, "Cache Layer", "redis.asyncio", "Provides read-through caching and graceful degradation.")
+  Component(repositories, "Persistence Layer", "SQLAlchemy", "Models and CRUD connectors for operational data.")
+}
+
+Rel(spa, middleware, "Calls", "JSON / HTTPS")
+Rel(bot, routers, "Links users and notification preferences", "Python / HTTP")
+Rel(middleware, routers, "Validates and forwards requests")
+Rel(routers, mixins, "Invokes use cases")
+Rel(routers, repositories, "Reads and writes application state")
+Rel(mixins, adapter_interfaces, "Uses protocol-neutral operations")
+Rel(mixins, collateral, "Calculates position risk")
+Rel(mixins, cache_component, "Caches blockchain-backed reads")
+Rel(adapter_interfaces, blend_adapter, "Creates through factory")
+Rel(adapter_interfaces, soroswap_adapter, "Creates through factory")
+Rel(blend_adapter, blockchain, "Uses RPC transport")
+Rel(soroswap_adapter, blockchain, "Uses RPC transport")
+Rel(blockchain, stellar, "Queries and submits", "Horizon / Soroban RPC")
+Rel(blend_adapter, blend, "Executes lending operations", "Soroban contracts")
+Rel(soroswap_adapter, soroswap, "Executes swaps", "Soroban contracts")
+Rel(cache_component, cache, "Reads and writes", "Redis protocol")
+Rel(repositories, database, "Reads and writes", "SQL")
+
+SHOW_LEGEND()
+@enduml

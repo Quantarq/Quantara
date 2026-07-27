@@ -6,6 +6,7 @@ import computerIcon from '@/assets/icons/computer-icon.svg';
 import depositIcon from '@/assets/icons/deposit.svg';
 import withdrawIcon from '@/assets/icons/withdraw.svg';
 import formIcon from '@/assets/icons/form-icon.svg';
+import addressBookIcon from '@/assets/icons/dashboard-icon.svg';
 import { useCheckMobile } from '@/hooks/useCheckMobile';
 
 const dashboardItems = [
@@ -38,6 +39,12 @@ const dashboardItems = [
     name: 'Withdraw All',
     link: '/dashboard/withdraw',
     icon: withdrawIcon,
+  },
+  {
+    id: 'address-book',
+    name: 'Address Book',
+    link: '/dashboard/address-book',
+    icon: addressBookIcon,
   },
 ];
 

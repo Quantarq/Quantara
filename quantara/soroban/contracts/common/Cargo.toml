@@ -2,9 +2,15 @@
 name = "common"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+publish = false
+
+[lib]
+crate-type = ["rlib"]
+doctest = false
 
 [dependencies]
-soroban-sdk = "20.0.0"
+soroban-sdk = { version = "22.0.0" }
 
 [dev-dependencies]
 proptest = "1.4.0"

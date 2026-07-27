@@ -18,6 +18,7 @@ from sqlalchemy import (
     Enum,
     Float,
     ForeignKey,
+    Integer,
     String,
     UniqueConstraint,
 )
@@ -225,4 +226,24 @@ class ExtraDeposit(Base):
     position_id = Column(UUID(as_uuid=True), ForeignKey("position.id"))
     __table_args__ = (
         UniqueConstraint("position_id", "token_symbol", name="_position_token_uc"),
+    )
+
+
+class OutboxEvent(Base):
+    """
+    SQLAlchemy model for the event outbox table.
+    Stores events that need to be published or processed asynchronously.
+    """
+
+    __tablename__ = "event_outbox"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    event_type = Column(String, nullable=False)
+    payload = Column(String, nullable=False)  # JSON-serialized payload
+    status = Column(String, nullable=False, default="pending")  # pending, processing, processed, failed
+    retry_count = Column(Integer, nullable=False, default=0)
+    error_message = Column(String, nullable=True)
+    created_at = Column(DateTime, nullable=False, default=func.now())
+    updated_at = Column(
+        DateTime, nullable=False, default=func.now(), onupdate=func.now()
     )

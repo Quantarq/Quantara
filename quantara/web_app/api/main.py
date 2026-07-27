@@ -23,6 +23,8 @@ from sqlalchemy.orm import Session
 import redis.asyncio as redis
 
 from web_app.api.rate_limiter import limiter
+from web_app.api.errors import APIError, api_error_handler
+from web_app.api.openapi import build_custom_openapi
 from web_app.api.dashboard import router as dashboard_router
 from web_app.api.position import router as position_router
 from web_app.api.telegram import router as telegram_router
@@ -32,8 +34,11 @@ from web_app.api.leaderboard import router as leaderboard_router
 from web_app.api.referal import router as referal_router
 from web_app.api.wallet_auth import router as auth_router
 from web_app.api.metrics import router as metrics_router, PrometheusMiddleware
+from web_app.api.pausable import protocol_pause_middleware
+from web_app.api.pausable import router as pausable_router
+from web_app.api.walletconnect import router as walletconnect_router
 from web_app.config_validator import assert_valid_config
-from web_app.api.middleware import MaxBodySizeMiddleware, SecurityHeadersMiddleware
+from web_app.api.middleware import AccessLogMiddleware, MaxBodySizeMiddleware, SecurityHeadersMiddleware
 from web_app.db.database import init_db
 from web_app.db.database import init_db, get_database
 from web_app.utils.logger import configure_logging, get_logger
@@ -60,6 +65,19 @@ def get_cors_origins() -> list[str]:
     origins = [origin.strip() for origin in raw_origins.split(",")]
     return [origin for origin in origins if origin] or DEFAULT_CORS_ORIGINS
 
+def custom_traces_sampler(sampling_context):
+    asgi_scope = sampling_context.get("asgi_scope", {})
+    path = asgi_scope.get("path", "")
+    method = asgi_scope.get("method", "")
+
+    if path in ("/api/save-bug-report", "/api/auth/connect"):
+        return 1.0
+    if path == "/health":
+        return 0.005
+    if method in ("POST", "PUT", "PATCH", "DELETE"):
+        return 0.5
+    return 0.05
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
@@ -82,7 +100,7 @@ async def lifespan(app: FastAPI):
         import sentry_sdk
         sentry_sdk.init(
             dsn=os.getenv("SENTRY_DSN"),
-            traces_sample_rate=1.0,
+            traces_sampler=custom_traces_sampler,
             _experiments={
                 "continuous_profiling_auto_start": True,
             },
@@ -105,6 +123,10 @@ app = FastAPI(
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_exception_handler(APIError, api_error_handler)
+
+# Enrich the OpenAPI schema with the standardised error envelope and examples.
+app.openapi = build_custom_openapi(app)
 
 
 @app.exception_handler(Exception)
@@ -137,6 +159,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 _session_secret = os.getenv("SESSION_SECRET_KEY", os.urandom(32).hex())
 
 # Add session middleware with a persistent secret key
+app.add_middleware(AccessLogMiddleware)
 app.add_middleware(SessionMiddleware, secret_key=_session_secret)
 # CORS middleware for React frontend
 app.add_middleware(
@@ -161,6 +184,9 @@ async def request_id_middleware(request: Request, call_next):
         response = await call_next(request)
         response.headers["X-Request-Id"] = request_id
         return response
+
+
+app.middleware("http")(protocol_pause_middleware)
 
 
 @app.get("/health", tags=["Health"], summary="Health check endpoint")
@@ -211,3 +237,6 @@ app.include_router(leaderboard_router)
 app.include_router(referal_router)
 app.include_router(auth_router)
 app.include_router(metrics_router)
+app.include_router(pausable_router)
+# Issue #273 — WalletConnect bridge for Stellar mobile wallets (Redis TTL).
+app.include_router(walletconnect_router)

@@ -159,7 +159,7 @@ class TestSendHealthRatioNotification:
         self, notifications_module,
     ):
         """First-attempt send uses the complete ``HEALTH_RATIO_WARNING_MESSAGE`` template."""
-        from web_app.telegram.texts import HEALTH_RATIO_WARNING_MESSAGE
+        from web_app.telegram.texts import i18n
 
         notifications, _ = notifications_module
         notifications.bot.send_message = AsyncMock(return_value=None)
@@ -170,9 +170,9 @@ class TestSendHealthRatioNotification:
         notifications.bot.send_message.assert_awaited_once()
         kwargs = notifications.bot.send_message.await_args.kwargs
         assert kwargs["chat_id"] == "42"
-        assert kwargs["text"] == HEALTH_RATIO_WARNING_MESSAGE.format(
-            health_ratio=ratio,
-        )
+        assert kwargs["text"] == i18n.get(
+    "HEALTH_RATIO_WARNING_MESSAGE", health_ratio=ratio,
+    )
 
     async def test_retries_with_servers_retry_after(self, notifications_module):
         """First attempt rate-limited → sleep(servers_value) → succeed."""
@@ -243,6 +243,7 @@ class TestCommandHandlers:
         """Deep-link ``/start`` flips notification state and replies."""
         from web_app.db.models import User
         from web_app.telegram.handlers import command
+        from web_app.telegram.texts import i18n
 
         fake_user = SimpleNamespace(wallet_id="WALLET-XYZ")
         command.db_connector.get_object = MagicMock(return_value=fake_user)
@@ -250,12 +251,13 @@ class TestCommandHandlers:
         command.telegram_db.set_allow_notification = MagicMock(return_value=None)
 
         msg = self._fake_message()
-        cmd_obj = SimpleNamespace(args="USER-123")
+        cmd_obj = SimpleNamespace(args="42:fake-nonce-value")
 
-        await command.notification_allowed(msg, cmd_obj)
+        with patch.object(command.nonce_store, "validate", return_value=True):
+            await command.notification_allowed(msg, cmd_obj)
 
         command.db_connector.get_object.assert_called_once_with(
-            User, "USER-123",
+            User, 42,
         )
         command.telegram_db.update_telegram_user.assert_called_once_with(
             "999", {"wallet_id": "WALLET-XYZ"},
@@ -264,13 +266,14 @@ class TestCommandHandlers:
             "999", "WALLET-XYZ",
         )
         msg.answer.assert_awaited_once_with(
-            command.NOTIFICATION_ALLOWED_MESSAGE,
-            reply_markup=command.launch_main_web_app_kb,
-        )
+    i18n.get("NOTIFICATION_ALLOWED_MESSAGE", "en"),
+    reply_markup=command.launch_main_web_app_kb,
+)
 
     async def test_start_cmd_sends_welcome_with_inline_keyboard(self):
         """Plain ``/start`` answers with the welcome text and reply markup."""
         from web_app.telegram.handlers import command
+        from web_app.telegram.texts import i18n
 
         msg = SimpleNamespace(
             from_user=SimpleNamespace(id=999),
@@ -279,6 +282,6 @@ class TestCommandHandlers:
 
         await command.start_cmd(msg)
         msg.answer.assert_called_once_with(
-            command.WELCOME_MESSAGE,
-            reply_markup=command.launch_main_web_app_kb,
-        )
+    i18n.get("WELCOME_MESSAGE", "en"),
+    reply_markup=command.launch_main_web_app_kb,
+)

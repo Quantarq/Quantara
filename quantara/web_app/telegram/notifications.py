@@ -10,28 +10,42 @@ from aiogram.exceptions import TelegramRetryAfter
 from web_app.db.crud import TelegramUserDBConnector
 from web_app.telegram import bot
 
-from .texts import HEALTH_RATIO_WARNING_MESSAGE
+from .dedupe import NotificationDedupe
+from .texts import i18n
 
 logger = logging.getLogger(__name__)
 
 telegram_db = TelegramUserDBConnector()
+dedupe = NotificationDedupe()
 
 DEFAULT_RETRY_AFTER = 10
 DEFAULT_RETRY_COUNT = 1
 
 
 async def send_health_ratio_notification(
-    telegram_id: str, health_ratio: Decimal, retry_count: int = DEFAULT_RETRY_COUNT
+    telegram_id: str,
+    health_ratio: Decimal,
+    position_id: str = "",
+    retry_count: int = DEFAULT_RETRY_COUNT,
 ) -> None:
     """
-    Send notification about health ratio to user
+    Send notification about health ratio to user.
+    Deduplication prevents repeated alerts for the same user/position within 4h.
     """
+    if position_id and not await dedupe.should_send(telegram_id, position_id):
+        return
+
     try:
         await bot.send_message(
             chat_id=telegram_id,
-            text=HEALTH_RATIO_WARNING_MESSAGE.format(health_ratio=health_ratio),
+            text=i18n.get("HEALTH_RATIO_WARNING_MESSAGE", health_ratio=health_ratio),
         )
+        if position_id:
+            await dedupe.record_send(telegram_id, position_id)
+            await dedupe.record_success(telegram_id, position_id)
     except TelegramRetryAfter as e:
+        if position_id:
+            await dedupe.record_failure(telegram_id, position_id)
         if retry_count < 1:
             return logger.error(f"Failed to send notification to {telegram_id}: {e}")
 
@@ -41,7 +55,9 @@ async def send_health_ratio_notification(
 
         await asyncio.sleep(retry_after)
         await send_health_ratio_notification(
-            telegram_id, health_ratio, retry_count=retry_count - 1
+            telegram_id, health_ratio, position_id=position_id, retry_count=retry_count - 1
         )
     except Exception as e:
+        if position_id:
+            await dedupe.record_failure(telegram_id, position_id)
         logger.error(f"Failed to send notification to {telegram_id}: {e}")

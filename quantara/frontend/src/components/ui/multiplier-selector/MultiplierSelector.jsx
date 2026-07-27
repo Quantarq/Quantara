@@ -2,8 +2,17 @@ import React, { useMemo, useCallback, useState, useRef, useEffect } from 'react'
 import { useMaxMultiplier } from '@/hooks/useMaxMultiplier';
 import sliderThumb from '@/assets/icons/slider_thumb.svg';
 
-const MultiplierSelector = ({ setSelectedMultiplier, selectedToken }) => {
+/**
+ * MultiplierSelector — WCAG 2.2 AA compliant slider.
+ *
+ * The custom track is supplemented by a hidden native `<input type="range">`
+ * with `role="slider"` semantics so that screen readers announce the value,
+ * min, max, and step changes. Keyboard users can adjust the multiplier with
+ * Left/Right (1x steps), PageUp/PageDown (1x), and Home/End (jump to ends).
+ */
+const MultiplierSelector = ({ setSelectedMultiplier, selectedToken, id }) => {
   const minMultiplier = 1.1;
+  const rangeInputRef = useRef(null);
 
   const { data, isLoading } = useMaxMultiplier();
   const [actualValue, setActualValue] = useState(minMultiplier);
@@ -91,6 +100,7 @@ const MultiplierSelector = ({ setSelectedMultiplier, selectedToken }) => {
       document.removeEventListener('touchmove', handleDrag);
       document.removeEventListener('touchend', handleDragEnd);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [handleDrag]);
 
   useEffect(() => {
@@ -102,18 +112,77 @@ const MultiplierSelector = ({ setSelectedMultiplier, selectedToken }) => {
     }
   }, [maxMultiplier, actualValue, setSelectedMultiplier]);
 
-  if (isLoading) return <div className="rounded-xs bg-white px-4 py-3 text-black">Loading multiplier data...</div>;
+  // Keyboard interaction: mirror native input range semantics so that
+  // assistive technology announces the value correctly.
+  const handleKeyDown = (e) => {
+    const step = e.shiftKey ? 1.0 : 0.1;
+    let next = actualValue;
+    const stepRound = (v) => Math.round(v * 10) / 10;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowUp') next = stepRound(actualValue + step);
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') next = stepRound(actualValue - step);
+    else if (e.key === 'PageUp') next = stepRound(actualValue + 1);
+    else if (e.key === 'PageDown') next = stepRound(actualValue - 1);
+    else if (e.key === 'Home') next = minMultiplier;
+    else if (e.key === 'End') next = maxMultiplier;
+    else return;
+    e.preventDefault();
+    next = Math.max(minMultiplier, Math.min(maxMultiplier, next));
+    setActualValue(next);
+    setSelectedMultiplier(next.toFixed(1));
+    if (rangeInputRef.current) {
+      rangeInputRef.current.value = String(next);
+      rangeInputRef.current.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  };
+
+  if (isLoading)
+    return <div className="rounded-xs bg-white px-4 py-3 text-black">Loading multiplier data...</div>;
+
+  const labelId = id ? `${id}-label` : undefined;
 
   return (
     <div className="max-h-24 w-full px-2 pt-9 md:px-0">
+      {/* Hidden accessible slider for assistive tech. */}
+      <input
+        ref={rangeInputRef}
+        id={id}
+        type="range"
+        min={minMultiplier}
+        max={maxMultiplier}
+        step={0.1}
+        value={actualValue}
+        onChange={(e) => {
+          const next = Number(e.target.value);
+          setActualValue(next);
+          setSelectedMultiplier(next.toFixed(1));
+        }}
+        aria-label="Leverage multiplier"
+        aria-labelledby={labelId}
+        aria-valuemin={minMultiplier}
+        aria-valuemax={maxMultiplier}
+        aria-valuenow={actualValue}
+        aria-valuetext={`${actualValue.toFixed(1)}x`}
+        tabIndex={-1}
+        className="sr-only"
+        data-testid="multiplier-hidden-range"
+      />
+
       <div className="relative h-2 w-full cursor-pointer">
         <div className="mt-3.5 mr-0 -mb-2.5">
           <div className="mt-2.5 w-full">
             <div
-              className="relative h-2 w-full cursor-pointer"
+              role="slider"
+              tabIndex={0}
+              aria-labelledby={labelId}
+              aria-valuemin={minMultiplier}
+              aria-valuemax={maxMultiplier}
+              aria-valuenow={actualValue}
+              aria-valuetext={`${actualValue.toFixed(1)}x`}
+              className="relative h-2 w-full cursor-pointer rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
               ref={sliderRef}
               onMouseDown={handleMouseDown}
               onTouchStart={handleTouchStart}
+              onKeyDown={handleKeyDown}
             >
               <div className="border-border-color absolute h-full w-full rounded-full border">
                 <div
@@ -140,7 +209,9 @@ const MultiplierSelector = ({ setSelectedMultiplier, selectedToken }) => {
             {marks.map((mark, index) => (
               <div
                 key={index}
-                className={`flex w-4 flex-col items-center gap-2 ${actualValue === mark ? 'text-primary' : 'text-slider-gray'}`}
+                className={`flex w-4 flex-col items-center gap-2 ${
+                  actualValue === mark ? 'text-primary' : 'text-slider-gray'
+                }`}
                 style={{
                   left: `${calculateSliderPercentage(mark)}%`,
                   position: 'absolute',
@@ -148,7 +219,9 @@ const MultiplierSelector = ({ setSelectedMultiplier, selectedToken }) => {
                 }}
               >
                 <div
-                  className={`h-3 w-1 rounded-xl ${actualValue === mark ? 'bg-nav-button-hover' : 'bg-slider-gray'} `}
+                  className={`h-3 w-1 rounded-xl ${
+                    actualValue === mark ? 'bg-nav-button-hover' : 'bg-slider-gray'
+                  } `}
                 />
                 <span className="text-sm">{`x${mark}`}</span>
               </div>

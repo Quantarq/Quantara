@@ -12,6 +12,7 @@ import { invokeSorobanContract } from './soroban';
 import { axiosInstance, getAuthHeaders } from '../utils/axios';
 import { notify, ToastWithLink } from '../components/layout/notifier/Notifier';
 import { STELLAR_NETWORK } from '../utils/constants';
+import { startOpenPositionTransaction } from './telemetry';
 
 /**
  * Build a Stellar Explorer URL for a transaction hash,
@@ -241,12 +242,17 @@ export async function sendWithdrawAllTransaction(data, userContractAddress) {
  * Orchestrates full lifecycle: check wallet, get backend data,
  * invoke the Soroban contract, and notify the backend.
  *
+ * Wraps the entire flow in a Sentry transaction tagged with the chosen
+ * token symbol so performance regressions per pair are easy to chart
+ * (Issue #277 acceptance criterion).
+ *
  * @param {string} connectedWalletId - The Stellar public key
  * @param {object} formData - Position creation form data
  * @param {function} setTokenAmount - State setter to reset form
  * @param {function} setLoading - State setter for loading state
  */
 export const handleTransaction = async (connectedWalletId, formData, setTokenAmount, setLoading) => {
+  const transaction = startOpenPositionTransaction(formData?.token_symbol || 'unknown');
   setLoading(true);
   try {
     const publicKey = await getWalletPublicKey();
@@ -279,9 +285,12 @@ export const handleTransaction = async (connectedWalletId, formData, setTokenAmo
 
     setTokenAmount('');
   } catch (err) {
+    transaction.setStatus('internal_error');
     console.error('Failed to create position:', err);
     notify(`Error: ${err.message || 'Failed to create position'}`, 'error');
   } finally {
+    transaction.setStatus('ok');
+    transaction.finish();
     setLoading(false);
   }
 };

@@ -1,26 +1,40 @@
-from fastapi import APIRouter, Response, HTTPException, Request, status
+from fastapi import APIRouter, Response, HTTPException, Request, status, Header, Depends
 from pydantic import BaseModel
 
 from web_app.api.rate_limiter import limiter, WRITE_LIMIT, USER_DATA_LIMIT
+from web_app.api.wallet_auth import verify_wallet_signature
+from web_app.api.session import session_store
+import logging
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+logger = logging.getLogger(__name__)
 
 class WalletAuthRequest(BaseModel):
     wallet_id: str
-    signature: str  # Assuming signature validation happens here
+    signature: str
 
 @router.post("/connect")
 @limiter.limit(WRITE_LIMIT)
-async def connect_wallet(request: Request, payload: WalletAuthRequest, response: Response):
-    # 1. Perform signature verification checks here...
-    # (Validated via your REPO-002 auth middleware)
+async def connect_wallet(
+    request: Request, 
+    payload: WalletAuthRequest, 
+    response: Response,
+    x_nonce: str = Header(..., description="Nonce obtained from GET /api/auth/nonce")
+):
+    # Verify the stellar signature
+    wallet_id = await verify_wallet_signature(
+        x_wallet_id=payload.wallet_id,
+        x_nonce=x_nonce,
+        x_signature=payload.signature
+    )
     
-    wallet_id = payload.wallet_id
+    # Create session token
+    session_token = await session_store.create_session(wallet_id)
 
-    # 2. Set the httpOnly cookie securely
+    # Set the httpOnly cookie securely
     response.set_cookie(
         key="wallet_id",
-        value=wallet_id,
+        value=session_token,
         httponly=True,            # Prevents JavaScript reading (XSS proof)
         secure=True,              # Requires HTTPS
         samesite="strict",        # Mitigates CSRF attacks
@@ -48,6 +62,11 @@ async def get_session(request: Request, wallet_id: str | None = None):
 @router.post("/logout")
 @limiter.limit(USER_DATA_LIMIT)
 async def logout_wallet(request: Request, response: Response):
+    # Invalidate session in Redis
+    session_token = request.cookies.get("wallet_id")
+    if session_token:
+        await session_store.delete_session(session_token)
+
     # Explicitly flush the cookie out of the client browser
     response.delete_cookie(
         key="wallet_id",
