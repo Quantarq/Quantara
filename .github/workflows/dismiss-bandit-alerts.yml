@@ -1,0 +1,85 @@
+name: Dismiss Stale Bandit B101 Alerts
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "List matching alerts without dismissing them (set to 'false' to actually dismiss)"
+        required: true
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  dismiss:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dismiss B101 alerts in test directories
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          REPO="${{ github.repository }}"
+          DRY_RUN="${{ github.event.inputs.dry_run }}"
+          DISMISSED=0
+          SKIPPED=0
+          TOTAL=0
+
+          echo "=== Fetching open Bandit alerts for ${REPO} ==="
+
+          while read -r line; do
+              number=$(echo "$line" | jq -r '.number // empty')
+              path=$(echo "$line" | jq -r '.path // empty')
+              [ -z "$number" ] && continue
+
+              TOTAL=$((TOTAL + 1))
+
+              # Only target test files
+              case "$path" in
+                *tests/*|*/test_*)
+                  ;;
+                *)
+                  echo "  SKIP [#${number}] ${path} — not a test file"
+                  SKIPPED=$((SKIPPED + 1))
+                  continue
+                  ;;
+              esac
+
+              if [ "$DRY_RUN" = "true" ]; then
+                echo "  DRY   [#${number}] Would dismiss — ${path}"
+              else
+                echo "  DISMISS [#${number}] ${path}"
+                gh api -X PATCH "/repos/${REPO}/code-scanning/alerts/${number}" \
+                  -f state=dismissed \
+                  -f dismissed_reason="false positive" \
+                  -f dismissed_comment="Bandit B101 flagged assert in test file. Tests are never executed under python -O, so the risk of assert removal does not apply. Test directories are now excluded via .bandit config." \
+                  --silent
+              fi
+
+              DISMISSED=$((DISMISSED + 1))
+            done < <(
+              gh api "/repos/${REPO}/code-scanning/alerts?tool_name=Bandit&state=open" \
+                --paginate \
+                --jq '.[] | select(.rule.id == "B101") | {number, path: .most_recent_instance.location.path}' \
+                || echo "[]"
+            )
+
+          echo ""
+          echo "=== Summary ==="
+          echo "  Total B101 alerts found: ${TOTAL}"
+          echo "  Test-file alerts processed: ${DISMISSED}"
+          echo "  Non-test alerts skipped: ${SKIPPED}"
+          if [ "$DRY_RUN" = "true" ]; then
+            echo ""
+            echo "⚠️  Dry run completed — no alerts were actually dismissed."
+            echo "   Re-run with dry_run=false to dismiss."
+          fi
