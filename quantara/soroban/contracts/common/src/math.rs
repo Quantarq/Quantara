@@ -47,9 +47,12 @@ impl SafeMathI128 for i128 {
 
 #[cfg(test)]
 mod tests {
+    extern crate std;
+
     use super::*;
     use proptest::prelude::*;
     use soroban_sdk::Env;
+    use std::panic::AssertUnwindSafe;
 
     proptest! {
         #![proptest_config(ProptestConfig::with_cases(1_000_000))]
@@ -57,9 +60,9 @@ mod tests {
         #[test]
         fn test_safe_add(a in any::<i128>(), b in any::<i128>()) {
             let env = Env::default();
-            let result = std::panic::catch_unwind(|| {
+            let result = std::panic::catch_unwind(AssertUnwindSafe(|| {
                 a.safe_add(&env, b)
-            });
+            }));
 
             match a.checked_add(b) {
                 Some(expected) => {
@@ -74,9 +77,9 @@ mod tests {
         #[test]
         fn test_safe_sub(a in any::<i128>(), b in any::<i128>()) {
             let env = Env::default();
-            let result = std::panic::catch_unwind(|| {
+            let result = std::panic::catch_unwind(AssertUnwindSafe(|| {
                 a.safe_sub(&env, b)
-            });
+            }));
 
             match a.checked_sub(b) {
                 Some(expected) => {
@@ -91,9 +94,9 @@ mod tests {
         #[test]
         fn test_safe_mul(a in any::<i128>(), b in any::<i128>()) {
             let env = Env::default();
-            let result = std::panic::catch_unwind(|| {
+            let result = std::panic::catch_unwind(AssertUnwindSafe(|| {
                 a.safe_mul(&env, b)
-            });
+            }));
 
             match a.checked_mul(b) {
                 Some(expected) => {
@@ -108,9 +111,9 @@ mod tests {
         #[test]
         fn test_safe_div(a in any::<i128>(), b in any::<i128>()) {
             let env = Env::default();
-            let result = std::panic::catch_unwind(|| {
+            let result = std::panic::catch_unwind(AssertUnwindSafe(|| {
                 a.safe_div(&env, b)
-            });
+            }));
 
             if b == 0 {
                 assert!(result.is_err());

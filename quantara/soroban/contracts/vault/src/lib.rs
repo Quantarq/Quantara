@@ -5,7 +5,9 @@
 
 #![no_std]
 
-use soroban_sdk::{contract, contractimpl, Address, Env};
+use soroban_sdk::{contract, contractimpl, symbol_short, Address, Env};
+
+use common::auth::assert_caller_auth;
 
 /// Quantara vault contract.
 #[contract]
@@ -20,7 +22,7 @@ impl VaultContract {
     /// * `user`   - The wallet address making the deposit.
     /// * `amount` - The amount to deposit (in base units, must be > 0).
     pub fn deposit(env: Env, user: Address, amount: i128) {
-        user.require_auth();
+        assert_caller_auth(&env, &user, symbol_short!("deposit"), &(amount,));
         assert!(amount > 0, "deposit amount must be positive");
 
         let balance: i128 = env.storage().persistent().get(&user).unwrap_or(0i128);
@@ -34,7 +36,7 @@ impl VaultContract {
     /// * `user`   - The wallet address requesting the withdrawal.
     /// * `amount` - The amount to withdraw (in base units, must be > 0).
     pub fn withdraw(env: Env, user: Address, amount: i128) {
-        user.require_auth();
+        assert_caller_auth(&env, &user, symbol_short!("withdraw"), &(amount,));
         assert!(amount > 0, "withdrawal amount must be positive");
 
         let balance: i128 = env.storage().persistent().get(&user).unwrap_or(0i128);

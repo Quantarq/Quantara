@@ -1,0 +1,226 @@
+name: Soroban Fuzz (Smoke — 60 s per target)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'quantara/soroban/contracts/*/fuzz/**'
+      - '.github/workflows/soroban_fuzz.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'quantara/soroban/contracts/*/fuzz/**'
+      - '.github/workflows/soroban_fuzz.yml'
+  workflow_dispatch:
+    inputs:
+      fuzz_time:
+        description: 'Seconds to fuzz per target'
+        default: '60'
+        required: false
+
+env:
+  CARGO_TERM_COLOR: always
+  FUZZ_TIME: ${{ github.event.inputs.fuzz_time || '60' }}
+
+jobs:
+  # ── Vault fuzz targets ────────────────────────────────────────────────────
+  fuzz-vault:
+    name: Fuzz vault (${{ matrix.target }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - fuzz_vault_deposit
+          - fuzz_vault_withdraw
+
+    defaults:
+      run:
+        working-directory: quantara/soroban/contracts/vault
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install latest Rust nightly
+        uses: dtolnay/rust-toolchain@nightly
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-fuzz-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-cargo-fuzz-
+
+      - name: Install cargo-fuzz
+        run: cargo install cargo-fuzz
+
+      - name: Pin ed25519-dalek and rand_core to 0.6 family
+        # soroban-env-host 22.1.3's testutils.rs passes `ChaCha20Rng` into
+        # `ed25519_dalek::SigningKey::generate`, which requires CryptoRng
+        # from the rand_core 0.6 family. ed25519-dalek 3.x bumped to
+        # rand_core 0.10, breaking the trait bound. Pin ed25519-dalek to
+        # 2.1.1 (last 2.x release) and rand_core to 0.6.4; fall through
+        # with `|| true` for compatibility — cargo refuses to demote a
+        # rand_core 0.10 instance to 0.6.4 directly, but the ed25519-dalek
+        # pin upstream of it is the real lever.
+        # The fuzz crate is an isolated workspace ([workspace] in
+        # fuzz/Cargo.toml), so it has its OWN fuzz/Cargo.lock. Without
+        # `cd fuzz`, `cargo update` would mutate the parent contract
+        # workspace's lockfile, which `cargo fuzz run` ignores — hence
+        # the silent failure of the previous (no-cd) variant.
+        run: |
+          cd fuzz
+          cargo update -p ed25519-dalek@3.0.0 --precise 2.1.1 || true
+          cargo update -p ed25519-dalek --precise 2.1.1 || true
+          cargo update -p rand_core@0.10.1 --precise 0.6.4 || true
+          cargo update -p rand_core@0.9.5  --precise 0.6.4 || true
+
+      - name: Run fuzz target for ${{ env.FUZZ_TIME }}s
+        run: |
+          cargo fuzz run ${{ matrix.target }} \
+            -- -max_total_time=${{ env.FUZZ_TIME }} -jobs=1
+
+      - name: Upload crash corpus on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vault-${{ matrix.target }}-crash-corpus
+          path: fuzz/corpus/${{ matrix.target }}
+          if-no-files-found: ignore
+
+  # ── Looping fuzz targets ───────────────────────────────────────────────────
+  fuzz-looping:
+    name: Fuzz looping (${{ matrix.target }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - fuzz_looping_open_position
+
+    defaults:
+      run:
+        working-directory: quantara/soroban/contracts/looping
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install latest Rust nightly
+        uses: dtolnay/rust-toolchain@nightly
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-fuzz-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-cargo-fuzz-
+
+      - name: Install cargo-fuzz
+        run: cargo install cargo-fuzz
+
+      - name: Pin ed25519-dalek and rand_core to 0.6 family
+        # soroban-env-host 22.1.3's testutils.rs passes `ChaCha20Rng` into
+        # `ed25519_dalek::SigningKey::generate`, which requires CryptoRng
+        # from the rand_core 0.6 family. ed25519-dalek 3.x bumped to
+        # rand_core 0.10, breaking the trait bound. Pin ed25519-dalek to
+        # 2.1.1 (last 2.x release) and rand_core to 0.6.4; fall through
+        # with `|| true` for compatibility — cargo refuses to demote a
+        # rand_core 0.10 instance to 0.6.4 directly, but the ed25519-dalek
+        # pin upstream of it is the real lever.
+        # The fuzz crate is an isolated workspace ([workspace] in
+        # fuzz/Cargo.toml), so it has its OWN fuzz/Cargo.lock. Without
+        # `cd fuzz`, `cargo update` would mutate the parent contract
+        # workspace's lockfile, which `cargo fuzz run` ignores — hence
+        # the silent failure of the previous (no-cd) variant.
+        run: |
+          cd fuzz
+          cargo update -p ed25519-dalek@3.0.0 --precise 2.1.1 || true
+          cargo update -p ed25519-dalek --precise 2.1.1 || true
+          cargo update -p rand_core@0.10.1 --precise 0.6.4 || true
+          cargo update -p rand_core@0.9.5  --precise 0.6.4 || true
+
+      - name: Run fuzz target for ${{ env.FUZZ_TIME }}s
+        run: |
+          cargo fuzz run ${{ matrix.target }} \
+            -- -max_total_time=${{ env.FUZZ_TIME }} -jobs=1
+
+      - name: Upload crash corpus on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: looping-${{ matrix.target }}-crash-corpus
+          path: fuzz/corpus/${{ matrix.target }}
+          if-no-files-found: ignore
+
+  # ── Rewards fuzz targets ───────────────────────────────────────────────────
+  fuzz-rewards:
+    name: Fuzz rewards (${{ matrix.target }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - fuzz_rewards_accrue_claim
+
+    defaults:
+      run:
+        working-directory: quantara/soroban/contracts/rewards
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install latest Rust nightly
+        uses: dtolnay/rust-toolchain@nightly
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-fuzz-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-cargo-fuzz-
+
+      - name: Install cargo-fuzz
+        run: cargo install cargo-fuzz
+
+      - name: Pin ed25519-dalek and rand_core to 0.6 family
+        # soroban-env-host 22.1.3's testutils.rs passes `ChaCha20Rng` into
+        # `ed25519_dalek::SigningKey::generate`, which requires CryptoRng
+        # from the rand_core 0.6 family. ed25519-dalek 3.x bumped to
+        # rand_core 0.10, breaking the trait bound. Pin ed25519-dalek to
+        # 2.1.1 (last 2.x release) and rand_core to 0.6.4; fall through
+        # with `|| true` for compatibility — cargo refuses to demote a
+        # rand_core 0.10 instance to 0.6.4 directly, but the ed25519-dalek
+        # pin upstream of it is the real lever.
+        # The fuzz crate is an isolated workspace ([workspace] in
+        # fuzz/Cargo.toml), so it has its OWN fuzz/Cargo.lock. Without
+        # `cd fuzz`, `cargo update` would mutate the parent contract
+        # workspace's lockfile, which `cargo fuzz run` ignores — hence
+        # the silent failure of the previous (no-cd) variant.
+        run: |
+          cd fuzz
+          cargo update -p ed25519-dalek@3.0.0 --precise 2.1.1 || true
+          cargo update -p ed25519-dalek --precise 2.1.1 || true
+          cargo update -p rand_core@0.10.1 --precise 0.6.4 || true
+          cargo update -p rand_core@0.9.5  --precise 0.6.4 || true
+
+      - name: Run fuzz target for ${{ env.FUZZ_TIME }}s
+        run: |
+          cargo fuzz run ${{ matrix.target }} \
+            -- -max_total_time=${{ env.FUZZ_TIME }} -jobs=1
+
+      - name: Upload crash corpus on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rewards-${{ matrix.target }}-crash-corpus
+          path: fuzz/corpus/${{ matrix.target }}
+          if-no-files-found: ignore
