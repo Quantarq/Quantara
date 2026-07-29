@@ -72,7 +72,7 @@ async def test_open_position_get_not_allowed(client: TestClient) -> None:
     response = client.get(
         f"/api/open-position?position_id={position_id}&transaction_hash=valid_transaction_hash"
     )
-    assert response.status_code == 405
+    TestCase().assertEqual(response.status_code, 405)
 
 
 @pytest.mark.anyio
