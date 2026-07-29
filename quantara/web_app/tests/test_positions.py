@@ -9,6 +9,7 @@ that all edge cases and error scenarios are appropriately handled.
 
 import uuid
 from datetime import datetime
+from unittest import TestCase
 from unittest.mock import Mock, patch
 
 import pytest
@@ -42,8 +43,8 @@ async def test_open_position_success(client: TestClient) -> None:
             f"/api/open-position?position_id={position_id}&transaction_hash={transaction_hash}",
             headers={"Idempotency-Key": f"open:{position_id}:{transaction_hash}"},
         )
-        assert response.is_success
-        assert response.json() == "pending"
+        TestCase().assertTrue(response.is_success)
+        TestCase().assertEqual(response.json(), "pending")
 
 
 @pytest.mark.anyio
@@ -102,11 +103,12 @@ async def test_open_position_idempotency_key_replays_cached_response(
             headers=headers,
         )
 
-        assert first_response.status_code == 200
-        assert second_response.status_code == 200
-        assert first_response.json() == "pending"
-        assert second_response.json() == "pending"
-        assert mock_write.call_count == 1
+        test_case = TestCase()
+        test_case.assertEqual(first_response.status_code, 200)
+        test_case.assertEqual(second_response.status_code, 200)
+        test_case.assertEqual(first_response.json(), "pending")
+        test_case.assertEqual(second_response.json(), "pending")
+        test_case.assertEqual(mock_write.call_count, 1)
 
 
 @pytest.mark.anyio
