@@ -85,7 +85,7 @@ jobs:
 
       - name: Upload crash corpus on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: vault-${{ matrix.target }}-crash-corpus
           path: fuzz/corpus/${{ matrix.target }}
@@ -152,7 +152,7 @@ jobs:
 
       - name: Upload crash corpus on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: looping-${{ matrix.target }}-crash-corpus
           path: fuzz/corpus/${{ matrix.target }}
@@ -219,7 +219,7 @@ jobs:
 
       - name: Upload crash corpus on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: rewards-${{ matrix.target }}-crash-corpus
           path: fuzz/corpus/${{ matrix.target }}
