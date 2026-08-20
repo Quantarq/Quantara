@@ -5,9 +5,11 @@ Transactional outbox relay and Celery worker tasks for Soroban event delivery.
 import os
 import asyncio
 import json
+import uuid
 import sentry_sdk
 from datetime import datetime, timedelta
 from celery import Celery
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 from web_app.db.database import SessionLocal, init_db
 from web_app.db.models import OutboxEvent, Position, Status, Transaction, TransactionStatus
@@ -31,6 +33,16 @@ celery_app.conf.update(
     enable_utc=True,
 )
 
+STALE_PROCESSING_INTERVAL_MINUTES = 5
+
+
+def _is_valid_uuid(value: str) -> bool:
+    try:
+        uuid.UUID(value)
+        return True
+    except ValueError:
+        return False
+
 
 @celery_app.task(bind=True, max_retries=5, default_retry_delay=10)
 def process_position_opened_task(self, event_id: str):
@@ -38,7 +50,11 @@ def process_position_opened_task(self, event_id: str):
     Celery task that consumes the PositionOpened event from the outbox.
     """
     logger.info("processing_position_opened_task_started", event_id=event_id)
-    
+
+    if not _is_valid_uuid(event_id):
+        logger.error("invalid_event_id_format", event_id=event_id)
+        return
+
     init_db()
     db: Session = SessionLocal()
     try:
@@ -107,7 +123,7 @@ def process_position_opened_task(self, event_id: str):
     except Exception as exc:
         db.rollback()
         logger.exception("outbox_event_processing_failed", event_id=event_id, error=str(exc))
-        
+
         # Update event status to failed and increment retry
         try:
             with SessionLocal() as fail_session:
@@ -116,6 +132,7 @@ def process_position_opened_task(self, event_id: str):
                     evt.status = "failed"
                     evt.retry_count += 1
                     evt.error_message = str(exc)
+                    evt.claimed_at = None
                     fail_session.commit()
         except Exception as update_err:
             logger.error("failed_to_update_outbox_event_status", error=str(update_err))
@@ -133,15 +150,15 @@ class OutboxRelay:
 
     def process_pending_events(self):
         """
-        Scans event_outbox for pending/failed events and publishes them to Celery.
-        Also flags events older than 24h with a Sentry warning.
+        Scans event_outbox for pending/failed/stale-processing events and
+        publishes them to Celery.  Uses an atomic claim to prevent double-dispatch.
         """
         logger.info("outbox_relay_scan_started")
         db: Session = SessionLocal()
         try:
             # Check for events older than 24h that are not processed
             cutoff_24h_naive = datetime.now() - timedelta(hours=24)
-            
+
             old_events = db.query(OutboxEvent).filter(
                 OutboxEvent.status != "processed",
                 OutboxEvent.created_at < cutoff_24h_naive
@@ -152,19 +169,44 @@ class OutboxRelay:
                 logger.warning("outbox_event_older_than_24h", event_id=str(event.id), created_at=str(event.created_at))
                 sentry_sdk.capture_message(msg, level="warning")
 
-            # Fetch pending or failed events
-            pending_events = db.query(OutboxEvent).filter(
+            # Reclaim stale "processing" events whose claim has expired
+            stale_cutoff = datetime.now() - timedelta(minutes=STALE_PROCESSING_INTERVAL_MINUTES)
+            reclaimed = db.query(OutboxEvent).filter(
+                OutboxEvent.status == "processing",
+                OutboxEvent.claimed_at.isnot(None),
+                OutboxEvent.claimed_at < stale_cutoff,
+                OutboxEvent.retry_count < self.max_retries,
+            ).update(
+                {"status": "pending", "claimed_at": None},
+                synchronize_session="fetch",
+            )
+            if reclaimed:
+                logger.info("reclaimed_stale_processing_events", count=reclaimed)
+                db.commit()
+
+            # Fetch pending or failed events (now includes freshly reclaimed ones)
+            candidate_events = db.query(OutboxEvent).filter(
                 OutboxEvent.status.in_(["pending", "failed"]),
-                OutboxEvent.retry_count < self.max_retries
+                OutboxEvent.retry_count < self.max_retries,
             ).all()
 
-            if not pending_events:
+            if not candidate_events:
                 logger.info("no_pending_outbox_events")
                 return
 
-            for event in pending_events:
-                # Mark as processing
-                event.status = "processing"
+            for event in candidate_events:
+                # Atomic claim: only transition to processing if still pending/failed
+                claimed = db.query(OutboxEvent).filter(
+                    OutboxEvent.id == event.id,
+                    OutboxEvent.status.in_(["pending", "failed"]),
+                ).update(
+                    {"status": "processing", "claimed_at": datetime.now()},
+                    synchronize_session="fetch",
+                )
+                if not claimed:
+                    logger.info("outbox_event_already_claimed", event_id=str(event.id))
+                    continue
+
                 db.commit()
 
                 # Publish to Celery
@@ -175,8 +217,3 @@ class OutboxRelay:
             logger.exception("outbox_relay_scan_failed", error=str(e))
         finally:
             db.close()
-
-
-if __name__ == "__main__":
-    relay = OutboxRelay()
-    relay.process_pending_events()
