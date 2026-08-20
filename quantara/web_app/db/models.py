@@ -161,6 +161,10 @@ class Vault(Base):
         DateTime, nullable=False, default=func.now(), onupdate=func.now()
     )
 
+    __table_args__ = (
+        UniqueConstraint("user_id", "symbol", name="uq_vault_user_symbol"),
+    )
+
 
 class TransactionStatus(PyEnum):
     """
