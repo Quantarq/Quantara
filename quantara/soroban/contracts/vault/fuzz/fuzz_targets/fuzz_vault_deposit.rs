@@ -3,7 +3,8 @@
 //! Fuzz strategy: feed arbitrary (amount: i64) as input.
 //!
 //! Invariants checked:
-//! - Positive amounts must succeed (no panic).
+//! - Positive amounts must succeed (no panic), provided the user holds the
+//!   asset (the vault now escrows real tokens).
 //! - After a successful deposit, balance equals the deposited amount.
 //! - Non-positive amounts may panic (documented assertion); we just
 //!   ensure no memory safety issues occur.
@@ -16,7 +17,9 @@
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
-use soroban_sdk::{testutils::Address as _, Address, Env, IntoVal};
+use soroban_sdk::testutils::Address as _;
+use soroban_sdk::token::StellarAssetClient;
+use soroban_sdk::{Address, Env, IntoVal};
 use vault::VaultContract;
 
 fuzz_target!(|data: &[u8]| {
@@ -30,6 +33,13 @@ fuzz_target!(|data: &[u8]| {
 
     let contract_id = env.register(VaultContract, ());
     let user = Address::generate(&env);
+    let admin = Address::generate(&env);
+    let asset = env.register_stellar_asset_contract_v2(admin).address();
+
+    // With real custody the user must hold the asset before depositing.
+    if amount > 0 {
+        StellarAssetClient::new(&env, &asset).mint(&user, &amount);
+    }
 
     // Invoke deposit directly via the registered contract.
     // try_invoke_contract returns `Result<Result<(), ContractError>, HostError>`;
@@ -37,7 +47,7 @@ fuzz_target!(|data: &[u8]| {
     let result = env.try_invoke_contract::<(), soroban_sdk::Error>(
         &contract_id,
         &soroban_sdk::symbol_short!("deposit"),
-        soroban_sdk::vec![&env, user.to_val(), amount.into_val(&env)],
+        soroban_sdk::vec![&env, user.to_val(), asset.to_val(), amount.into_val(&env)],
     );
 
     if amount > 0 {
@@ -48,12 +58,11 @@ fuzz_target!(|data: &[u8]| {
         );
 
         // Balance must equal the deposited amount.
-        let balance: i128 = env
-            .invoke_contract(
-                &contract_id,
-                &soroban_sdk::symbol_short!("balance"),
-                soroban_sdk::vec![&env, user.to_val()],
-            );
+        let balance: i128 = env.invoke_contract(
+            &contract_id,
+            &soroban_sdk::symbol_short!("balance"),
+            soroban_sdk::vec![&env, user.to_val(), asset.to_val()],
+        );
         assert_eq!(balance, amount, "balance mismatch after deposit");
     }
     // Non-positive: may return error (documented); no further assertion.

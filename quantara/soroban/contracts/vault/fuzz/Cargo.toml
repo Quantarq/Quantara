@@ -19,6 +19,10 @@ vault = { path = ".." }
 # ed25519-dalek::rand_core) still expects the rand_core 0.6 `CryptoRng`
 # trait, breaking compilation.
 rand_core = "<0.7"
+# ed25519-dalek 3.x switched to rand_core 0.10, which breaks the same
+# SigningKey::generate(ChaCha20Rng) call in soroban-env-host's testutils;
+# pin to 2.x so the whole tree unifies on rand_core 0.6.
+ed25519-dalek = "<3"
 
 # Prevent this from interfering with the workspace.
 [workspace]

@@ -14,7 +14,9 @@
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
-use soroban_sdk::{testutils::Address as _, Address, Env, IntoVal};
+use soroban_sdk::testutils::Address as _;
+use soroban_sdk::token::StellarAssetClient;
+use soroban_sdk::{Address, Env, IntoVal};
 use vault::VaultContract;
 
 fuzz_target!(|data: &[u8]| {
@@ -28,13 +30,22 @@ fuzz_target!(|data: &[u8]| {
     env.mock_all_auths();
     let contract_id = env.register(VaultContract, ());
     let user = Address::generate(&env);
+    let admin = Address::generate(&env);
+    let asset = env.register_stellar_asset_contract_v2(admin).address();
 
-    // Seed a known balance if initial_deposit is positive.
+    // Seed a real balance if initial_deposit is positive: mint to the user
+    // (the vault escrows actual tokens) then deposit.
     if initial_deposit > 0 {
+        StellarAssetClient::new(&env, &asset).mint(&user, &initial_deposit);
         let _: () = env.invoke_contract(
             &contract_id,
             &soroban_sdk::symbol_short!("deposit"),
-            soroban_sdk::vec![&env, user.to_val(), initial_deposit.into_val(&env)],
+            soroban_sdk::vec![
+                &env,
+                user.to_val(),
+                asset.to_val(),
+                initial_deposit.into_val(&env)
+            ],
         );
     }
 
@@ -44,14 +55,19 @@ fuzz_target!(|data: &[u8]| {
     let _ = env.try_invoke_contract::<(), soroban_sdk::Error>(
         &contract_id,
         &soroban_sdk::symbol_short!("withdraw"),
-        soroban_sdk::vec![&env, user.to_val(), withdraw_amount.into_val(&env)],
+        soroban_sdk::vec![
+            &env,
+            user.to_val(),
+            asset.to_val(),
+            withdraw_amount.into_val(&env)
+        ],
     );
 
     // Balance must never be negative.
     let balance: i128 = env.invoke_contract(
         &contract_id,
         &soroban_sdk::symbol_short!("balance"),
-        soroban_sdk::vec![&env, user.to_val()],
+        soroban_sdk::vec![&env, user.to_val(), asset.to_val()],
     );
     assert!(balance >= 0, "balance went negative: {balance}");
 });
