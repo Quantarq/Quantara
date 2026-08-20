@@ -202,6 +202,12 @@ class AMMAdapterFactory:
         cls._adapters[name] = adapter_cls
     
     @classmethod
+    def _ensure_registered(cls) -> None:
+        if not cls._adapters:
+            from ._register import register_adapters
+            register_adapters()
+
+    @classmethod
     def create(cls, name: str, **kwargs) -> AMMAdapter:
         """
         Create an AMM adapter instance by name.
@@ -216,6 +222,7 @@ class AMMAdapterFactory:
         Raises:
             ValueError: If the adapter name is not registered
         """
+        cls._ensure_registered()
         if name not in cls._adapters:
             raise ValueError(f"Unknown AMM adapter: {name}. "
                             f"Available: {list(cls._adapters.keys())}")
