@@ -103,6 +103,36 @@ class TestValidateRequiredEnvVars:
         variables = {err.variable for err in result.errors}
         assert "DB_USER" in variables
 
+    def test_invalid_usdc_issuer_is_rejected_in_development(self, monkeypatch):
+        """A malformed USDC issuer must fail fast in every environment."""
+        monkeypatch.setenv("ENV_VERSION", "DEV")
+        monkeypatch.setenv("USDC_ASSET_ISSUER", "not-a-stellar-key")
+        result = validate_required_env_vars()
+        variables = {err.variable for err in result.errors}
+        assert "USDC_ASSET_ISSUER" in variables
+
+    def test_invalid_usdc_issuer_is_rejected_in_production(self, monkeypatch):
+        monkeypatch.setenv("ENV_VERSION", "PROD")
+        monkeypatch.setenv("USDC_ASSET_ISSUER", "not-a-stellar-key")
+        for var in (
+            "DB_USER", "DB_PASSWORD", "DB_HOST", "DB_NAME",
+            "SESSION_SECRET_KEY", "SENTRY_DSN",
+        ):
+            monkeypatch.setenv(var, "x")
+        result = validate_required_env_vars()
+        variables = {err.variable for err in result.errors}
+        assert "USDC_ASSET_ISSUER" in variables
+
+    def test_valid_explicit_usdc_issuer_passes(self, monkeypatch):
+        monkeypatch.setenv("ENV_VERSION", "DEV")
+        monkeypatch.setenv(
+            "USDC_ASSET_ISSUER",
+            "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NOJ4VBH6THS2G2V",
+        )
+        result = validate_required_env_vars()
+        variables = {err.variable for err in result.errors}
+        assert "USDC_ASSET_ISSUER" not in variables
+
 
 class TestAssertValidConfig:
     def test_does_not_raise_in_development(self, monkeypatch):
