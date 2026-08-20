@@ -8,6 +8,7 @@ encountering cryptic runtime errors when those values are used.
 
 import logging
 import os
+import re
 from dataclasses import dataclass, field
 from typing import List, Optional
 
@@ -72,6 +73,35 @@ _OPTIONAL_BUT_RECOMMENDED = (
     "STELLAR_HORIZON_URL",
     "STELLAR_SOROBAN_RPC_URL",
 )
+
+# Stellar public keys are 56 characters, starting with "G" (SEP-23/SEP-5
+# strkey encoding). Used to fail fast when USDC_ASSET_ISSUER is misconfigured.
+_STELLAR_PUBLIC_KEY_RE = re.compile(r"^G[0-9A-Z]{55}$")
+
+
+def _validate_usdc_issuer() -> List[ConfigValidationError]:
+    """
+    Validate the USDC_ASSET_ISSUER environment variable when explicitly set.
+
+    Every layer (constants, adapters, CollateralManager) resolves USDC from
+    this single value (issue #412), so a malformed issuer silently breaks
+    asset resolution everywhere. When the variable is unset, the known-good
+    default in ``web_app.contract_tools.constants`` applies.
+    """
+    value = os.getenv("USDC_ASSET_ISSUER")
+    if value is None:
+        return []
+    if not _STELLAR_PUBLIC_KEY_RE.match(value):
+        return [
+            ConfigValidationError(
+                variable="USDC_ASSET_ISSUER",
+                message=(
+                    f"USDC_ASSET_ISSUER '{value}' is not a valid Stellar "
+                    "public key. Expected a G... address (56 chars)."
+                ),
+            )
+        ]
+    return []
 
 
 def _is_production() -> bool:
@@ -138,6 +168,10 @@ def validate_required_env_vars(
                     "configured in production.",
                     var,
                 )
+
+    # A malformed USDC issuer breaks asset resolution in every layer, so it
+    # is validated in both production and development.
+    result.errors.extend(_validate_usdc_issuer())
 
     return result
 
