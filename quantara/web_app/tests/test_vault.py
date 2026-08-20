@@ -9,20 +9,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
-from httpx import ASGITransport, AsyncClient
 
-from web_app.api.main import app
 from web_app.db.crud import UserDBConnector
-
-client = TestClient(app)
-
-
-@pytest.fixture
-async def async_client():
-    """Fixture that provides an async client for testing."""
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        yield ac
 
 
 @pytest.mark.anyio
@@ -55,7 +43,7 @@ async def test_deposit_to_vault(
     expected_status,
     expected_response,
     mock_user_db_connector,
-    async_client,
+    client: TestClient,
 ):
     """Test vault deposit with different scenarios."""
     mock_user = MagicMock()
@@ -73,9 +61,9 @@ async def test_deposit_to_vault(
                 "web_app.db.crud.DepositDBConnector.create_vault",
                 return_value=mock_vault,
             ):
-                response = await async_client.post("/api/vault/deposit", json=test_data)
+                response = client.post("/api/vault/deposit", json=test_data)
         else:
-            response = await async_client.post("/api/vault/deposit", json=test_data)
+            response = client.post("/api/vault/deposit", json=test_data)
 
     assert response.status_code == expected_status
     expected = (
@@ -112,7 +100,7 @@ async def test_get_vault_balance(
     balance,
     expected_status,
     expected_response,
-    async_client,
+    client: TestClient,
 ):
     """Test vault balance retrieval with different scenarios."""
     with patch(
@@ -120,7 +108,7 @@ async def test_get_vault_balance(
         return_value=balance,
     ):
         url = f"/api/vault/balance?wallet_id={wallet_id}&symbol={symbol}"
-        response = await async_client.get(url)
+        response = client.get(url)
 
         assert response.status_code == expected_status
         expected = (
@@ -156,7 +144,7 @@ async def test_get_vault_balance(
     ],
 )
 async def test_add_vault_balance(
-    test_data, expected_status, expected_response, async_client
+    test_data, expected_status, expected_response, client: TestClient
 ):
     """Test adding to vault balance with different scenarios."""
     mock_vault = MagicMock()
@@ -171,7 +159,7 @@ async def test_add_vault_balance(
         "web_app.db.crud.DepositDBConnector.add_vault_balance",
         **patch_kwargs,
     ):
-        response = await async_client.post("/api/vault/add_balance", json=test_data)
+        response = client.post("/api/vault/add_balance", json=test_data)
 
         assert response.status_code == expected_status
         expected = (
