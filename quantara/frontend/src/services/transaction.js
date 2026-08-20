@@ -276,12 +276,11 @@ export const handleTransaction = async (connectedWalletId, formData, setTokenAmo
     );
 
     // Notify backend of position creation with real transaction hash
-    await axiosInstance.get(`/api/open-position`, {
-      params: {
-        position_id: transactionData.position_id,
-        transaction_hash,
-      },
-    });
+    await axiosInstance.post(
+      `/api/open-position/${transactionData.position_id}`,
+      { transaction_hash },
+      { headers: authHeaders },
+    );
 
     setTokenAmount('');
   } catch (err) {

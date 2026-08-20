@@ -7,6 +7,7 @@ that all edge cases and error scenarios are appropriately handled.
 
 """
 
+import json
 import uuid
 from datetime import datetime
 from unittest.mock import Mock, patch
@@ -17,188 +18,268 @@ from fastapi.testclient import TestClient
 from httpx import AsyncClient
 
 from web_app.api.main import app
-from web_app.db.models import Position, TransactionStatus
+from web_app.api.position import position_db_connector
+from web_app.api.wallet_auth import verify_wallet_signature
+from web_app.db.models import Position, TransactionStatus, User
 from web_app.tests.conftest import dict_to_object
 
 
-@pytest.mark.anyio
-async def test_open_position_success(client: TestClient) -> None:
-    """
-    Test for successfully opening a position by queuing an outbox event.
-    """
-    position_id = str(uuid.uuid4())
-    transaction_hash = "valid_transaction_hash"
-    
-    mock_position = Mock(spec=Position)
-    mock_position.id = uuid.UUID(position_id)
-    mock_position.status = "pending"
-
-    with patch(
-        "web_app.api.position.PositionDBConnector.get_object", return_value=mock_position
-    ) as mock_get, patch(
-        "web_app.api.position.PositionDBConnector.write_to_db", return_value=None
-    ) as mock_write:
-        response = client.get(
-            f"/api/open-position?position_id={position_id}&transaction_hash={transaction_hash}"
-        )
-        assert response.is_success
-        assert response.json() == "pending"
+def _unauthorized_auth() -> str:
+    """Simulate verify_wallet_signature rejecting a missing/invalid signature."""
+    raise HTTPException(status_code=401, detail="Invalid or expired nonce")
 
 
-@pytest.mark.anyio
-async def test_open_position_missing_position_data(
-    client: TestClient,
-) -> None:
-    """
-    Test for missing position data, which should return a 404 error.
-    Args:
-        client (TestClient): The test client for the FastAPI application.
-    Returns:
-        None
-    """
-    response = client.get("/api/open-position?position_id=&transaction_hash=")
-    assert response.status_code == 404
-    assert response.json() == {"detail": "Position not found"}
+def _owner_mocks(position_id: uuid.UUID, owner_user_id: uuid.UUID):
+    """Build a position/user pair whose ids satisfy require_position_owner."""
+    position = Mock(spec=Position)
+    position.id = position_id
+    position.user_id = owner_user_id
+    user = Mock(spec=User)
+    user.id = owner_user_id
+    return position, user
 
 
 @pytest.mark.anyio
 async def test_close_position_success(client: TestClient) -> None:
-    """
-    Test for successfully closing a position using a valid position ID.
-    Args:
-        client (TestClient): The test client for the FastAPI application.
-    Returns:
-        None
-    """
-    position_id = str(uuid.uuid4())
-    transaction_hash = "0xabc123"
-    with patch(
-        "web_app.db.crud.PositionDBConnector.close_position"
-    ) as mock_close_position:
-        mock_close_position.return_value = "Position successfully closed"
+    """Closing an owned position returns its new status and records the tx."""
+    position_id = uuid.uuid4()
+    owner_id = uuid.uuid4()
+    position, user = _owner_mocks(position_id, owner_id)
 
-        response = client.get(
-            f"/api/close-position?position_id={position_id}&transaction_hash={transaction_hash}"
+    with (
+        patch.object(
+            position_db_connector, "get_position_by_id", return_value=position
+        ),
+        patch.object(position_db_connector, "get_user_by_wallet_id", return_value=user),
+        patch.object(
+            position_db_connector, "close_position", return_value="closed"
+        ) as mock_close,
+        patch.object(
+            position_db_connector, "save_transaction", return_value=None
+        ) as mock_save,
+    ):
+        response = client.post(
+            f"/api/close-position/{position_id}",
+            json={"transaction_hash": "0xabc123"},
         )
 
-        assert response.status_code == 200
-        assert response.json() == "Position successfully closed"
+    assert response.status_code == 200
+    assert response.json() == "closed"
+    mock_close.assert_called_once_with(position_id)
+    mock_save.assert_called_once_with(
+        position_id=position_id, status="closed", transaction_hash="0xabc123"
+    )
 
 
 @pytest.mark.anyio
-async def test_close_position_invalid_position_id(client: TestClient) -> None:
-    """
-    Test for attempting to close a position using an invalid position ID,
-    which should return a 404 error.
-    Args:
-        client (TestClient): The test client for the FastAPI application.
-    Returns:
-        None
-    """
-    invalid_position_id = str(uuid.uuid4())
-    with patch(
-        "web_app.db.crud.PositionDBConnector.close_position"
-    ) as mock_close_position:
-        mock_close_position.side_effect = HTTPException(
-            status_code=404, detail="Position not Found"
+async def test_close_position_rejects_unauthenticated(client: TestClient) -> None:
+    """An unauthenticated request to close-position is rejected with 401."""
+    app.dependency_overrides[verify_wallet_signature] = _unauthorized_auth
+    try:
+        response = client.post(
+            f"/api/close-position/{uuid.uuid4()}",
+            json={"transaction_hash": "0xabc123"},
         )
-        response = client.get(
-            f"/api/close-position?position_id={invalid_position_id}&transaction_hash=0xabc123"
-        )
-        assert response.status_code == 404
-        assert response.json() == {"detail": "Position not Found"}
+    finally:
+        app.dependency_overrides[verify_wallet_signature] = lambda: "test_wallet"
+    assert response.status_code == 401
 
 
 @pytest.mark.anyio
-async def test_get_repay_data_success(
-    client: TestClient,
-) -> None:
-    """
-    Test for successfully retrieving repayment data.
-    Args:
-        client (TestClient): The test client for the FastAPI application.
-    Returns:
-        None
-    """
-    supply_token = "valid_supply_token"
-    wallet_id = "valid_wallet_id"
+async def test_close_position_rejects_wrong_owner(client: TestClient) -> None:
+    """A wallet that does not own the position is rejected with 403."""
+    position_id = uuid.uuid4()
+    position, _ = _owner_mocks(position_id, uuid.uuid4())
+    other_user = Mock(spec=User)
+    other_user.id = uuid.uuid4()
+
+    with (
+        patch.object(
+            position_db_connector, "get_position_by_id", return_value=position
+        ),
+        patch.object(
+            position_db_connector, "get_user_by_wallet_id", return_value=other_user
+        ),
+    ):
+        response = client.post(
+            f"/api/close-position/{position_id}",
+            json={"transaction_hash": "0xabc123"},
+        )
+
+    assert response.status_code == 403
+    assert response.json()["code"] == "not_position_owner"
+
+
+@pytest.mark.anyio
+async def test_open_position_success(client: TestClient) -> None:
+    """Opening an owned position queues a PositionOpened outbox event."""
+    position_id = uuid.uuid4()
+    owner_id = uuid.uuid4()
+    position, user = _owner_mocks(position_id, owner_id)
+    saved_events = []
+
+    def _write(obj):
+        saved_events.append(obj)
+        return obj
+
+    with (
+        patch.object(
+            position_db_connector, "get_position_by_id", return_value=position
+        ),
+        patch.object(position_db_connector, "get_user_by_wallet_id", return_value=user),
+        patch.object(position_db_connector, "write_to_db", side_effect=_write),
+    ):
+        response = client.post(
+            f"/api/open-position/{position_id}",
+            json={"transaction_hash": "0xabc123"},
+        )
+
+    assert response.status_code == 200
+    assert response.json() == "pending"
+    assert len(saved_events) == 1
+    assert saved_events[0].event_type == "PositionOpened"
+    payload = json.loads(saved_events[0].payload)
+    assert payload["position_id"] == str(position_id)
+    assert payload["transaction_hash"] == "0xabc123"
+
+
+@pytest.mark.anyio
+async def test_open_position_rejects_unauthenticated(client: TestClient) -> None:
+    """An unauthenticated request to open-position is rejected with 401."""
+    app.dependency_overrides[verify_wallet_signature] = _unauthorized_auth
+    try:
+        response = client.post(
+            f"/api/open-position/{uuid.uuid4()}",
+            json={"transaction_hash": "0xabc123"},
+        )
+    finally:
+        app.dependency_overrides[verify_wallet_signature] = lambda: "test_wallet"
+    assert response.status_code == 401
+
+
+@pytest.mark.anyio
+async def test_open_position_rejects_wrong_owner(client: TestClient) -> None:
+    """A wallet that does not own the position cannot queue its opening."""
+    position_id = uuid.uuid4()
+    position, _ = _owner_mocks(position_id, uuid.uuid4())
+    other_user = Mock(spec=User)
+    other_user.id = uuid.uuid4()
+
+    with (
+        patch.object(
+            position_db_connector, "get_position_by_id", return_value=position
+        ),
+        patch.object(
+            position_db_connector, "get_user_by_wallet_id", return_value=other_user
+        ),
+    ):
+        response = client.post(
+            f"/api/open-position/{position_id}",
+            json={"transaction_hash": "0xabc123"},
+        )
+
+    assert response.status_code == 403
+    assert response.json()["code"] == "not_position_owner"
+
+
+@pytest.mark.anyio
+async def test_get_repay_data_success(client: TestClient) -> None:
+    """Repay data is returned only for the authenticated wallet."""
+    position_id = uuid.uuid4()
     mock_repay_data = {
         "supply_token": "mock_supply_token",
         "debt_token": "mock_debt_token",
         "borrow_portion_percent": 1,
     }
+
     with (
+        patch.object(
+            position_db_connector,
+            "get_repay_data",
+            return_value=("34702534789504389704385", position_id, "ETH"),
+        ),
         patch(
-            "web_app.contract_tools.mixins.deposit.DepositMixin.get_repay_data"
-        ) as mock_get_repay_data,
+            "web_app.contract_tools.mixins.position.PositionMixin.is_opened_position",
+            return_value=True,
+        ),
         patch(
-            "web_app.db.crud.PositionDBConnector.get_contract_address_by_wallet_id"
-        ) as mock_get_contract_address,
-        patch(
-            "web_app.db.crud.PositionDBConnector.get_position_id_by_wallet_id"
-        ) as mock_get_position_wallet_id,
-        patch(
-            "web_app.api.position.position_db_connector.get_repay_data"
-        ) as mock_position_db_connector_get_repay_data,
-        patch(
-            "web_app.contract_tools.mixins.position.PositionMixin.is_opened_position"
-        ) as mock_is_opened_position,
+            "web_app.contract_tools.mixins.deposit.DepositMixin.get_repay_data",
+            return_value=mock_repay_data,
+        ),
     ):
-        mock_get_repay_data.return_value = mock_repay_data
-        mock_get_contract_address.return_value = "34702534789504389704385"
-        mock_get_position_wallet_id.return_value = 123
-        mock_get_repay_data.return_value = mock_repay_data
-        mock_position_db_connector_get_repay_data.return_value = (
-            mock_get_contract_address.return_value,
-            mock_get_position_wallet_id.return_value,
-            supply_token,
-        )
-        mock_is_opened_position.return_value = True
-        response = client.get(
-            f"/api/get-repay-data?supply_token={supply_token}&wallet_id={wallet_id}"
-        )
-        expected_response = {
-            **mock_repay_data,
-            "contract_address": "34702534789504389704385",
-            "position_id": "123",
-        }
-        assert response.is_success
-        assert response.json() == expected_response
+        response = client.post("/api/get-repay-data")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        **mock_repay_data,
+        "contract_address": "34702534789504389704385",
+        "position_id": str(position_id),
+    }
 
 
 @pytest.mark.anyio
-async def test_get_repay_data_missing_wallet_id(
-    client: AsyncClient,
-) -> None:
-    """
-    Test for missing wallet ID when attempting to retrieve repayment data,
-    which should return a 404 error.
-    Args:
-        client (AsyncClient): The test client for the FastAPI application.
-    Returns:
-        None
-    """
-    supply_token = "valid_supply_token"
-    wallet_id = ""
+async def test_get_repay_data_rejects_unauthenticated(client: TestClient) -> None:
+    """Repay data cannot be fetched without a valid wallet signature."""
+    app.dependency_overrides[verify_wallet_signature] = _unauthorized_auth
+    try:
+        response = client.post("/api/get-repay-data")
+    finally:
+        app.dependency_overrides[verify_wallet_signature] = lambda: "test_wallet"
+    assert response.status_code == 401
+
+
+@pytest.mark.anyio
+async def test_get_withdraw_data_success(client: TestClient) -> None:
+    """Withdraw-all data is returned only for the authenticated wallet."""
+    position_id = uuid.uuid4()
+    mock_repay_data = {
+        "supply_token": "mock_supply_token",
+        "debt_token": "mock_debt_token",
+        "borrow_portion_percent": 1,
+    }
+
     with (
+        patch.object(
+            position_db_connector,
+            "get_repay_data",
+            return_value=("34702534789504389704385", position_id, "USDC"),
+        ),
         patch(
-            "web_app.contract_tools.mixins.deposit.DepositMixin.get_repay_data"
-        ) as mock_get_repay_data,
+            "web_app.contract_tools.mixins.position.PositionMixin.is_opened_position",
+            return_value=True,
+        ),
         patch(
-            "web_app.db.crud.PositionDBConnector.get_contract_address_by_wallet_id"
-        ) as mock_get_contract_address,
+            "web_app.contract_tools.mixins.deposit.DepositMixin.get_repay_data",
+            return_value=mock_repay_data,
+        ),
+        patch.object(
+            position_db_connector,
+            "get_extra_deposits_data",
+            return_value={"ETH": "100"},
+        ),
         patch(
-            "web_app.db.crud.PositionDBConnector.get_position_id_by_wallet_id"
-        ) as mock_get_position_id,
+            "web_app.contract_tools.constants.TokenParams.get_token_address",
+            return_value="0xETH_TOKEN",
+        ),
     ):
-        mock_get_repay_data.return_value = None
-        mock_get_contract_address.side_effect = None
-        mock_get_position_id.side_effect = None
-        response = client.get(
-            f"/api/get-repay-data?supply_token={supply_token}&wallet_id={wallet_id}"
-        )
-        assert response.status_code == 404
-        assert response.json() == {"detail": "Wallet not found"}
+        response = client.post("/api/get-withdraw-all-data")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["repay_data"]["position_id"] == str(position_id)
+    assert body["repay_data"]["contract_address"] == "34702534789504389704385"
+    assert body["tokens"] == ["0xETH_TOKEN"]
+
+
+@pytest.mark.anyio
+async def test_get_withdraw_data_rejects_unauthenticated(client: TestClient) -> None:
+    """Withdraw-all data cannot be fetched without a valid wallet signature."""
+    app.dependency_overrides[verify_wallet_signature] = _unauthorized_auth
+    try:
+        response = client.post("/api/get-withdraw-all-data")
+    finally:
+        app.dependency_overrides[verify_wallet_signature] = lambda: "test_wallet"
+    assert response.status_code == 401
 
 
 @pytest.mark.parametrize(

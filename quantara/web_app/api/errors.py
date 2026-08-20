@@ -160,6 +160,19 @@ COMMON_ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
             }
         },
     },
+    403: {
+        "description": "Forbidden — the authenticated wallet is not allowed to perform this action.",
+        "content": {
+            "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorEnvelope"},
+                "example": {
+                    "detail": "Wallet does not own this position.",
+                    "code": "not_position_owner",
+                    "request_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                },
+            }
+        },
+    },
     404: {
         "description": "Not Found — the requested resource does not exist.",
         "content": {

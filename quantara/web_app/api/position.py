@@ -2,14 +2,17 @@
 This module handles position-related API endpoints for the Stellar-based Quantara protocol.
 """
 
+import json
 from decimal import Decimal, InvalidOperation
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Query, Depends, Request
 
+from web_app.api.errors import APIError
 from web_app.api.serializers.position import (
     AddPositionDepositData,
     PositionFormData,
+    PositionStateChangeRequest,
     TokenMultiplierResponse,
     UserPositionExtraDepositsResponse,
     UserPositionHistoryResponse,
@@ -25,7 +28,7 @@ from web_app.contract_tools.mixins import DashboardMixin, DepositMixin, Position
 from web_app.db.crud import PositionDBConnector, TransactionDBConnector
 from web_app.api.dependencies import get_stellar_client
 from web_app.contract_tools.blockchain_call import StellarClient
-from web_app.db.models import Status, TransactionStatus
+from web_app.db.models import OutboxEvent, Position, Status, TransactionStatus
 from web_app.api.rate_limiter import limiter, WRITE_LIMIT, USER_DATA_LIMIT, READ_LIMIT
 from web_app.utils.logger import get_logger
 
@@ -35,6 +38,33 @@ position_db_connector = PositionDBConnector()
 transaction_db_connector = TransactionDBConnector()
 
 PAGINATION_STEP = 10
+
+
+async def require_position_owner(
+    position_id: UUID,
+    wallet: str = Depends(verify_wallet_signature),
+) -> Position:
+    """Resolve a position and verify the authenticated wallet owns it.
+
+    Used as a reusable FastAPI dependency on position-scoped endpoints.
+    Raises ``APIError(404)`` when the position does not exist and
+    ``APIError(403)`` when the authenticated wallet is not its owner.
+    """
+    position = position_db_connector.get_position_by_id(position_id)
+    if position is None:
+        raise APIError(
+            status_code=404,
+            code="position_not_found",
+            detail="Position not found",
+        )
+    user = position_db_connector.get_user_by_wallet_id(wallet)
+    if user is None or position.user_id != user.id:
+        raise APIError(
+            status_code=403,
+            code="not_position_owner",
+            detail="Wallet does not own this position",
+        )
+    return position
 
 
 @router.get(
@@ -112,36 +142,46 @@ async def create_position_with_transaction_data(
     return LoopLiquidityData(**deposit_data)
 
 
-@router.get(
+@router.post(
     "/api/get-repay-data",
     tags=["Position Operations"],
     response_model=RepayTransactionDataResponse,
     summary="Get repay data",
     response_description="Returns the repay transaction data.",
 )
-@limiter.limit(WRITE_LIMIT, key_func=lambda request: f"wallet:{request.query_params.get('wallet_id', request.client.host)}")
+@limiter.limit(
+    WRITE_LIMIT,
+    key_func=lambda request: f"wallet:{request.headers.get('x-wallet-id', request.client.host)}",
+)
 async def get_repay_data(
     request: Request,
-    wallet_id: str,
     client: StellarClient = Depends(get_stellar_client),
+    wallet: str = Depends(verify_wallet_signature),
 ) -> RepayTransactionDataResponse:
     """
     Obtain data for position closing.
 
-    :param wallet_id: Wallet ID (Stellar public key G...)
+    The wallet is taken from the authenticated signature, so callers can only
+    request repay data for their own wallet.
+
     :return: Dict containing the repay transaction data
     """
-    if not wallet_id:
-        raise HTTPException(status_code=404, detail="Wallet not found")
-
     contract_address, position_id, token_symbol = position_db_connector.get_repay_data(
-        wallet_id
+        wallet
     )
-    is_opened_position = await PositionMixin.is_opened_position(contract_address, client)
+    is_opened_position = await PositionMixin.is_opened_position(
+        contract_address, client
+    )
     if not is_opened_position:
-        raise HTTPException(status_code=400, detail="Position was closed")
+        raise APIError(
+            status_code=400, code="position_closed", detail="Position was closed"
+        )
     if not position_id:
-        raise HTTPException(status_code=404, detail="Position not found or closed")
+        raise APIError(
+            status_code=404,
+            code="position_not_found",
+            detail="Position not found or closed",
+        )
 
     repay_data = await DepositMixin.get_repay_data(token_symbol, client)
     repay_data["contract_address"] = contract_address
@@ -149,115 +189,133 @@ async def get_repay_data(
     return repay_data
 
 
-@router.get(
-    "/api/close-position",
+@router.post(
+    "/api/close-position/{position_id}",
     tags=["Position Operations"],
     response_model=str,
     summary="Close a position",
     response_description="Returns the position status",
 )
 @limiter.limit(WRITE_LIMIT)
-async def close_position(request: Request, position_id: UUID, transaction_hash: str) -> str:
+async def close_position(
+    request: Request,
+    position_id: UUID,
+    body: PositionStateChangeRequest,
+    position: Position = Depends(require_position_owner),
+) -> str:
     """
-    Close a position.
+    Close a position owned by the authenticated wallet.
 
     :param position_id: Position UUID
-    :param transaction_hash: Transaction hash from the Soroban close_position call
+    :param body: Request body carrying the Soroban close_position transaction hash
     :return: Position status string
     """
-    if position_id is None or str(position_id) == "undefined":
-        raise HTTPException(status_code=404, detail="Position not Found")
-    if not transaction_hash:
-        raise HTTPException(status_code=400, detail="Transaction hash is required")
+    if not body.transaction_hash:
+        raise APIError(
+            status_code=400,
+            code="transaction_hash_required",
+            detail="Transaction hash is required",
+        )
 
-    position_status = position_db_connector.close_position(str(position_id))
+    position_status = position_db_connector.close_position(position_id)
     position_db_connector.save_transaction(
-        position_id=position_id, status="closed", transaction_hash=transaction_hash
+        position_id=position_id, status="closed", transaction_hash=body.transaction_hash
     )
     return position_status
 
 
-@router.get(
-    "/api/open-position",
+@router.post(
+    "/api/open-position/{position_id}",
     tags=["Position Operations"],
     response_model=str,
     summary="Open a position",
     response_description="Returns the positions status",
 )
 @limiter.limit(WRITE_LIMIT)
-async def open_position(request: Request, position_id: str, transaction_hash: str) -> str:
+async def open_position(
+    request: Request,
+    position_id: UUID,
+    body: PositionStateChangeRequest,
+    position: Position = Depends(require_position_owner),
+) -> str:
     """
     Open a position after a successful Soroban loop_liquidity transaction.
 
     :param position_id: Position ID
-    :param transaction_hash: Transaction hash from the Soroban call
+    :param body: Request body carrying the Soroban loop_liquidity transaction hash
     :return: Position status string
     """
-    if not position_id:
-        raise HTTPException(status_code=404, detail="Position not found")
-    if not transaction_hash:
-        raise HTTPException(status_code=400, detail="Transaction hash is required")
+    if not body.transaction_hash:
+        raise APIError(
+            status_code=400,
+            code="transaction_hash_required",
+            detail="Transaction hash is required",
+        )
 
-    from uuid import UUID
-    import json
-    from web_app.db.models import OutboxEvent, Position
-
-    try:
-        pos_uuid = UUID(position_id)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid position ID format")
-
-    position = position_db_connector.get_object(Position, pos_uuid)
-    if not position:
-        raise HTTPException(status_code=404, detail="Position not found")
-
-    payload = json.dumps({
-        "position_id": str(pos_uuid),
-        "transaction_hash": transaction_hash
-    })
+    payload = json.dumps(
+        {
+            "position_id": str(position_id),
+            "transaction_hash": body.transaction_hash,
+        }
+    )
 
     outbox_event = OutboxEvent(
         event_type="PositionOpened",
         payload=payload,
         status="pending",
-        retry_count=0
+        retry_count=0,
     )
 
     try:
         position_db_connector.write_to_db(outbox_event)
     except Exception as e:
         logger.error("failed_to_write_outbox_event", error=str(e))
-        raise HTTPException(status_code=500, detail="Failed to queue position opening")
+        raise APIError(
+            status_code=500,
+            code="outbox_write_failed",
+            detail="Failed to queue position opening",
+        )
 
     return "pending"
 
 
-@router.get(
+@router.post(
     "/api/get-withdraw-all-data",
     tags=["Position Operations"],
     summary="Get data to close position and withdraw all tokens",
     response_model=WithdrawAllData,
     response_description="Object containing data to withdraw all from the position",
 )
-@limiter.limit(WRITE_LIMIT, key_func=lambda request: f"wallet:{request.query_params.get('wallet_id', request.client.host)}")
+@limiter.limit(
+    WRITE_LIMIT,
+    key_func=lambda request: f"wallet:{request.headers.get('x-wallet-id', request.client.host)}",
+)
 async def get_withdraw_data(
     request: Request,
-    wallet_id: str,
-    client: StellarClient = Depends(get_stellar_client)
+    client: StellarClient = Depends(get_stellar_client),
+    wallet: str = Depends(verify_wallet_signature),
 ) -> WithdrawAllData:
     """
     Prepare data to withdraw all tokens and close a position.
 
-    :param wallet_id: Stellar public key of the user
+    The wallet is taken from the authenticated signature, so callers can only
+    request withdraw data for their own wallet.
+
     :return: Dict containing repay data and list of extra token addresses
     """
     contract_address, position_id, token_symbol = position_db_connector.get_repay_data(
-        wallet_id
+        wallet
     )
     if not await PositionMixin.is_opened_position(contract_address, client):
-        raise HTTPException(status_code=400, detail="Position was closed")
+        raise APIError(
+            status_code=400, code="position_closed", detail="Position was closed"
+        )
     if not position_id:
-        raise HTTPException(status_code=404, detail="Position not found or closed")
+        raise APIError(
+            status_code=404,
+            code="position_not_found",
+            detail="Position not found or closed",
+        )
 
     repay_data = await DepositMixin.get_repay_data(token_symbol, client)
     extra_tokens = position_db_connector.get_extra_deposits_data(position_id).keys()
