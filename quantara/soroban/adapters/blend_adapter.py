@@ -19,6 +19,7 @@ from typing import Any, Dict, List, Optional
 
 import aiohttp
 
+from .errors import AdapterRpcError
 from .LendingAdapter import LendingAdapter, ReserveData, UserPosition
 
 logger = logging.getLogger(__name__)
@@ -154,9 +155,10 @@ class BlendLendingAdapter(LendingAdapter):
                 "get_reserve",
                 {"token": normalized_token},
             )
-        except RuntimeError:
-            # Fallback to simulated data if contract call fails
-            return self._simulate_reserve_data(token_address)
+        except RuntimeError as exc:
+            raise AdapterRpcError(
+                f"Failed to fetch reserve data for {token_address}: {exc}"
+            ) from exc
 
         # Parse result into ReserveData
         decimals = _TokenResolver.decimals(token_address)
@@ -176,24 +178,6 @@ class BlendLendingAdapter(LendingAdapter):
             liquidation_bonus=Decimal(str(result.get("liquidation_bonus", "0.05"))),
         )
 
-    def _simulate_reserve_data(self, token_address: str) -> ReserveData:
-        """Simulate reserve data for testing/development."""
-        normalized_token = _TokenResolver.normalize(token_address)
-        decimals = _TokenResolver.decimals(token_address)
-        return ReserveData(
-            token_address=normalized_token,
-            token_symbol=_TokenResolver.symbol(token_address),
-            decimals=decimals,
-            supply_apy=Decimal("0.05"),
-            borrow_apy=Decimal("0.08"),
-            collateral_factor=Decimal("0.75"),
-            borrow_factor=Decimal("0.9"),
-            total_supply=Decimal("1000000"),
-            total_borrows=Decimal("500000"),
-            liquidation_threshold=Decimal("0.8"),
-            liquidation_bonus=Decimal("0.05"),
-        )
-
     async def get_user_position(
         self, user_address: str, token_address: str
     ) -> UserPosition:
@@ -203,9 +187,10 @@ class BlendLendingAdapter(LendingAdapter):
                 "get_user_position",
                 {"user": user_address, "token": normalized_token},
             )
-        except RuntimeError:
-            # Fallback to simulated data
-            return self._simulate_user_position(user_address, token_address)
+        except RuntimeError as exc:
+            raise AdapterRpcError(
+                f"Failed to fetch user position for {user_address}: {exc}"
+            ) from exc
 
         decimals = _TokenResolver.decimals(token_address)
         scale = _TokenResolver.scale_factor(token_address)
@@ -216,18 +201,6 @@ class BlendLendingAdapter(LendingAdapter):
             collateral_amount=Decimal(str(result.get("collateral", 0))) / scale,
             health_ratio=Decimal(str(result.get("health_ratio", "1.5"))),
             is_collateral_enabled=bool(result.get("collateral_enabled", True)),
-        )
-
-    def _simulate_user_position(
-        self, user_address: str, token_address: str
-    ) -> UserPosition:
-        """Simulate user position for testing/development."""
-        return UserPosition(
-            supplied_amount=Decimal("100"),
-            borrowed_amount=Decimal("50"),
-            collateral_amount=Decimal("100"),
-            health_ratio=Decimal("1.5"),
-            is_collateral_enabled=True,
         )
 
     async def deposit(
@@ -249,13 +222,14 @@ class BlendLendingAdapter(LendingAdapter):
                     "amount": raw_amount,
                 },
             )
-        except RuntimeError:
-            # Simulate transaction
-            return self._simulate_tx_hash(user_address, "deposit", normalized_token, raw_amount)
+        except RuntimeError as exc:
+            raise AdapterRpcError(f"Blend deposit failed: {exc}") from exc
 
         tx_hash = str(result.get("tx_hash", result.get("transaction_hash", "")))
         if not tx_hash:
-            tx_hash = self._simulate_tx_hash(user_address, "deposit", normalized_token, raw_amount)
+            raise AdapterRpcError(
+                "Blend deposit succeeded without returning a transaction hash"
+            )
         return tx_hash
 
     async def withdraw(
@@ -275,12 +249,14 @@ class BlendLendingAdapter(LendingAdapter):
                     "max": amount is None,
                 },
             )
-        except RuntimeError:
-            return self._simulate_tx_hash(user_address, "withdraw", normalized_token, raw_amount)
+        except RuntimeError as exc:
+            raise AdapterRpcError(f"Blend withdraw failed: {exc}") from exc
 
         tx_hash = str(result.get("tx_hash", result.get("transaction_hash", "")))
         if not tx_hash:
-            tx_hash = self._simulate_tx_hash(user_address, "withdraw", normalized_token, raw_amount)
+            raise AdapterRpcError(
+                "Blend withdraw succeeded without returning a transaction hash"
+            )
         return tx_hash
 
     async def borrow(
@@ -302,12 +278,14 @@ class BlendLendingAdapter(LendingAdapter):
                     "amount": raw_amount,
                 },
             )
-        except RuntimeError:
-            return self._simulate_tx_hash(user_address, "borrow", normalized_token, raw_amount)
+        except RuntimeError as exc:
+            raise AdapterRpcError(f"Blend borrow failed: {exc}") from exc
 
         tx_hash = str(result.get("tx_hash", result.get("transaction_hash", "")))
         if not tx_hash:
-            tx_hash = self._simulate_tx_hash(user_address, "borrow", normalized_token, raw_amount)
+            raise AdapterRpcError(
+                "Blend borrow succeeded without returning a transaction hash"
+            )
         return tx_hash
 
     async def repay(
@@ -329,12 +307,14 @@ class BlendLendingAdapter(LendingAdapter):
                     "amount": raw_amount,
                 },
             )
-        except RuntimeError:
-            return self._simulate_tx_hash(user_address, "repay", normalized_token, raw_amount)
+        except RuntimeError as exc:
+            raise AdapterRpcError(f"Blend repay failed: {exc}") from exc
 
         tx_hash = str(result.get("tx_hash", result.get("transaction_hash", "")))
         if not tx_hash:
-            tx_hash = self._simulate_tx_hash(user_address, "repay", normalized_token, raw_amount)
+            raise AdapterRpcError(
+                "Blend repay succeeded without returning a transaction hash"
+            )
         return tx_hash
 
     async def enable_collateral(
@@ -350,12 +330,14 @@ class BlendLendingAdapter(LendingAdapter):
                     "token": normalized_token,
                 },
             )
-        except RuntimeError:
-            return self._simulate_tx_hash(user_address, "enable_collateral", normalized_token, 0)
+        except RuntimeError as exc:
+            raise AdapterRpcError(f"Blend enable_collateral failed: {exc}") from exc
 
         tx_hash = str(result.get("tx_hash", result.get("transaction_hash", "")))
         if not tx_hash:
-            tx_hash = self._simulate_tx_hash(user_address, "enable_collateral", normalized_token, 0)
+            raise AdapterRpcError(
+                "Blend enable_collateral succeeded without returning a transaction hash"
+            )
         return tx_hash
 
     async def disable_collateral(
@@ -371,12 +353,14 @@ class BlendLendingAdapter(LendingAdapter):
                     "token": normalized_token,
                 },
             )
-        except RuntimeError:
-            return self._simulate_tx_hash(user_address, "disable_collateral", normalized_token, 0)
+        except RuntimeError as exc:
+            raise AdapterRpcError(f"Blend disable_collateral failed: {exc}") from exc
 
         tx_hash = str(result.get("tx_hash", result.get("transaction_hash", "")))
         if not tx_hash:
-            tx_hash = self._simulate_tx_hash(user_address, "disable_collateral", normalized_token, 0)
+            raise AdapterRpcError(
+                "Blend disable_collateral succeeded without returning a transaction hash"
+            )
         return tx_hash
 
     async def get_all_reserves(self) -> List[ReserveData]:
@@ -387,19 +371,8 @@ class BlendLendingAdapter(LendingAdapter):
                 token_addr = str(reserve_data.get("token", ""))
                 reserves.append(await self.get_reserve_data(token_addr))
             return reserves
-        except RuntimeError:
-            # Fallback to simulated reserves
-            return [
-                await self.get_reserve_data("XLM"),
-                await self.get_reserve_data("USDC"),
-                await self.get_reserve_data("WETH"),
-            ]
-
-    def _simulate_tx_hash(
-        self, sender: str, action: str, token: str, amount: int
-    ) -> str:
-        import hashlib
-
-        raw = f"{self._network_passphrase}:{sender}:{action}:{token}:{amount}"
-        return "0x" + hashlib.sha256(raw.encode()).hexdigest()[:64]
+        except AdapterRpcError:
+            raise
+        except RuntimeError as exc:
+            raise AdapterRpcError(f"Blend get_all_reserves failed: {exc}") from exc
 
