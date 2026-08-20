@@ -58,3 +58,116 @@ impl LoopingContract {
         // Stub: full unwind logic will be implemented in a future PR.
     }
 }
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    extern crate std;
+
+    use super::*;
+    use soroban_sdk::testutils::Address as _;
+
+    struct Fixture {
+        env: Env,
+        contract_id: Address,
+        user: Address,
+    }
+
+    fn setup() -> Fixture {
+        let env = Env::default();
+        env.mock_all_auths();
+
+        let user = Address::generate(&env);
+        let contract_id = env.register(LoopingContract, ());
+
+        Fixture {
+            env,
+            contract_id,
+            user,
+        }
+    }
+
+    #[test]
+    fn test_open_position_returns_first_id() {
+        let fx = setup();
+        let client = LoopingContractClient::new(&fx.env, &fx.contract_id);
+
+        let id = client.open_position(&fx.user, &1_000, &200);
+        assert_eq!(id, 1);
+    }
+
+    #[test]
+    fn test_open_position_returns_incrementing_ids() {
+        let fx = setup();
+        let client = LoopingContractClient::new(&fx.env, &fx.contract_id);
+
+        assert_eq!(client.open_position(&fx.user, &1_000, &200), 1);
+        assert_eq!(client.open_position(&fx.user, &2_000, &300), 2);
+        assert_eq!(client.open_position(&fx.user, &500, &100), 3);
+    }
+
+    #[test]
+    fn test_open_position_rejects_zero_collateral() {
+        let fx = setup();
+        let client = LoopingContractClient::new(&fx.env, &fx.contract_id);
+
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            client.open_position(&fx.user, &0, &200);
+        }));
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_open_position_rejects_negative_collateral() {
+        let fx = setup();
+        let client = LoopingContractClient::new(&fx.env, &fx.contract_id);
+
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            client.open_position(&fx.user, &-1, &200);
+        }));
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_open_position_rejects_leverage_below_100() {
+        let fx = setup();
+        let client = LoopingContractClient::new(&fx.env, &fx.contract_id);
+
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            client.open_position(&fx.user, &1_000, &99);
+        }));
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_open_position_rejects_leverage_above_500() {
+        let fx = setup();
+        let client = LoopingContractClient::new(&fx.env, &fx.contract_id);
+
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            client.open_position(&fx.user, &1_000, &501);
+        }));
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_open_position_accepts_leverage_boundaries() {
+        let fx = setup();
+        let client = LoopingContractClient::new(&fx.env, &fx.contract_id);
+
+        assert_eq!(client.open_position(&fx.user, &1_000, &100), 1);
+        assert_eq!(client.open_position(&fx.user, &1_000, &500), 2);
+    }
+
+    #[test]
+    fn test_close_position_does_not_panic() {
+        let fx = setup();
+        let client = LoopingContractClient::new(&fx.env, &fx.contract_id);
+
+        let id = client.open_position(&fx.user, &1_000, &200);
+        client.close_position(&fx.user, &id);
+    }
+}

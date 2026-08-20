@@ -900,6 +900,8 @@ name = "looping"
 version = "0.1.0"
 dependencies = [
  "common",
+ "ed25519-dalek",
+ "rand_core 0.6.4",
  "soroban-sdk",
 ]
 
@@ -1181,6 +1183,8 @@ checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
 name = "rewards"
 version = "0.1.0"
 dependencies = [
+ "ed25519-dalek",
+ "rand_core 0.6.4",
  "soroban-sdk",
 ]
 
@@ -1785,6 +1789,8 @@ name = "vault"
 version = "0.1.0"
 dependencies = [
  "common",
+ "ed25519-dalek",
+ "rand_core 0.6.4",
  "soroban-sdk",
 ]
 
