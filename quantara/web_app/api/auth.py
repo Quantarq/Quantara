@@ -48,16 +48,27 @@ async def connect_wallet(
 @limiter.limit(USER_DATA_LIMIT)
 async def get_session(request: Request, wallet_id: str | None = None):
     """
-    Endpoint for frontend initialization to verify if a valid httpOnly 
+    Endpoint for frontend initialization to verify if a valid httpOnly
     cookie session exists without exposing the raw cookie to client JS.
     """
-    # Note: Your REPO-002 auth middleware will automatically populate wallet_id from the cookie
-    if not wallet_id:
+    if wallet_id:
+        return {"authenticated": True, "walletId": wallet_id}
+
+    session_token = request.cookies.get("wallet_id")
+    if not session_token:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, 
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="No active wallet session"
         )
-    return {"authenticated": True, "walletId": wallet_id}
+
+    resolved_wallet_id = await session_store.get_wallet_id(session_token)
+    if not resolved_wallet_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="No active wallet session"
+        )
+
+    return {"authenticated": True, "walletId": resolved_wallet_id}
 
 @router.post("/logout")
 @limiter.limit(USER_DATA_LIMIT)
