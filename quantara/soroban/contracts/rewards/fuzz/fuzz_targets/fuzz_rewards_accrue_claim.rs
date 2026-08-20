@@ -27,7 +27,16 @@ fuzz_target!(|data: &[u8]| {
     let env = Env::default();
     env.mock_all_auths();
     let contract_id = env.register(RewardsContract, ());
+    let admin = Address::generate(&env);
     let user = Address::generate(&env);
+
+    // Accrual is admin-gated; initialise with an admin first (mock_all_auths
+    // auto-approves the require_auth calls).
+    let _: () = env.invoke_contract(
+        &contract_id,
+        &Symbol::new(&env, "initialize"),
+        soroban_sdk::vec![&env, admin.to_val()],
+    );
 
     // Accrue twice.
     let _: () = env.invoke_contract(
