@@ -25,6 +25,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import aiohttp
 
 from .AMMAdapter import AMMAdapter, PoolKey, PoolPrice, SwapRoute
+from .errors import AdapterRpcError
 
 logger = logging.getLogger(__name__)
 
@@ -325,16 +326,16 @@ class SoroswapAMMAdapter(AMMAdapter):
                 params,
             )
         except RuntimeError as exc:
-            raise RuntimeError(f"Swap failed: {exc}") from exc
+            raise AdapterRpcError(f"Soroswap swap_exact_input failed: {exc}") from exc
 
         tx_hash = str(result.get("tx_hash", result.get("transaction_hash", "")))
         if not tx_hash:
-            tx_hash = self._simulate_tx_hash(
-                user_address, normalized_in, normalized_out, raw_amount_in
+            raise AdapterRpcError(
+                "Soroswap swap_exact_input succeeded without returning a transaction hash"
             )
         amount_out = Decimal(
             str(result.get("amount_out", result.get("output_amount", 0)))
-        )
+        ) / _TokenResolver.scale_factor(token_out)
         return tx_hash, amount_out
 
     async def swap_exact_output(
@@ -380,16 +381,16 @@ class SoroswapAMMAdapter(AMMAdapter):
                 params,
             )
         except RuntimeError as exc:
-            raise RuntimeError(f"Swap failed: {exc}") from exc
+            raise AdapterRpcError(f"Soroswap swap_exact_output failed: {exc}") from exc
 
         tx_hash = str(result.get("tx_hash", result.get("transaction_hash", "")))
         if not tx_hash:
-            tx_hash = self._simulate_tx_hash(
-                user_address, normalized_in, normalized_out, raw_amount_out
+            raise AdapterRpcError(
+                "Soroswap swap_exact_output succeeded without returning a transaction hash"
             )
         amount_in = Decimal(
             str(result.get("amount_in", result.get("input_amount", 0)))
-        )
+        ) / _TokenResolver.scale_factor(token_in)
         return tx_hash, amount_in
 
     async def get_quote(
@@ -435,7 +436,7 @@ class SoroswapAMMAdapter(AMMAdapter):
         if _TokenResolver.normalize(token_in) == _TokenResolver.normalize(token_out):
             return None
 
-        supported = [p[0] for p in await self.get_supported_pairs()]
+        supported = await self.get_supported_pairs()
         direct_key = self._make_pool_key(token_in, token_out, fee=30)
         if (token_in, token_out) in supported or (
             direct_key.token_a,
@@ -472,15 +473,3 @@ class SoroswapAMMAdapter(AMMAdapter):
         except (ValueError, KeyError, TypeError):
             pass
         return [("XLM", "USDC"), ("XLM", "WETH"), ("USDC", "WETH")]
-
-    # ------------------------------------------------------------------ #
-    #  Internal helpers
-    # ------------------------------------------------------------------ #
-
-    def _simulate_tx_hash(
-        self, sender: str, token_in: str, token_out: str, amount: int
-    ) -> str:
-        import hashlib
-
-        raw = f"{self._network_passphrase}:{sender}:{token_in}:{token_out}:{amount}"
-        return "0x" + hashlib.sha256(raw.encode()).hexdigest()[:64]

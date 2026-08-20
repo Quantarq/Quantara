@@ -8,8 +8,11 @@ from .AMMAdapter import AMMAdapter, AMMAdapterFactory, PoolKey, PoolPrice, SwapR
 from .soroswap_adapter import SoroswapAMMAdapter
 from .LendingAdapter import LendingAdapter, LendingAdapterFactory, ReserveData, UserPosition
 from .blend_adapter import BlendLendingAdapter
+from .errors import AdapterRpcError
 
-from . import _register  # noqa: F401  auto-registers concrete adapters
+from . import _register
+
+_register.register_adapters()
 
 __all__ = [
     "AMMAdapter",
@@ -23,4 +26,5 @@ __all__ = [
     "ReserveData",
     "UserPosition",
     "BlendLendingAdapter",
+    "AdapterRpcError",
 ]
