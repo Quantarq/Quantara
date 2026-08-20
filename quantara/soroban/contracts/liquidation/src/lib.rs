@@ -147,10 +147,7 @@ impl LiquidationContract {
         );
         assert_caller_auth(&env, &admin, symbol_short!("init"), &());
         assert!(config.duration_ledgers > 0, "duration_ledgers must be > 0");
-        assert!(
-            config.min_price_bps > 0,
-            "min_price_bps must be > 0"
-        );
+        assert!(config.min_price_bps > 0, "min_price_bps must be > 0");
         assert!(
             config.start_price_bps >= config.min_price_bps,
             "start_price_bps must be >= min_price_bps"
@@ -278,9 +275,7 @@ impl LiquidationContract {
             return config.min_price_bps;
         }
 
-        let price_range = config
-            .start_price_bps
-            .saturating_sub(config.min_price_bps) as u64;
+        let price_range = config.start_price_bps.saturating_sub(config.min_price_bps) as u64;
 
         let reduction = price_range.saturating_mul(elapsed) / duration;
 
@@ -331,11 +326,17 @@ impl LiquidationContract {
         let contract = env.current_contract_address();
 
         // 1. Liquidator pays the debt token into the contract.
-        token::TokenClient::new(&env, &auction.debt_asset)
-            .transfer(&liquidator, &contract, &debt_paid);
+        token::TokenClient::new(&env, &auction.debt_asset).transfer(
+            &liquidator,
+            &contract,
+            &debt_paid,
+        );
         // 2. Contract releases the collateral token to the liquidator.
-        token::TokenClient::new(&env, &auction.collateral_asset)
-            .transfer(&contract, &liquidator, &collateral_received);
+        token::TokenClient::new(&env, &auction.collateral_asset).transfer(
+            &contract,
+            &liquidator,
+            &collateral_received,
+        );
 
         // Mark as settled only after both legs have completed.
         auction.is_settled = true;
@@ -516,7 +517,9 @@ mod tests {
         let collateral = env
             .register_stellar_asset_contract_v2(admin.clone())
             .address();
-        let debt = env.register_stellar_asset_contract_v2(admin.clone()).address();
+        let debt = env
+            .register_stellar_asset_contract_v2(admin.clone())
+            .address();
 
         Fixture {
             env,
@@ -548,8 +551,7 @@ mod tests {
         let fx = setup();
 
         // Contract holds the collateral; liquidator holds debt to pay with.
-        StellarAssetClient::new(&fx.env, &fx.collateral)
-            .mint(&fx.contract_id, &1_000_i128);
+        StellarAssetClient::new(&fx.env, &fx.collateral).mint(&fx.contract_id, &1_000_i128);
         StellarAssetClient::new(&fx.env, &fx.debt).mint(&fx.liquidator, &2_000_i128);
 
         start_auction(&fx, 1, 1_000, 1_000);
@@ -572,7 +574,10 @@ mod tests {
         assert_eq!(collateral_client.balance(&fx.contract_id), 0);
 
         let auction = client.get_auction(&1u64).unwrap();
-        assert!(auction.is_settled, "auction must be marked settled after bid");
+        assert!(
+            auction.is_settled,
+            "auction must be marked settled after bid"
+        );
     }
 
     /// The price declines linearly from the starting premium to the reserve
@@ -605,8 +610,7 @@ mod tests {
     fn test_bid_at_lower_price_pays_less_debt() {
         let fx = setup();
 
-        StellarAssetClient::new(&fx.env, &fx.collateral)
-            .mint(&fx.contract_id, &1_000_i128);
+        StellarAssetClient::new(&fx.env, &fx.collateral).mint(&fx.contract_id, &1_000_i128);
         StellarAssetClient::new(&fx.env, &fx.debt).mint(&fx.liquidator, &2_000_i128);
 
         start_auction(&fx, 1, 1_000, 1_000);
@@ -634,8 +638,7 @@ mod tests {
     fn test_expire_auction_distributes_batch_pro_rata() {
         let fx = setup();
 
-        StellarAssetClient::new(&fx.env, &fx.collateral)
-            .mint(&fx.contract_id, &1_000_i128);
+        StellarAssetClient::new(&fx.env, &fx.collateral).mint(&fx.contract_id, &1_000_i128);
 
         start_auction(&fx, 1, 1_000, 1_000);
 
@@ -660,6 +663,9 @@ mod tests {
         assert_eq!(collateral_client.balance(&fx.contract_id), 1);
 
         let auction = client.get_auction(&1u64).unwrap();
-        assert!(auction.is_settled, "auction must be marked settled after expiry");
+        assert!(
+            auction.is_settled,
+            "auction must be marked settled after expiry"
+        );
     }
 }
