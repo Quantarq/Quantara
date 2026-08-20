@@ -19,11 +19,13 @@ import asyncio
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple
 
+import aiohttp
 import pytest
 from pytest_mock import MockerFixture
 
 from quantara.soroban.adapters import AMMAdapterFactory, SoroswapAMMAdapter
 from quantara.soroban.adapters.AMMAdapter import PoolKey
+from quantara.soroban.adapters.errors import AdapterRpcError
 from quantara.soroban.adapters.soroswap_adapter import _TokenResolver
 
 
@@ -38,7 +40,7 @@ def adapter(mocker: MockerFixture) -> SoroswapAMMAdapter:
     mock_resp.json = mocker.AsyncMock(return_value={"result": {"ok": True}})
     mock_resp.__aenter__ = mocker.AsyncMock(return_value=mock_resp)
     mock_resp.__aexit__ = mocker.AsyncMock(return_value=False)
-    mock_session.post = mocker.AsyncMock(return_value=mock_resp)
+    mock_session.post = mocker.Mock(return_value=mock_resp)
     mock_session.__aenter__ = mocker.AsyncMock(return_value=mock_session)
     mock_session.__aexit__ = mocker.AsyncMock(return_value=False)
     mocker.patch.object(adapter, "_get_session", return_value=mock_session)
@@ -48,7 +50,27 @@ def adapter(mocker: MockerFixture) -> SoroswapAMMAdapter:
 def _ok_result(**overrides: Any) -> Dict[str, Any]:
     base: Dict[str, Any] = {"ok": True, "tx_hash": "0xabc123", "amount_out": "100"}
     base.update(overrides)
-    return {"result": base}
+    return base
+
+
+def _mock_contract_response(mocker: MockerFixture, method: str, result: Any) -> Any:
+    """Build an async context-manager HTTP response returning ``{"result": result}``.
+
+    ``session.post`` is mocked as a plain Mock (not AsyncMock) so that calling
+    it returns this context manager directly; ``async with session.post(...)``
+    in the adapter then works exactly as it does with real aiohttp.
+    """
+    mock_resp = mocker.AsyncMock()
+    mock_resp.status = 200
+    mock_resp.json = mocker.AsyncMock(return_value={"result": result})
+    mock_resp.__aenter__ = mocker.AsyncMock(return_value=mock_resp)
+    mock_resp.__aexit__ = mocker.AsyncMock(return_value=False)
+    return mock_resp
+
+
+def _not_found() -> Dict[str, Any]:
+    """A ``get_pool`` response that carries no pool id."""
+    return {"pool_id": None}
 
 
 class TestTokenResolver:
@@ -87,10 +109,12 @@ class TestMakePoolKey:
 
 class TestGetPoolPrice:
     @pytest.mark.asyncio
-    async def test_price_success(self, adapter: SoroswapAMMAdapter, mocker: MockerFixture) -> None:
+    async def test_price_success(
+        self, adapter: SoroswapAMMAdapter, mocker: MockerFixture
+    ) -> None:
         pool_id = "CAPOOLAAAAABBBBBBBBBCCCCCCCCDDDDDDDD"
         session = await adapter._get_session()
-        session.post = mocker.AsyncMock(  # type: ignore[assignment]
+        session.post = mocker.Mock(  # type: ignore[assignment]
             return_value=_mock_contract_response(
                 mocker,
                 "get_pool",
@@ -109,9 +133,11 @@ class TestGetPoolPrice:
         assert price.sqrt_price == Decimal("14142")
 
     @pytest.mark.asyncio
-    async def test_price_missing_pool_raises(self, adapter: SoroswapAMMAdapter, mocker: MockerFixture) -> None:
+    async def test_price_missing_pool_raises(
+        self, adapter: SoroswapAMMAdapter, mocker: MockerFixture
+    ) -> None:
         session = await adapter._get_session()
-        session.post = mocker.AsyncMock(  # type: ignore[assignment]
+        session.post = mocker.Mock(  # type: ignore[assignment]
             return_value=_mock_contract_response(mocker, "get_pool", _not_found())
         )
         pool_key = adapter._make_pool_key("XLM", "USDC")
@@ -119,13 +145,20 @@ class TestGetPoolPrice:
             await adapter.get_pool_price(pool_key)
 
     @pytest.mark.asyncio
-    async def test_price_zero_reserves_raises(self, adapter: SoroswapAMMAdapter, mocker: MockerFixture) -> None:
+    async def test_price_zero_reserves_raises(
+        self, adapter: SoroswapAMMAdapter, mocker: MockerFixture
+    ) -> None:
         session = await adapter._get_session()
-        session.post = mocker.AsyncMock(  # type: ignore[assignment]
+        session.post = mocker.Mock(  # type: ignore[assignment]
             return_value=_mock_contract_response(
                 mocker,
                 "get_pool",
-                {"pool_id": "POOL", "reserves": {"reserve_a": 0, "reserve_b": 0}, "liquidity": 0, "sqrt_price": 0},
+                {
+                    "pool_id": "POOL",
+                    "reserves": {"reserve_a": 0, "reserve_b": 0},
+                    "liquidity": 0,
+                    "sqrt_price": 0,
+                },
             )
         )
         pool_key = adapter._make_pool_key("XLM", "USDC")
@@ -135,13 +168,20 @@ class TestGetPoolPrice:
 
 class TestGetPoolKey:
     @pytest.mark.asyncio
-    async     def test_get_pool_key_success(self, adapter: SoroswapAMMAdapter, mocker: MockerFixture) -> None:
+    async def test_get_pool_key_success(
+        self, adapter: SoroswapAMMAdapter, mocker: MockerFixture
+    ) -> None:
         session = await adapter._get_session()
-        session.post = mocker.AsyncMock(  # type: ignore[assignment]
+        session.post = mocker.Mock(  # type: ignore[assignment]
             return_value=_mock_contract_response(
                 mocker,
                 "get_pool",
-                {"pool_id": "POOL123", "reserves": {"reserve_a": 1, "reserve_b": 1}, "liquidity": 1, "sqrt_price": 1},
+                {
+                    "pool_id": "POOL123",
+                    "reserves": {"reserve_a": 1, "reserve_b": 1},
+                    "liquidity": 1,
+                    "sqrt_price": 1,
+                },
             )
         )
         key = await adapter.get_pool_key("XLM", "USDC", fee=30)
@@ -149,9 +189,11 @@ class TestGetPoolKey:
         assert key.fee == 30
 
     @pytest.mark.asyncio
-    async def test_get_pool_key_missing_raises(self, adapter: SoroswapAMMAdapter, mocker: MockerFixture) -> None:
+    async def test_get_pool_key_missing_raises(
+        self, adapter: SoroswapAMMAdapter, mocker: MockerFixture
+    ) -> None:
         session = await adapter._get_session()
-        session.post = mocker.AsyncMock(  # type: ignore[assignment]
+        session.post = mocker.Mock(  # type: ignore[assignment]
             return_value=_mock_contract_response(mocker, "get_pool", _not_found())
         )
         with pytest.raises(ValueError, match="No pool found"):
@@ -160,32 +202,44 @@ class TestGetPoolKey:
 
 class TestGetQuote:
     @pytest.mark.asyncio
-    async def test_quote_success(self, adapter: SoroswapAMMAdapter, mocker: MockerFixture) -> None:
+    async def test_quote_success(
+        self, adapter: SoroswapAMMAdapter, mocker: MockerFixture
+    ) -> None:
         adapter._soroban_call = mocker.AsyncMock(  # type: ignore[method-assign]
             return_value={"amount_out": "5000000"}
         )
-        result = await adapter.get_quote("XLM", "USDC", Decimal("1"), adapter._make_pool_key("XLM", "USDC"))
+        result = await adapter.get_quote(
+            "XLM", "USDC", Decimal("1"), adapter._make_pool_key("XLM", "USDC")
+        )
         assert result == Decimal("0.5")
 
     @pytest.mark.asyncio
     async def test_quote_zero_amount_raises(self, adapter: SoroswapAMMAdapter) -> None:
         with pytest.raises(ValueError, match="amount must be positive"):
-            await adapter.get_quote("XLM", "USDC", Decimal("0"), adapter._make_pool_key("XLM", "USDC"))
+            await adapter.get_quote(
+                "XLM", "USDC", Decimal("0"), adapter._make_pool_key("XLM", "USDC")
+            )
 
     @pytest.mark.asyncio
-    async def test_quote_contract_error_propagates(self, adapter: SoroswapAMMAdapter, mocker: MockerFixture) -> None:
+    async def test_quote_contract_error_propagates(
+        self, adapter: SoroswapAMMAdapter, mocker: MockerFixture
+    ) -> None:
         adapter._soroban_call = mocker.AsyncMock(  # type: ignore[method-assign]
             side_effect=RuntimeError("contract boom")
         )
         with pytest.raises(RuntimeError, match="contract boom"):
-            await adapter.get_quote("XLM", "USDC", Decimal("1"), adapter._make_pool_key("XLM", "USDC"))
+            await adapter.get_quote(
+                "XLM", "USDC", Decimal("1"), adapter._make_pool_key("XLM", "USDC")
+            )
 
 
 class TestSwapExactInput:
     @pytest.mark.asyncio
-    async def test_swap_exact_input_success(self, adapter: SoroswapAMMAdapter, mocker: MockerFixture) -> None:
+    async def test_swap_exact_input_success(
+        self, adapter: SoroswapAMMAdapter, mocker: MockerFixture
+    ) -> None:
         adapter._soroban_call = mocker.AsyncMock(  # type: ignore[method-assign]
-            return_value=_ok_result(amount_out="4000000")
+            return_value={"ok": True, "tx_hash": "0xabc123", "amount_out": "4000000"}
         )
         tx_hash, amount_out = await adapter.swap_exact_input(
             user_address="GABCDEF",
@@ -199,25 +253,77 @@ class TestSwapExactInput:
         assert amount_out == Decimal("0.4")
 
     @pytest.mark.asyncio
-    async def test_swap_exact_input_invalid_amount(self, adapter: SoroswapAMMAdapter) -> None:
-        with pytest.raises(ValueError, match="amount_in must be positive"):
+    async def test_swap_exact_input_rpc_failure_raises(
+        self, adapter: SoroswapAMMAdapter, mocker: MockerFixture
+    ) -> None:
+        adapter._soroban_call = mocker.AsyncMock(  # type: ignore[method-assign]
+            side_effect=RuntimeError("network error")
+        )
+        with pytest.raises(AdapterRpcError, match="swap_exact_input failed"):
             await adapter.swap_exact_input(
-                "GXXXXX", "XLM", "USDC", Decimal("0"), Decimal("0"), adapter._make_pool_key("XLM", "USDC")
+                user_address="GABCDEF",
+                token_in="XLM",
+                token_out="USDC",
+                amount_in=Decimal("1"),
+                min_amount_out=Decimal("0.3"),
+                pool_key=adapter._make_pool_key("XLM", "USDC"),
             )
 
     @pytest.mark.asyncio
-    async def test_swap_exact_input_negative_min(self, adapter: SoroswapAMMAdapter) -> None:
+    async def test_swap_exact_input_missing_hash_raises(
+        self, adapter: SoroswapAMMAdapter, mocker: MockerFixture
+    ) -> None:
+        adapter._soroban_call = mocker.AsyncMock(  # type: ignore[method-assign]
+            return_value={"ok": True, "amount_out": "4000000"}
+        )
+        with pytest.raises(
+            AdapterRpcError, match="without returning a transaction hash"
+        ):
+            await adapter.swap_exact_input(
+                user_address="GABCDEF",
+                token_in="XLM",
+                token_out="USDC",
+                amount_in=Decimal("1"),
+                min_amount_out=Decimal("0.3"),
+                pool_key=adapter._make_pool_key("XLM", "USDC"),
+            )
+
+    @pytest.mark.asyncio
+    async def test_swap_exact_input_invalid_amount(
+        self, adapter: SoroswapAMMAdapter
+    ) -> None:
+        with pytest.raises(ValueError, match="amount_in must be positive"):
+            await adapter.swap_exact_input(
+                "GXXXXX",
+                "XLM",
+                "USDC",
+                Decimal("0"),
+                Decimal("0"),
+                adapter._make_pool_key("XLM", "USDC"),
+            )
+
+    @pytest.mark.asyncio
+    async def test_swap_exact_input_negative_min(
+        self, adapter: SoroswapAMMAdapter
+    ) -> None:
         with pytest.raises(ValueError, match="min_amount_out must be non-negative"):
             await adapter.swap_exact_input(
-                "GXXXXX", "XLM", "USDC", Decimal("1"), Decimal("-1"), adapter._make_pool_key("XLM", "USDC")
+                "GXXXXX",
+                "XLM",
+                "USDC",
+                Decimal("1"),
+                Decimal("-1"),
+                adapter._make_pool_key("XLM", "USDC"),
             )
 
 
 class TestSwapExactOutput:
     @pytest.mark.asyncio
-    async def test_swap_exact_output_success(self, adapter: SoroswapAMMAdapter, mocker: MockerFixture) -> None:
+    async def test_swap_exact_output_success(
+        self, adapter: SoroswapAMMAdapter, mocker: MockerFixture
+    ) -> None:
         adapter._soroban_call = mocker.AsyncMock(  # type: ignore[method-assign]
-            return_value=_ok_result(amount_in="2000000")
+            return_value={"ok": True, "tx_hash": "0xabc123", "amount_in": "2000000"}
         )
         tx_hash, amount_in = await adapter.swap_exact_output(
             user_address="GABCDEF",
@@ -231,16 +337,42 @@ class TestSwapExactOutput:
         assert amount_in == Decimal("0.2")
 
     @pytest.mark.asyncio
-    async def test_swap_exact_output_invalid_amount(self, adapter: SoroswapAMMAdapter) -> None:
+    async def test_swap_exact_output_rpc_failure_raises(
+        self, adapter: SoroswapAMMAdapter, mocker: MockerFixture
+    ) -> None:
+        adapter._soroban_call = mocker.AsyncMock(  # type: ignore[method-assign]
+            side_effect=RuntimeError("network error")
+        )
+        with pytest.raises(AdapterRpcError, match="swap_exact_output failed"):
+            await adapter.swap_exact_output(
+                user_address="GABCDEF",
+                token_in="XLM",
+                token_out="USDC",
+                amount_out=Decimal("0.5"),
+                max_amount_in=Decimal("2"),
+                pool_key=adapter._make_pool_key("XLM", "USDC"),
+            )
+
+    @pytest.mark.asyncio
+    async def test_swap_exact_output_invalid_amount(
+        self, adapter: SoroswapAMMAdapter
+    ) -> None:
         with pytest.raises(ValueError, match="amount_out must be positive"):
             await adapter.swap_exact_output(
-                "GXXXXX", "XLM", "USDC", Decimal("0"), Decimal("0"), adapter._make_pool_key("XLM", "USDC")
+                "GXXXXX",
+                "XLM",
+                "USDC",
+                Decimal("0"),
+                Decimal("0"),
+                adapter._make_pool_key("XLM", "USDC"),
             )
 
 
 class TestFindBestRoute:
     @pytest.mark.asyncio
-    async def test_find_best_route_direct(self, adapter: SoroswapAMMAdapter, mocker: MockerFixture) -> None:
+    async def test_find_best_route_direct(
+        self, adapter: SoroswapAMMAdapter, mocker: MockerFixture
+    ) -> None:
         adapter._soroban_call = mocker.AsyncMock(  # type: ignore[method-assign]
             return_value={"amount_out": "6000000"}
         )
@@ -252,12 +384,16 @@ class TestFindBestRoute:
         assert len(route.pools) == 1
 
     @pytest.mark.asyncio
-    async def test_find_best_route_same_token(self, adapter: SoroswapAMMAdapter) -> None:
+    async def test_find_best_route_same_token(
+        self, adapter: SoroswapAMMAdapter
+    ) -> None:
         route = await adapter.find_best_route("XLM", "XLM", Decimal("1"))
         assert route is None
 
     @pytest.mark.asyncio
-    async def test_find_best_route_missing(self, adapter: SoroswapAMMAdapter) -> None:
+    async def test_find_best_route_missing(
+        self, adapter: SoroswapAMMAdapter, mocker: MockerFixture
+    ) -> None:
         adapter.get_supported_pairs = mocker.AsyncMock(  # type: ignore[method-assign]
             return_value=[("XLM", "USDC")]
         )
@@ -270,9 +406,11 @@ class TestFindBestRoute:
 
 class TestGetSupportedPairs:
     @pytest.mark.asyncio
-    async def test_supported_pairs_from_rpc(self, adapter: SoroswapAMMAdapter, mocker: MockerFixture) -> None:
+    async def test_supported_pairs_from_rpc(
+        self, adapter: SoroswapAMMAdapter, mocker: MockerFixture
+    ) -> None:
         session = await adapter._get_session()
-        session.post = mocker.AsyncMock(  # type: ignore[assignment]
+        session.post = mocker.Mock(  # type: ignore[assignment]
             return_value=_mock_contract_response(
                 mocker, "get_supported_pairs", [["XLM", "USDC"], ["XLM", "WETH"]]
             )
@@ -281,9 +419,11 @@ class TestGetSupportedPairs:
         assert ("XLM", "USDC") in pairs
 
     @pytest.mark.asyncio
-    async def test_supported_pairs_fallback_on_error(self, adapter: SoroswapAMMAdapter, mocker: MockerFixture) -> None:
+    async def test_supported_pairs_fallback_on_error(
+        self, adapter: SoroswapAMMAdapter, mocker: MockerFixture
+    ) -> None:
         session = await adapter._get_session()
-        session.post = mocker.AsyncMock(  # type: ignore[assignment]
+        session.post = mocker.Mock(  # type: ignore[assignment]
             side_effect=aiohttp.ClientError("boom")
         )
         pairs = await adapter.get_supported_pairs()
