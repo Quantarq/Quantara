@@ -150,7 +150,7 @@ mod tests {
         let init = MockAuthInvoke {
             contract: &contract_id,
             fn_name: "initialize",
-            args: vec![&env],
+            args: vec![&env, symbol_short!("init").to_val()],
             sub_invokes: &[],
         };
         env.mock_auths(&[MockAuth {
