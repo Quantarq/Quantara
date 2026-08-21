@@ -12,6 +12,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 
 from web_app.db.database import Base
 from web_app.db.models import OutboxEvent
@@ -25,7 +26,11 @@ from web_app.tasks.outbox_relay import (
 
 @pytest.fixture
 def db_session():
-    engine = create_engine("sqlite:///:memory:")
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
     session = Session()
@@ -84,7 +89,7 @@ class TestProcessPendingEvents:
         updated = db_session.query(OutboxEvent).filter(OutboxEvent.id == event.id).one()
         assert updated.status == "processing"
         assert updated.claimed_at is not None
-        mock_delay.assert_called_once_with(str(event.id))
+        mock_delay.delay.assert_called_once_with(str(event.id))
 
     @patch("web_app.tasks.outbox_relay.SessionLocal")
     @patch("web_app.tasks.outbox_relay.process_position_opened_task")
@@ -110,7 +115,7 @@ class TestProcessPendingEvents:
         updated = db_session.query(OutboxEvent).filter(OutboxEvent.id == event.id).one()
         assert updated.status == "processing"
         assert updated.claimed_at is not None
-        mock_delay.assert_called_once_with(str(event.id))
+        mock_delay.delay.assert_called_once_with(str(event.id))
 
     @patch("web_app.tasks.outbox_relay.SessionLocal")
     @patch("web_app.tasks.outbox_relay.process_position_opened_task")
@@ -137,7 +142,7 @@ class TestProcessPendingEvents:
         updated = db_session.query(OutboxEvent).filter(OutboxEvent.id == event.id).one()
         assert updated.status == "processing"
         assert updated.claimed_at is not None
-        mock_delay.assert_called_once_with(str(event.id))
+        mock_delay.delay.assert_called_once_with(str(event.id))
 
     @patch("web_app.tasks.outbox_relay.SessionLocal")
     @patch("web_app.tasks.outbox_relay.process_position_opened_task")
@@ -163,7 +168,7 @@ class TestProcessPendingEvents:
 
         updated = db_session.query(OutboxEvent).filter(OutboxEvent.id == event.id).one()
         assert updated.status == "processing"
-        mock_delay.assert_not_called()
+        mock_delay.delay.assert_not_called()
 
     @patch("web_app.tasks.outbox_relay.SessionLocal")
     @patch("web_app.tasks.outbox_relay.process_position_opened_task")
@@ -187,7 +192,7 @@ class TestProcessPendingEvents:
 
         updated = db_session.query(OutboxEvent).filter(OutboxEvent.id == event.id).one()
         assert updated.status == "pending"
-        mock_delay.assert_not_called()
+        mock_delay.delay.assert_not_called()
 
     @patch("web_app.tasks.outbox_relay.SessionLocal")
     @patch("web_app.tasks.outbox_relay.process_position_opened_task")
@@ -229,7 +234,7 @@ class TestProcessPendingEvents:
         relay = OutboxRelay(max_retries=5)
         relay.process_pending_events()
 
-        mock_delay.assert_not_called()
+        mock_delay.delay.assert_not_called()
 
 
 # ---------------------------------------------------------------------------
@@ -239,17 +244,13 @@ class TestProcessPendingEvents:
 class TestProcessPositionOpenedTask:
     @patch("web_app.tasks.outbox_relay.init_db")
     def test_invalid_uuid_returns_early(self, mock_init_db):
-        task = MagicMock()
-        process_position_opened_task(task, event_id="not-a-uuid")
-        task.retry.assert_not_called()
+        process_position_opened_task.run(event_id="not-a-uuid")
 
     @patch("web_app.tasks.outbox_relay.SessionLocal")
     @patch("web_app.tasks.outbox_relay.init_db")
     def test_valid_uuid_not_found_returns_early(self, mock_init_db, mock_session_local, db_session):
         mock_session_local.return_value = db_session
-        task = MagicMock()
-        process_position_opened_task(task, event_id=str(uuid.uuid4()))
-        task.retry.assert_not_called()
+        process_position_opened_task.run(event_id=str(uuid.uuid4()))
 
     @patch("web_app.tasks.outbox_relay.SessionLocal")
     @patch("web_app.tasks.outbox_relay.init_db")
@@ -265,7 +266,6 @@ class TestProcessPositionOpenedTask:
         db_session.commit()
         mock_session_local.return_value = db_session
 
-        task = MagicMock()
         with patch("web_app.tasks.outbox_relay.DashboardMixin") as mock_dash:
             mock_dash.get_current_prices = MagicMock(
                 side_effect=RuntimeError("pricing down")
@@ -274,7 +274,7 @@ class TestProcessPositionOpenedTask:
                 instance = mock_pdbc.return_value
                 instance.get_object.return_value = None
                 with pytest.raises(Exception):
-                    process_position_opened_task(task, event_id=str(event.id))
+                    process_position_opened_task.run(event_id=str(event.id))
 
         updated = db_session.query(OutboxEvent).filter(OutboxEvent.id == event.id).one()
         assert updated.status == "failed"
