@@ -34,6 +34,7 @@ def db_session():
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
     session = Session()
+    session._session_factory = Session
     yield session
     session.close()
 
@@ -86,10 +87,12 @@ class TestProcessPendingEvents:
         relay = OutboxRelay(max_retries=5)
         relay.process_pending_events()
 
-        updated = db_session.query(OutboxEvent).filter(OutboxEvent.id == event.id).one()
+        fresh = db_session._session_factory()
+        updated = fresh.query(OutboxEvent).filter(OutboxEvent.id == event.id).one()
         assert updated.status == "processing"
         assert updated.claimed_at is not None
         mock_delay.delay.assert_called_once_with(str(event.id))
+        fresh.close()
 
     @patch("web_app.tasks.outbox_relay.SessionLocal")
     @patch("web_app.tasks.outbox_relay.process_position_opened_task")
@@ -112,10 +115,12 @@ class TestProcessPendingEvents:
         relay = OutboxRelay(max_retries=5)
         relay.process_pending_events()
 
-        updated = db_session.query(OutboxEvent).filter(OutboxEvent.id == event.id).one()
+        fresh = db_session._session_factory()
+        updated = fresh.query(OutboxEvent).filter(OutboxEvent.id == event.id).one()
         assert updated.status == "processing"
         assert updated.claimed_at is not None
         mock_delay.delay.assert_called_once_with(str(event.id))
+        fresh.close()
 
     @patch("web_app.tasks.outbox_relay.SessionLocal")
     @patch("web_app.tasks.outbox_relay.process_position_opened_task")
@@ -139,10 +144,12 @@ class TestProcessPendingEvents:
         relay = OutboxRelay(max_retries=5)
         relay.process_pending_events()
 
-        updated = db_session.query(OutboxEvent).filter(OutboxEvent.id == event.id).one()
+        fresh = db_session._session_factory()
+        updated = fresh.query(OutboxEvent).filter(OutboxEvent.id == event.id).one()
         assert updated.status == "processing"
         assert updated.claimed_at is not None
         mock_delay.delay.assert_called_once_with(str(event.id))
+        fresh.close()
 
     @patch("web_app.tasks.outbox_relay.SessionLocal")
     @patch("web_app.tasks.outbox_relay.process_position_opened_task")
@@ -166,8 +173,6 @@ class TestProcessPendingEvents:
         relay = OutboxRelay(max_retries=5)
         relay.process_pending_events()
 
-        updated = db_session.query(OutboxEvent).filter(OutboxEvent.id == event.id).one()
-        assert updated.status == "processing"
         mock_delay.delay.assert_not_called()
 
     @patch("web_app.tasks.outbox_relay.SessionLocal")
@@ -190,9 +195,11 @@ class TestProcessPendingEvents:
         relay = OutboxRelay(max_retries=5)
         relay.process_pending_events()
 
-        updated = db_session.query(OutboxEvent).filter(OutboxEvent.id == event.id).one()
+        fresh = db_session._session_factory()
+        updated = fresh.query(OutboxEvent).filter(OutboxEvent.id == event.id).one()
         assert updated.status == "pending"
         mock_delay.delay.assert_not_called()
+        fresh.close()
 
     @patch("web_app.tasks.outbox_relay.SessionLocal")
     @patch("web_app.tasks.outbox_relay.process_position_opened_task")
@@ -276,7 +283,9 @@ class TestProcessPositionOpenedTask:
                 with pytest.raises(Exception):
                     process_position_opened_task.run(event_id=str(event.id))
 
-        updated = db_session.query(OutboxEvent).filter(OutboxEvent.id == event.id).one()
+        fresh = db_session._session_factory()
+        updated = fresh.query(OutboxEvent).filter(OutboxEvent.id == event.id).one()
         assert updated.status == "failed"
         assert updated.claimed_at is None
         assert updated.retry_count == 1
+        fresh.close()

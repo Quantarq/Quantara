@@ -54,17 +54,26 @@ def test_relay_worker_dispatches_task():
     mock_event.created_at = datetime.now()
 
     mock_db = MagicMock()
-    # Query returns old events (empty) then pending events (mock_event)
     mock_query = MagicMock()
     mock_db.query.return_value = mock_query
     mock_filter = MagicMock()
     mock_query.filter.return_value = mock_filter
     mock_filter.all.side_effect = [[], [mock_event]]
 
+    update_calls = []
+
+    def track_update(values, **kwargs):
+        update_calls.append(values)
+        for k, v in values.items():
+            setattr(mock_event, k, v)
+        return 1
+
+    mock_filter.update.side_effect = track_update
+
     with patch("web_app.tasks.outbox_relay.SessionLocal", return_value=mock_db), \
          patch("web_app.tasks.outbox_relay.process_position_opened_task.delay") as mock_delay, \
          patch("web_app.tasks.outbox_relay.sentry_sdk.capture_message") as mock_sentry:
-        
+
         relay = OutboxRelay(max_retries=5)
         relay.process_pending_events()
 

@@ -55,11 +55,13 @@ def process_position_opened_task(self, event_id: str):
         logger.error("invalid_event_id_format", event_id=event_id)
         return
 
+    event_uuid = uuid.UUID(event_id)
+
     init_db()
     db: Session = SessionLocal()
     try:
         # 1. Fetch the outbox event
-        event = db.query(OutboxEvent).filter(OutboxEvent.id == event_id).first()
+        event = db.query(OutboxEvent).filter(OutboxEvent.id == event_uuid).first()
         if not event:
             logger.error("outbox_event_not_found", event_id=event_id)
             return
@@ -127,7 +129,7 @@ def process_position_opened_task(self, event_id: str):
         # Update event status to failed and increment retry
         try:
             with SessionLocal() as fail_session:
-                evt = fail_session.query(OutboxEvent).filter(OutboxEvent.id == event_id).first()
+                evt = fail_session.query(OutboxEvent).filter(OutboxEvent.id == event_uuid).first()
                 if evt:
                     evt.status = "failed"
                     evt.retry_count += 1
