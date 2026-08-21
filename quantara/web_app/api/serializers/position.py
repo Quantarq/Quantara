@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class PositionFormData(BaseModel):
@@ -95,6 +95,16 @@ class AddPositionDepositData(BaseModel):
     amount: str
     token_symbol: str
     transaction_hash: Optional[str] = None
+
+
+class PositionStateChangeRequest(BaseModel):
+    """Request body for the position close/open state-change endpoints."""
+
+    transaction_hash: str = Field(
+        ...,
+        min_length=1,
+        description="Soroban transaction hash of the close/open contract call.",
+    )
 
 
 class UserExtraDeposit(BaseModel):

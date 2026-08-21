@@ -19,6 +19,8 @@ from typing import Any, Dict, List, Optional
 
 import aiohttp
 
+from web_app.contract_tools.constants import USDC_ASSET_CODE, USDC_ASSET_ISSUER
+
 from .errors import AdapterRpcError
 from .LendingAdapter import LendingAdapter, ReserveData, UserPosition
 
@@ -37,11 +39,11 @@ class _TokenResolver:
             "decimals": 7,
             "symbol": "XLM",
         },
+        # USDC issuer comes from the canonical `USDC_ASSET_ISSUER` env-driven
+        # constant (web_app.contract_tools.constants) so every layer of the
+        # stack agrees on which on-chain asset "USDC" is (issue #412).
         "USDC": {
-            "addresses": [
-                "USDC",
-                "USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGCS3FOGTICSJCWV5X2HGM",
-            ],
+            "addresses": ["USDC", f"{USDC_ASSET_CODE}:{USDC_ASSET_ISSUER}"],
             "decimals": 7,
             "symbol": "USDC",
         },

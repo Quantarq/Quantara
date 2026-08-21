@@ -106,19 +106,18 @@ describe('Transaction Functions', () => {
     });
 
     it('should handle successful transaction flow', async () => {
-      axiosInstance.get.mockResolvedValueOnce({
-        data: { status: 'open' },
-      });
-
       await handleTransaction(mockWalletId, mockFormData, mockSetTokenAmount, mockSetLoading);
 
+      const authHeaders = { 'x-wallet-id': 'mock', 'x-nonce': 'mock', 'x-signature': 'mock' };
       expect(mockSetLoading).toHaveBeenCalledWith(true);
       expect(getWalletPublicKey).toHaveBeenCalled();
-      expect(axiosInstance.post).toHaveBeenCalledWith('/api/create-position', mockFormData, { headers: { 'x-wallet-id': 'mock', 'x-nonce': 'mock', 'x-signature': 'mock' } });
+      expect(axiosInstance.post).toHaveBeenCalledWith('/api/create-position', mockFormData, { headers: authHeaders });
       expect(invokeSorobanContract).toHaveBeenCalled();
-      expect(axiosInstance.get).toHaveBeenCalledWith('/api/open-position', {
-        params: { position_id: 1, transaction_hash: mockTransactionHash },
-      });
+      expect(axiosInstance.post).toHaveBeenCalledWith(
+        '/api/open-position/1',
+        { transaction_hash: mockTransactionHash },
+        { headers: authHeaders },
+      );
       expect(mockSetTokenAmount).toHaveBeenCalledWith('');
       expect(mockSetLoading).toHaveBeenCalledWith(false);
     });

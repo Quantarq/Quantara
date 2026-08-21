@@ -11,8 +11,15 @@ doctest = false
 
 [dependencies]
 soroban-sdk = { version = "22.0.0" }
+common = { path = "../common" }
 
 [dev-dependencies]
+# testutils provides Env::default(), mock_all_auths() and Address::generate()
+# for the inline unit tests.
 soroban-sdk = { version = "22.0.0", features = ["testutils"] }
+# soroban-env-host's testutils call SigningKey::generate(ChaCha20Rng), which
+# needs ed25519-dalek to use the rand_core 0.6 family (matching rand_chacha
+# 0.3.1). ed25519-dalek 3.x switched to rand_core 0.10, which breaks that
+# call, so pin to 2.x. `rand_core < 0.7` keeps the rest of the tree unified.
 ed25519-dalek = "<3"
 rand_core = "<0.7"

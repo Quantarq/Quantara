@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { axiosInstance } from '../utils/axios';
+import { axiosInstance, getAuthHeaders } from '../utils/axios';
 import { closePosition } from '../services/transaction';
 import { useWalletStore } from '../stores/useWalletStore';
 import { notify } from '../components/layout/notifier/Notifier';
@@ -21,19 +21,19 @@ export const useClosePosition = () => {
         console.error('closePositionEvent: walletId is undefined');
         return;
       }
-      const response = await axiosInstance.get('/api/get-repay-data', {
-        params: {
-          wallet_id: walletId,
-        },
-      });
+      const authHeaders = await getAuthHeaders(walletId);
+      const response = await axiosInstance.post(
+        '/api/get-repay-data',
+        {},
+        { headers: authHeaders },
+      );
       const transactionResult = await closePosition(response.data);
       console.log('TransactionResult', transactionResult);
-      await axiosInstance.get('/api/close-position', {
-        params: {
-          position_id: response.data.position_id,
-          transaction_hash: transactionResult.transaction_hash,
-        },
-      });
+      await axiosInstance.post(
+        `/api/close-position/${response.data.position_id}`,
+        { transaction_hash: transactionResult.transaction_hash },
+        { headers: authHeaders },
+      );
     },
     onError: (error) => {
       console.error('Error during closePositionEvent', error);

@@ -7,7 +7,7 @@ from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 from web_app.api.main import app
-from web_app.db.models import OutboxEvent, Position, Transaction
+from web_app.db.models import OutboxEvent, Position, Transaction, User
 from web_app.tasks.outbox_relay import OutboxRelay, process_position_opened_task
 
 
@@ -15,28 +15,39 @@ from web_app.tasks.outbox_relay import OutboxRelay, process_position_opened_task
 async def test_open_position_queues_outbox_event(client: TestClient) -> None:
     position_id = str(uuid.uuid4())
     transaction_hash = "test_tx_hash"
-    
+    owner_id = uuid.uuid4()
+
     mock_position = MagicMock(spec=Position)
     mock_position.id = uuid.UUID(position_id)
     mock_position.status = "pending"
-    
+    mock_position.user_id = owner_id
+
+    mock_user = MagicMock(spec=User)
+    mock_user.id = owner_id
+
     saved_events = []
-    
+
     def mock_write(obj):
         if isinstance(obj, OutboxEvent):
             saved_events.append(obj)
         return obj
 
-    with patch("web_app.api.position.PositionDBConnector.get_object", return_value=mock_position) as mock_get, \
-         patch("web_app.api.position.PositionDBConnector.write_to_db", side_effect=mock_write) as mock_write_db:
-        
-        response = client.get(
-            f"/api/open-position?position_id={position_id}&transaction_hash={transaction_hash}"
+    with patch(
+        "web_app.api.position.position_db_connector.get_position_by_id",
+        return_value=mock_position,
+    ), patch(
+        "web_app.api.position.position_db_connector.get_user_by_wallet_id",
+        return_value=mock_user,
+    ), patch(
+        "web_app.api.position.position_db_connector.write_to_db", side_effect=mock_write
+    ):
+        response = client.post(
+            f"/api/open-position/{position_id}",
+            json={"transaction_hash": transaction_hash},
         )
         assert response.status_code == 200
         assert response.json() == "pending"
-        
-        mock_get.assert_called_once_with(Position, uuid.UUID(position_id))
+
         assert len(saved_events) == 1
         assert saved_events[0].event_type == "PositionOpened"
         payload = json.loads(saved_events[0].payload)
