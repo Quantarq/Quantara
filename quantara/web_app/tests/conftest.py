@@ -11,11 +11,27 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import scoped_session
 
 from web_app.api.main import app
+from web_app.api.pausable import pause_controller
 from web_app.api.rate_limiter import limiter as _ORIGINAL_LIMITER
 from web_app.api.wallet_auth import verify_wallet_signature
 from web_app.db.crud import DBConnector, PositionDBConnector, UserDBConnector
 from web_app.db.database import get_database
 from web_app.db.models import ExtraDeposit
+
+
+@pytest.fixture(autouse=True)
+def disable_pause_controller():
+    """Force the protocol pause controller to report *not paused* during tests.
+
+    The Redis-backed PauseController defaults to *paused* (fail-closed) when
+    Redis is unreachable, which causes every /api/ request to return 503 in
+    CI environments that don't have a Redis service.  We bypass this by
+    patching ``is_paused`` to always return ``False``.
+    """
+    patcher = patch.object(pause_controller, "is_paused", new_callable=AsyncMock, return_value=False)
+    patcher.start()
+    yield
+    patcher.stop()
 
 
 @pytest.fixture(autouse=True)
