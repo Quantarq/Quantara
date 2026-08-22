@@ -161,6 +161,10 @@ class Vault(Base):
         DateTime, nullable=False, default=func.now(), onupdate=func.now()
     )
 
+    __table_args__ = (
+        UniqueConstraint("user_id", "symbol", name="uq_vault_user_symbol"),
+    )
+
 
 class TransactionStatus(PyEnum):
     """
@@ -243,6 +247,7 @@ class OutboxEvent(Base):
     status = Column(String, nullable=False, default="pending")  # pending, processing, processed, failed
     retry_count = Column(Integer, nullable=False, default=0)
     error_message = Column(String, nullable=True)
+    claimed_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, nullable=False, default=func.now())
     updated_at = Column(
         DateTime, nullable=False, default=func.now(), onupdate=func.now()
