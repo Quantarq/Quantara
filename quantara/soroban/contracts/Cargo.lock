@@ -969,6 +969,8 @@ name = "looping"
 version = "0.1.0"
 dependencies = [
  "common",
+ "ed25519-dalek",
+ "rand_core 0.6.4",
  "soroban-sdk",
 ]
 
@@ -1857,6 +1859,8 @@ name = "vault"
 version = "0.1.0"
 dependencies = [
  "common",
+ "ed25519-dalek",
+ "rand_core 0.6.4",
  "soroban-sdk",
 ]
 

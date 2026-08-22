@@ -150,7 +150,7 @@ mod tests {
         let init = MockAuthInvoke {
             contract: &contract_id,
             fn_name: "initialize",
-            args: vec![&env],
+            args: vec![&env, symbol_short!("init").to_val()],
             sub_invokes: &[],
         };
         env.mock_auths(&[MockAuth {
@@ -185,5 +185,59 @@ mod tests {
         // rather than silently wrapping.
         let res = client.try_accrue(&user, &1_i128);
         assert!(res.is_err(), "overflow must surface an error");
+    }
+
+    #[test]
+    fn test_claim_on_zero_balance_returns_zero() {
+        let env = Env::default();
+        env.mock_all_auths();
+
+        let admin = Address::generate(&env);
+        let user = Address::generate(&env);
+        let contract_id = env.register(RewardsContract, ());
+        let client = RewardsContractClient::new(&env, &contract_id);
+
+        client.initialize(&admin);
+
+        let claimed = client.claim(&user);
+        assert_eq!(claimed, 0);
+    }
+
+    #[test]
+    fn test_pending_rewards_query_without_claiming() {
+        let env = Env::default();
+        env.mock_all_auths();
+
+        let admin = Address::generate(&env);
+        let user = Address::generate(&env);
+        let contract_id = env.register(RewardsContract, ());
+        let client = RewardsContractClient::new(&env, &contract_id);
+
+        client.initialize(&admin);
+        client.accrue(&user, &500_i128);
+        let pending = client.pending_rewards(&user);
+
+        assert_eq!(pending, 500);
+        assert_eq!(client.pending_rewards(&user), 500);
+    }
+
+    #[test]
+    fn test_multiple_accrue_then_claim() {
+        let env = Env::default();
+        env.mock_all_auths();
+
+        let admin = Address::generate(&env);
+        let user = Address::generate(&env);
+        let contract_id = env.register(RewardsContract, ());
+        let client = RewardsContractClient::new(&env, &contract_id);
+
+        client.initialize(&admin);
+        client.accrue(&user, &100_i128);
+        client.accrue(&user, &200_i128);
+        client.accrue(&user, &50_i128);
+
+        assert_eq!(client.pending_rewards(&user), 350);
+        assert_eq!(client.claim(&user), 350);
+        assert_eq!(client.pending_rewards(&user), 0);
     }
 }

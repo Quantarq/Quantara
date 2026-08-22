@@ -115,7 +115,40 @@ jobs:
           manifest-path: quantara/soroban/contracts/Cargo.toml
           arguments: --config quantara/soroban/contracts/deny.toml
 
-  # ── 4. Build ────────────────────────────────────────────────────────────────
+  # ── 4. Test ─────────────────────────────────────────────────────────────────
+  test:
+    name: Test (cargo test)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    needs: [fmt, clippy]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          targets: wasm32-unknown-unknown
+
+      - name: Cache Cargo registry & build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            quantara/soroban/contracts/target/
+          key: ${{ runner.os }}-cargo-test-${{ hashFiles('quantara/soroban/contracts/Cargo.toml', 'quantara/soroban/contracts/**/Cargo.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-test-
+
+      - name: Run tests
+        run: cargo test
+
+  # ── 5. Build ────────────────────────────────────────────────────────────────
   build:
     name: Build (wasm32-unknown-unknown)
     runs-on: ubuntu-latest
